@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 
 import '../data/content.dart';
+import '../services/online.dart';
+import '../services/voice.dart';
 import '../state/app_state.dart';
 import '../ui/widgets.dart';
 import 'add_child.dart';
@@ -39,6 +41,7 @@ class ParentDashboard extends StatelessWidget {
             title: const Text('الراوي الصوتي'),
             subtitle: const Text('يقرأ التعليمات والقصص بصوت الجهاز. لا يقرأ آيات القرآن.'),
           ),
+          const _VoiceStatus(),
         ]),
         _Panel(title: 'الخصوصية', children: const [
           ListTile(
@@ -157,6 +160,8 @@ class _ChildCard extends StatelessWidget {
             _Stat('مرحلة النخلة', '${palmStage(c.stars) + 1} من 6'),
           ]),
           const SizedBox(height: 14),
+          _OnlineCard(child: c),
+          const SizedBox(height: 14),
           const Text('الاستخدام في آخر 7 أيام (بالدقائق)', style: TextStyle(fontWeight: FontWeight.w700)),
           const SizedBox(height: 8),
           _WeekBars(child: c),
@@ -253,6 +258,149 @@ class _WeekBars extends StatelessWidget {
               Text(_days[days[i].weekday - 1], style: const TextStyle(fontSize: 10)),
             ]),
           ),
+      ]),
+    );
+  }
+}
+
+class _VoiceStatus extends StatelessWidget {
+  const _VoiceStatus();
+
+  @override
+  Widget build(BuildContext context) {
+    return FutureBuilder<void>(
+      future: Voice.instance.init(),
+      builder: (context, snap) {
+        if (snap.connectionState != ConnectionState.done) {
+          return const ListTile(title: Text('جارٍ فحص الصوت العربي...'));
+        }
+        final ok = Voice.instance.arabicAvailable == true;
+        return Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+          ListTile(
+            leading: Icon(ok ? Icons.check_circle_rounded : Icons.error_outline_rounded, color: ok ? RC.green : RC.coral),
+            title: Text(ok ? 'الصوت العربي متوفر' : 'لا يوجد صوت عربي في هذا الجوال'),
+            subtitle: Text(ok
+                ? 'المحرك: ${Voice.instance.engineName.isEmpty ? 'الافتراضي' : Voice.instance.engineName}'
+                : 'لذلك أوقفنا الراوي حتى لا ينطق كلامًا غير مفهوم. ثبّت «خدمات الكلام من Google» من المتجر، '
+                    'ثم من إعدادات الجوال: تحويل النص إلى كلام، اختر محرك Google ونزّل اللغة العربية، وأعد فتح التطبيق.'),
+          ),
+          if (ok)
+            Padding(
+              padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
+              child: OutlinedButton.icon(
+                icon: const Icon(Icons.volume_up_rounded),
+                label: const Text('تجربة الصوت'),
+                onPressed: () => Voice.instance.say('السلام عليكم، أهلًا بك في روضة'),
+              ),
+            ),
+        ]);
+      },
+    );
+  }
+}
+
+const _nickA = ['نجم', 'قمر', 'فانوس', 'كوكب', 'شهاب', 'غيمة', 'نخلة', 'وردة'];
+const _nickB = ['الصباح', 'الأمل', 'المعرفة', 'الهدى', 'السماء', 'الخير', 'العلم', 'النور'];
+const _blocked = ['غبي', 'حمار', 'كلب', 'زق', 'تفو', 'وسخ', 'حقير', 'لعن'];
+
+String? validateNick(String v) {
+  final t = v.trim();
+  if (t.length < 2 || t.length > 16) return 'اللقب من 2 إلى 16 حرفًا';
+  if (!RegExp(r'^[\u0621-\u064A ]+$').hasMatch(t)) return 'حروف عربية فقط، بلا أرقام أو رموز';
+  for (final b in _blocked) {
+    if (t.contains(b)) return 'اختر لقبًا لائقًا';
+  }
+  return null;
+}
+
+class _OnlineCard extends StatefulWidget {
+  final ChildProfile child;
+  const _OnlineCard({required this.child});
+
+  @override
+  State<_OnlineCard> createState() => _OnlineCardState();
+}
+
+class _OnlineCardState extends State<_OnlineCard> {
+  late final TextEditingController _nick;
+  String? _error;
+  bool _busy = false;
+
+  @override
+  void initState() {
+    super.initState();
+    final c = widget.child;
+    _nick = TextEditingController(text: c.nick.isNotEmpty ? c.nick : '${_nickA[c.id.hashCode.abs() % 8]} ${_nickB[(c.id.hashCode.abs() ~/ 8) % 8]}');
+  }
+
+  @override
+  void dispose() {
+    _nick.dispose();
+    super.dispose();
+  }
+
+  Future<void> _toggle(bool on) async {
+    final st = AppScope.read(context);
+    final c = widget.child;
+    if (on) {
+      final err = validateNick(_nick.text);
+      if (err != null) {
+        setState(() => _error = err);
+        return;
+      }
+      setState(() {
+        _busy = true;
+        _error = null;
+      });
+      c.nick = _nick.text.trim();
+      final res = await Online.instance.join(st, c);
+      if (mounted) setState(() {
+        _busy = false;
+        _error = res;
+      });
+    } else {
+      setState(() => _busy = true);
+      await Online.instance.leave(c);
+      c.onlineEnabled = false;
+      c.pendingPoints = 0;
+      st.updateChild(c);
+      if (mounted) setState(() => _busy = false);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final c = widget.child;
+    return Container(
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(color: const Color(0xFFFFF7E6), borderRadius: BorderRadius.circular(14)),
+      child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+        Row(children: [
+          const Icon(Icons.leaderboard_rounded, color: RC.coral),
+          const SizedBox(width: 8),
+          const Expanded(child: Text('المنافسة أون لاين', style: TextStyle(fontWeight: FontWeight.w700, fontSize: 16))),
+          _busy
+              ? const SizedBox(width: 24, height: 24, child: CircularProgressIndicator(strokeWidth: 3))
+              : Switch(value: c.onlineEnabled, onChanged: _toggle),
+        ]),
+        const Text('يظهر طفلك في الترتيب باللقب والرمز والنقاط فقط. لا محادثة ولا رسائل ولا أي بيانات شخصية.',
+            style: TextStyle(fontSize: 13, color: Colors.black54)),
+        const SizedBox(height: 8),
+        TextField(
+          controller: _nick,
+          enabled: !c.onlineEnabled && !_busy,
+          maxLength: 16,
+          decoration: InputDecoration(
+            labelText: 'لقب الطفل في المنافسة',
+            helperText: 'لا تكتب الاسم الحقيقي الكامل',
+            errorText: _error,
+            border: const OutlineInputBorder(),
+            isDense: true,
+          ),
+        ),
+        if (c.onlineEnabled)
+          Text('النقاط الكلية: ${c.onlineTotal}  ·  نقاط الأسبوع: ${c.weekPoints}  ·  المنزلة: ${Online.tiers[Online.tierIndex(c.onlineTotal)].$1}',
+              style: const TextStyle(fontSize: 13)),
       ]),
     );
   }

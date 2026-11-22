@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../services/voice.dart';
 import '../state/app_state.dart';
 import '../ui/widgets.dart';
+import 'competition.dart';
 import 'family_quiz.dart';
 import 'games_hub.dart';
 import 'garden.dart';
@@ -28,6 +29,7 @@ class HomeMapScreen extends StatelessWidget {
     _Place('ساحة الألعاب', 'نلعب ونتعلم', Icons.extension_rounded, RC.plum, (_) => const GamesHubScreen()),
     _Place('المسابقات', 'أجب واجمع النجوم', Icons.emoji_events_rounded, RC.gold, (_) => const QuizHubScreen()),
     _Place('حديقتي', 'نخلتي وعادات الخير', Icons.park_rounded, RC.green, (_) => const GardenScreen()),
+    _Place('ميدان المنافسة', 'نافس واصعد الهرم', Icons.leaderboard_rounded, RC.coral, (_) => const CompetitionScreen()),
     _Place('مجلس العائلة', 'مسابقة مع أهلي', Icons.chair_rounded, RC.greenDark, (_) => const FamilyQuizScreen()),
   ];
 

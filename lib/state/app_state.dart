@@ -34,6 +34,13 @@ class ChildProfile {
   int approvedHabits;
   int bestLetterScore;
   int dailyLimitMinutes; // 0 = بلا حد
+  // المنافسة أون لاين
+  bool onlineEnabled;
+  String nick;
+  int onlineTotal;
+  int pendingPoints;
+  String weekKey;
+  int weekPoints;
   Set<String> completed;
   Set<String> wrongQuestions;
   List<PendingHabit> pendingHabits;
@@ -51,6 +58,12 @@ class ChildProfile {
     this.approvedHabits = 0,
     this.bestLetterScore = 0,
     this.dailyLimitMinutes = 30,
+    this.onlineEnabled = false,
+    this.nick = '',
+    this.onlineTotal = 0,
+    this.pendingPoints = 0,
+    this.weekKey = '',
+    this.weekPoints = 0,
     Set<String>? completed,
     Set<String>? wrongQuestions,
     List<PendingHabit>? pendingHabits,
@@ -87,6 +100,12 @@ class ChildProfile {
         'approvedHabits': approvedHabits,
         'bestLetterScore': bestLetterScore,
         'dailyLimitMinutes': dailyLimitMinutes,
+        'onlineEnabled': onlineEnabled,
+        'nick': nick,
+        'onlineTotal': onlineTotal,
+        'pendingPoints': pendingPoints,
+        'weekKey': weekKey,
+        'weekPoints': weekPoints,
         'completed': completed.toList(),
         'wrongQuestions': wrongQuestions.toList(),
         'pendingHabits': pendingHabits.map((e) => e.toJson()).toList(),
@@ -105,6 +124,12 @@ class ChildProfile {
         approvedHabits: (j['approvedHabits'] as num?)?.toInt() ?? 0,
         bestLetterScore: (j['bestLetterScore'] as num?)?.toInt() ?? 0,
         dailyLimitMinutes: (j['dailyLimitMinutes'] as num?)?.toInt() ?? 30,
+        onlineEnabled: (j['onlineEnabled'] as bool?) ?? false,
+        nick: (j['nick'] as String?) ?? '',
+        onlineTotal: (j['onlineTotal'] as num?)?.toInt() ?? 0,
+        pendingPoints: (j['pendingPoints'] as num?)?.toInt() ?? 0,
+        weekKey: (j['weekKey'] as String?) ?? '',
+        weekPoints: (j['weekPoints'] as num?)?.toInt() ?? 0,
         completed: ((j['completed'] as List?) ?? const []).map((e) => e.toString()).toSet(),
         wrongQuestions: ((j['wrongQuestions'] as List?) ?? const []).map((e) => e.toString()).toSet(),
         pendingHabits: ((j['pendingHabits'] as List?) ?? const [])
@@ -128,6 +153,17 @@ class AppState extends ChangeNotifier {
 
   Timer? _ticker;
   bool _childActive = false;
+
+  /// يُستدعى عند كسب نقاط منافسة، ليرسلها إلى الخادم على دفعات.
+  void Function()? onPoints;
+
+  /// نقاط المنافسة أون لاين للطفل الحالي (إن كان مشاركًا).
+  void _earn(int n) {
+    final c = current;
+    if (c == null || !c.onlineEnabled || n <= 0) return;
+    c.pendingPoints += n;
+    onPoints?.call();
+  }
 
   ChildProfile? get current {
     for (final c in children) {
@@ -266,6 +302,7 @@ class AppState extends ChangeNotifier {
     if (c == null) return false;
     if (c.completed.add(activityId)) {
       c.stars += stars;
+      _earn(10);
       _changed();
       return true;
     }
@@ -279,6 +316,7 @@ class AppState extends ChangeNotifier {
     if (correct) {
       c.quizCorrect++;
       c.stars += 2;
+      _earn(5);
       c.wrongQuestions.remove(questionId);
     } else {
       c.wrongQuestions.add(questionId);
@@ -290,6 +328,7 @@ class AppState extends ChangeNotifier {
     final c = current;
     if (c == null) return;
     c.stars += score ~/ 3;
+    _earn(score);
     if (score > c.bestLetterScore) c.bestLetterScore = score;
     _changed();
   }

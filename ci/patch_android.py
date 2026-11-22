@@ -13,8 +13,11 @@ for name in ("build.gradle.kts", "build.gradle"):
         s = f.read_text(encoding="utf-8")
         s = re.sub(r'applicationId\s*=?\s*"[^"]+"',
                    'applicationId = "com.rawdah.kids"' if name.endswith(".kts") else 'applicationId "com.rawdah.kids"', s)
+        # مكتبات Firebase تحتاج أندرويد 6 فأحدث
+        s = re.sub(r'minSdk\s*=\s*flutter\.minSdkVersion', 'minSdk = 23', s)
+        s = re.sub(r'minSdkVersion\s+flutter\.minSdkVersion', 'minSdkVersion 23', s)
         f.write_text(s, encoding="utf-8")
-        print("applicationId patched in", name)
+        print("applicationId and minSdk patched in", name)
 
 # 2) الاسم الظاهر وصلاحية محرك النطق، دون إنترنت
 manifest = app / "src" / "main" / "AndroidManifest.xml"
@@ -34,6 +37,9 @@ if "com.google.android.gms.permission.AD_ID" not in m:
     if "xmlns:tools" not in m:
         m = m.replace("<manifest ", '<manifest xmlns:tools="http://schemas.android.com/tools" ', 1)
     m = m.replace("<application", '<uses-permission android:name="com.google.android.gms.permission.AD_ID" tools:node="remove" />\n    <application', 1)
+# الإنترنت لازم للمنافسة أون لاين فقط
+if "android.permission.INTERNET" not in m:
+    m = m.replace("<application", '<uses-permission android:name="android.permission.INTERNET" />\n    <application', 1)
 manifest.write_text(m, encoding="utf-8")
 print("manifest patched")
 

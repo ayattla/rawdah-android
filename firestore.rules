@@ -1,0 +1,59 @@
+rules_version = '2';
+// قواعد روضة: منافسة بالألقاب فقط، بلا أي تواصل بين الأطفال.
+// كل جهاز يدخل دخولًا مجهولًا، ولا يكتب إلا ملفات أطفاله، والنقاط تزيد بحد أقصى 60 كل 8 ثوانٍ.
+service cloud.firestore {
+  match /databases/{database}/documents {
+    function signedIn() { return request.auth != null; }
+    function owns(pid) { return signedIn() && pid.matches(request.auth.uid + '_[A-Za-z0-9]+'); }
+    function okNick(d) { return d.nick is string && d.nick.size() >= 2 && d.nick.size() <= 24; }
+    function okSymbol(d) { return d.symbol in ['star', 'moon', 'sun', 'tree', 'book', 'gem']; }
+    function stamped(d) { return d.updatedAt == request.time; }
+    function slow() { return request.time > resource.data.updatedAt + duration.value(8, 's'); }
+
+    match /players/{pid} {
+      allow read: if signedIn();
+      allow create: if owns(pid)
+        && request.resource.data.keys().hasOnly(['nick', 'symbol', 'band', 'total', 'updatedAt'])
+        && okNick(request.resource.data) && okSymbol(request.resource.data)
+        && request.resource.data.band in [0, 1, 2]
+        && request.resource.data.total is int
+        && request.resource.data.total >= 0 && request.resource.data.total <= 60
+        && stamped(request.resource.data);
+      allow update: if owns(pid)
+        && request.resource.data.keys().hasOnly(['nick', 'symbol', 'band', 'total', 'updatedAt'])
+        && okNick(request.resource.data) && okSymbol(request.resource.data)
+        && request.resource.data.band in [0, 1, 2]
+        && request.resource.data.total is int
+        && request.resource.data.total >= resource.data.total
+        && request.resource.data.total <= resource.data.total + 60
+        && stamped(request.resource.data) && slow();
+      allow delete: if owns(pid);
+    }
+
+    match /leagues/{week}/entries/{pid} {
+      allow read: if signedIn();
+      allow create: if owns(pid) && week.matches('w[0-9]+_b[0-2]')
+        && request.resource.data.keys().hasOnly(['nick', 'symbol', 'points', 'updatedAt'])
+        && okNick(request.resource.data) && okSymbol(request.resource.data)
+        && request.resource.data.points is int
+        && request.resource.data.points >= 0 && request.resource.data.points <= 60
+        && stamped(request.resource.data);
+      allow update: if owns(pid)
+        && request.resource.data.keys().hasOnly(['nick', 'symbol', 'points', 'updatedAt'])
+        && okNick(request.resource.data) && okSymbol(request.resource.data)
+        && request.resource.data.points is int
+        && request.resource.data.points >= resource.data.points
+        && request.resource.data.points <= resource.data.points + 60
+        && stamped(request.resource.data) && slow();
+      allow delete: if owns(pid);
+    }
+
+    // إبلاغ عن لقب غير لائق: إنشاء فقط، ويراجعه المشرف من لوحة Firebase.
+    match /reports/{rid} {
+      allow create: if signedIn()
+        && request.resource.data.keys().hasOnly(['target', 'createdAt'])
+        && request.resource.data.target is string && request.resource.data.target.size() < 80
+        && request.resource.data.createdAt == request.time;
+    }
+  }
+}

@@ -4,6 +4,7 @@ import 'package:flutter_localizations/flutter_localizations.dart';
 
 import 'screens/child_picker.dart';
 import 'screens/onboarding.dart';
+import 'services/online.dart';
 import 'services/voice.dart';
 import 'state/app_state.dart';
 import 'ui/widgets.dart';
@@ -12,7 +13,10 @@ void main() {
   WidgetsFlutterBinding.ensureInitialized();
   SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp]);
   final state = AppState();
-  state.load();
+  state.onPoints = () => Online.instance.scheduleFlush(state);
+  state.load().then((_) {
+    if (state.children.any((c) => c.onlineEnabled)) Online.instance.scheduleFlush(state);
+  });
   runApp(RawdahApp(state: state));
 }
 

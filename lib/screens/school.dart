@@ -21,7 +21,7 @@ class SchoolScreen extends StatelessWidget {
         Expanded(
           child: ListView(padding: const EdgeInsets.all(16), children: [
             const _Section('القرآن الكريم'),
-            for (final s in kSurahs.where((s) => s.number != 105))
+            for (final s in kSurahs)
               Padding(
                 padding: const EdgeInsets.only(bottom: 10),
                 child: BigTile(
