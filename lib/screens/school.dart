@@ -12,7 +12,8 @@ class SchoolScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final c = AppScope.of(context).current!;
+    final c = AppScope.of(context).current;
+    if (c == null) return const SizedBox.shrink();
     final lessons = kLessons.where((l) => l.minBand <= c.ageBand).toList();
     return ChildShell(
       child: Column(children: [

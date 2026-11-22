@@ -39,7 +39,8 @@ class GardenScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final st = AppScope.of(context);
-    final c = st.current!;
+    final c = st.current;
+    if (c == null) return const SizedBox.shrink();
     final stage = palmStage(c.stars);
     final next = stage < kPalmStages.length - 1 ? kPalmStages[stage + 1] : null;
     return ChildShell(

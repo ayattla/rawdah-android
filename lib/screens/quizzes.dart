@@ -12,7 +12,8 @@ class QuizHubScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final c = AppScope.of(context).current!;
+    final c = AppScope.of(context).current;
+    if (c == null) return const SizedBox.shrink();
     final pool = questionsFor(c.ageBand);
     final dailyId = 'daily_${todayKey()}';
     final review = c.wrongQuestions.map(questionById).whereType<Question>().toList();

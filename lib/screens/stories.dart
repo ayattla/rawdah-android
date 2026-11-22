@@ -12,7 +12,8 @@ class StoriesScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final st = AppScope.of(context);
-    final c = st.current!;
+    final c = st.current;
+    if (c == null) return const SizedBox.shrink();
     final list = kStories.where((s) => s.minBand <= c.ageBand).toList();
     return ChildShell(
       child: Column(children: [

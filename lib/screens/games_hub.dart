@@ -15,7 +15,8 @@ class GamesHubScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final c = AppScope.of(context).current!;
+    final c = AppScope.of(context).current;
+    if (c == null) return const SizedBox.shrink();
     return ChildShell(
       child: Column(children: [
         const KidBar(title: 'ساحة الألعاب'),

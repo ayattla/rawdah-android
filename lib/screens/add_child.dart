@@ -63,17 +63,16 @@ class _AddChildFormState extends State<AddChildForm> {
       const SizedBox(height: 16),
       const Text('الفئة العمرية', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600)),
       const SizedBox(height: 8),
-      for (var i = 0; i < kAgeBandNames.length; i++)
-        Padding(
-          padding: const EdgeInsets.only(bottom: 8),
-          child: ChoiceChip(
-            label: SizedBox(width: double.infinity, child: Text(kAgeBandNames[i], style: const TextStyle(fontSize: 18))),
+      Wrap(spacing: 8, runSpacing: 8, children: [
+        for (var i = 0; i < kAgeBandNames.length; i++)
+          ChoiceChip(
+            label: Text(kAgeBandNames[i], style: const TextStyle(fontSize: 18)),
             selected: _band == i,
             onSelected: (_) => setState(() => _band = i),
             selectedColor: RC.green.withValues(alpha: 0.2),
-            padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 8),
+            padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 6),
           ),
-        ),
+      ]),
       const SizedBox(height: 12),
       PrimaryButton(
         label: 'إضافة',
