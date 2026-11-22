@@ -86,7 +86,9 @@ class QuizRunner extends StatefulWidget {
   final String title;
   final List<Question> questions;
   final String? completionId;
-  const QuizRunner({super.key, required this.title, required this.questions, this.completionId});
+  /// عند وجوده يُستدعى بعدد الإجابات الصحيحة بدل نافذة المكافأة (يستخدمه تحدي الصديق).
+  final Future<void> Function(int right)? onFinish;
+  const QuizRunner({super.key, required this.title, required this.questions, this.completionId, this.onFinish});
 
   @override
   State<QuizRunner> createState() => _QuizRunnerState();
@@ -130,6 +132,11 @@ class _QuizRunnerState extends State<QuizRunner> {
         _picked = null;
       });
       Voice.instance.say(_q.text);
+      return;
+    }
+    if (widget.onFinish != null) {
+      await widget.onFinish!(_right);
+      if (mounted) Navigator.of(context).pop();
       return;
     }
     if (widget.completionId != null) AppScope.read(context).complete(widget.completionId!, stars: 3);

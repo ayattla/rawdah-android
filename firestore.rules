@@ -49,6 +49,25 @@ service cloud.firestore {
     }
 
     // إبلاغ عن لقب غير لائق: إنشاء فقط، ويراجعه المشرف من لوحة Firebase.
+    // تحدي صديق: المنشئ يكتب نتيجته، والصديق يضيف نتيجته مرة واحدة فقط.
+    match /challenges/{code} {
+      allow read: if signedIn();
+      allow create: if signedIn() && code.matches('[A-Z0-9]{6}')
+        && request.resource.data.keys().hasOnly(['band', 'qids', 'aNick', 'aSymbol', 'aScore', 'createdAt'])
+        && request.resource.data.band in [0, 1, 2]
+        && request.resource.data.qids is list && request.resource.data.qids.size() == 5
+        && request.resource.data.aNick is string && request.resource.data.aNick.size() <= 24
+        && request.resource.data.aSymbol in ['star', 'moon', 'sun', 'tree', 'book', 'gem']
+        && request.resource.data.aScore is int && request.resource.data.aScore >= 0 && request.resource.data.aScore <= 5
+        && request.resource.data.createdAt == request.time;
+      allow update: if signedIn() && !('bScore' in resource.data)
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['bNick', 'bSymbol', 'bScore', 'bAt'])
+        && request.resource.data.bNick is string && request.resource.data.bNick.size() <= 24
+        && request.resource.data.bSymbol in ['star', 'moon', 'sun', 'tree', 'book', 'gem']
+        && request.resource.data.bScore is int && request.resource.data.bScore >= 0 && request.resource.data.bScore <= 5
+        && request.resource.data.bAt == request.time;
+    }
+
     match /reports/{rid} {
       allow create: if signedIn()
         && request.resource.data.keys().hasOnly(['target', 'createdAt'])

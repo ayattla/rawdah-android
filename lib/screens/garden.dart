@@ -17,6 +17,26 @@ int palmStage(int stars) {
   return s;
 }
 
+class ShopItem {
+  final String id;
+  final String name;
+  final IconData icon;
+  final Color color;
+  final int price;
+  final Alignment place;
+  const ShopItem(this.id, this.name, this.icon, this.color, this.price, this.place);
+}
+
+/// زينة الحديقة: جمادات ونباتات وعمارة فقط.
+const List<ShopItem> kShop = [
+  ShopItem('flower', 'أزهار', Icons.local_florist_rounded, Color(0xFFE07856), 15, Alignment(-0.55, 0.75)),
+  ShopItem('lamp', 'فانوس معلّق', Icons.light_rounded, Color(0xFFF2B544), 20, Alignment(0.75, -0.55)),
+  ShopItem('water', 'جدول ماء', Icons.water_rounded, Color(0xFF2F8FB5), 30, Alignment(0.55, 0.8)),
+  ShopItem('trees', 'أشجار', Icons.forest_rounded, Color(0xFF2E7D5B), 45, Alignment(-0.85, 0.35)),
+  ShopItem('arch', 'قوس مزخرف', Icons.fort_rounded, Color(0xFF7A5BA6), 60, Alignment(0.85, 0.35)),
+  ShopItem('mosque', 'مسجد صغير', Icons.mosque_rounded, Color(0xFF1F5A41), 90, Alignment(-0.25, -0.75)),
+];
+
 class _Badge {
   final String title;
   final IconData icon;
@@ -54,6 +74,8 @@ class GardenScreen extends StatelessWidget {
               child: Stack(children: [
                 Positioned.fill(child: CustomPaint(painter: PalmPainter(stage))),
                 Positioned(left: 14, top: 14, child: Lantern(size: 70, glow: (c.streak / 7).clamp(0.2, 1.0).toDouble())),
+                for (final it in kShop.where((i) => c.owned.contains(i.id)))
+                  Align(alignment: it.place, child: Icon(it.icon, size: 42, color: it.color)),
               ]),
             ),
             const SizedBox(height: 10),
@@ -61,6 +83,55 @@ class GardenScreen extends StatelessWidget {
               next == null ? 'نخلتك أثمرت بالكامل، ما شاء الله' : 'بقي ${next - c.stars} نجمة لتكبر نخلتك',
               textAlign: TextAlign.center,
               style: const TextStyle(fontSize: 19, fontWeight: FontWeight.w600, color: RC.greenDark),
+            ),
+            const SizedBox(height: 18),
+            Row(children: [
+              const Expanded(
+                child: Text('متجر الحديقة', style: TextStyle(fontSize: 22, fontWeight: FontWeight.w700, color: RC.ink)),
+              ),
+              const Icon(Icons.star_rounded, color: RC.gold),
+              Text(' رصيدك ${c.balance}', style: const TextStyle(fontSize: 17, fontWeight: FontWeight.w600)),
+            ]),
+            const Text('زيّن حديقتك بالنجوم التي جمعتها. نخلتك لا تصغر عند الشراء.',
+                style: TextStyle(fontSize: 14, color: Colors.black54)),
+            const SizedBox(height: 8),
+            GridView.count(
+              shrinkWrap: true,
+              physics: const NeverScrollableScrollPhysics(),
+              crossAxisCount: 3,
+              mainAxisSpacing: 10,
+              crossAxisSpacing: 10,
+              childAspectRatio: 0.82,
+              children: [
+                for (final it in kShop)
+                  Container(
+                    padding: const EdgeInsets.all(8),
+                    decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(18)),
+                    child: Column(mainAxisAlignment: MainAxisAlignment.spaceEvenly, children: [
+                      Icon(it.icon, size: 38, color: it.color),
+                      Text(it.name, textAlign: TextAlign.center, style: const TextStyle(fontSize: 14)),
+                      c.owned.contains(it.id)
+                          ? const Text('في حديقتك', style: TextStyle(color: RC.green, fontWeight: FontWeight.w700))
+                          : SizedBox(
+                              height: 36,
+                              child: FilledButton(
+                                style: FilledButton.styleFrom(
+                                  backgroundColor: c.balance >= it.price ? RC.gold : Colors.black26,
+                                  padding: const EdgeInsets.symmetric(horizontal: 8),
+                                ),
+                                onPressed: () {
+                                  if (st.buy(it.id, it.price)) {
+                                    Voice.instance.say('أضفنا ${it.name} إلى حديقتك');
+                                  } else {
+                                    Voice.instance.say('اجمع نجومًا أكثر لتشتري ${it.name}');
+                                  }
+                                },
+                                child: Text('${it.price} نجمة', style: const TextStyle(fontSize: 13)),
+                              ),
+                            ),
+                    ]),
+                  ),
+              ],
             ),
             const SizedBox(height: 18),
             const Text('عادات الخير اليوم', style: TextStyle(fontSize: 22, fontWeight: FontWeight.w700, color: RC.ink)),

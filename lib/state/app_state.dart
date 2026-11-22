@@ -41,6 +41,14 @@ class ChildProfile {
   int pendingPoints;
   String weekKey;
   int weekPoints;
+  // المتجر والمهام اليومية والتحديات
+  int spentStars;
+  Set<String> owned;
+  String dayKey;
+  int correctToday;
+  int learnToday;
+  int gamesToday;
+  List<String> myChallenges;
   Set<String> completed;
   Set<String> wrongQuestions;
   List<PendingHabit> pendingHabits;
@@ -64,18 +72,51 @@ class ChildProfile {
     this.pendingPoints = 0,
     this.weekKey = '',
     this.weekPoints = 0,
+    this.spentStars = 0,
+    Set<String>? owned,
+    this.dayKey = '',
+    this.correctToday = 0,
+    this.learnToday = 0,
+    this.gamesToday = 0,
+    List<String>? myChallenges,
     Set<String>? completed,
     Set<String>? wrongQuestions,
     List<PendingHabit>? pendingHabits,
     Map<String, int>? usageSeconds,
     List<String>? activeDays,
-  })  : completed = completed ?? <String>{},
+  })  : owned = owned ?? <String>{},
+        myChallenges = myChallenges ?? <String>[],
+        completed = completed ?? <String>{},
         wrongQuestions = wrongQuestions ?? <String>{},
         pendingHabits = pendingHabits ?? <PendingHabit>[],
         usageSeconds = usageSeconds ?? <String, int>{},
         activeDays = activeDays ?? <String>[];
 
   int get todaySeconds => usageSeconds[todayKey()] ?? 0;
+
+  /// الرصيد المتاح للشراء من متجر الحديقة.
+  int get balance => stars - spentStars;
+
+  /// المستوى الشخصي من 1 إلى 50 حسب مجموع النجوم المكتسبة.
+  int get level {
+    var l = 1;
+    while (l < 50 && stars >= levelStart(l + 1)) {
+      l++;
+    }
+    return l;
+  }
+
+  static int levelStart(int l) => 5 * (l - 1) * (l - 1);
+
+  void rollDay() {
+    final k = todayKey();
+    if (dayKey != k) {
+      dayKey = k;
+      correctToday = 0;
+      learnToday = 0;
+      gamesToday = 0;
+    }
+  }
 
   /// عدد الأيام المتتالية التي استخدم فيها الطفل التطبيق حتى اليوم.
   int get streak {
@@ -106,6 +147,13 @@ class ChildProfile {
         'pendingPoints': pendingPoints,
         'weekKey': weekKey,
         'weekPoints': weekPoints,
+        'spentStars': spentStars,
+        'owned': owned.toList(),
+        'dayKey': dayKey,
+        'correctToday': correctToday,
+        'learnToday': learnToday,
+        'gamesToday': gamesToday,
+        'myChallenges': myChallenges,
         'completed': completed.toList(),
         'wrongQuestions': wrongQuestions.toList(),
         'pendingHabits': pendingHabits.map((e) => e.toJson()).toList(),
@@ -130,6 +178,13 @@ class ChildProfile {
         pendingPoints: (j['pendingPoints'] as num?)?.toInt() ?? 0,
         weekKey: (j['weekKey'] as String?) ?? '',
         weekPoints: (j['weekPoints'] as num?)?.toInt() ?? 0,
+        spentStars: (j['spentStars'] as num?)?.toInt() ?? 0,
+        owned: ((j['owned'] as List?) ?? const []).map((e) => e.toString()).toSet(),
+        dayKey: (j['dayKey'] as String?) ?? '',
+        correctToday: (j['correctToday'] as num?)?.toInt() ?? 0,
+        learnToday: (j['learnToday'] as num?)?.toInt() ?? 0,
+        gamesToday: (j['gamesToday'] as num?)?.toInt() ?? 0,
+        myChallenges: ((j['myChallenges'] as List?) ?? const []).map((e) => e.toString()).toList(),
         completed: ((j['completed'] as List?) ?? const []).map((e) => e.toString()).toSet(),
         wrongQuestions: ((j['wrongQuestions'] as List?) ?? const []).map((e) => e.toString()).toSet(),
         pendingHabits: ((j['pendingHabits'] as List?) ?? const [])
@@ -300,6 +355,15 @@ class AppState extends ChangeNotifier {
   bool complete(String activityId, {int stars = 3}) {
     final c = current;
     if (c == null) return false;
+    c.rollDay();
+    if (activityId.startsWith('game_')) {
+      c.gamesToday++;
+    } else if (activityId.startsWith('story_') ||
+        activityId.startsWith('lesson_') ||
+        activityId.startsWith('surah_') ||
+        activityId == 'adhkar') {
+      c.learnToday++;
+    }
     if (c.completed.add(activityId)) {
       c.stars += stars;
       _earn(10);
@@ -313,7 +377,9 @@ class AppState extends ChangeNotifier {
     final c = current;
     if (c == null) return;
     c.quizTotal++;
+    c.rollDay();
     if (correct) {
+      c.correctToday++;
       c.quizCorrect++;
       c.stars += 2;
       _earn(5);
@@ -327,9 +393,52 @@ class AppState extends ChangeNotifier {
   void recordLetterScore(int score) {
     final c = current;
     if (c == null) return;
+    c.rollDay();
+    c.gamesToday++;
     c.stars += score ~/ 3;
     _earn(score);
     if (score > c.bestLetterScore) c.bestLetterScore = score;
+    _changed();
+  }
+
+  // ---------- المهام اليومية ----------
+
+  bool get missionsDone {
+    final c = current;
+    if (c == null) return false;
+    c.rollDay();
+    return c.correctToday >= 5 && c.learnToday >= 1 && c.gamesToday >= 1;
+  }
+
+  /// يمنح مكافأة المهام مرة واحدة في اليوم.
+  bool claimMissions() {
+    final c = current;
+    if (c == null || !missionsDone) return false;
+    final id = 'missions_${todayKey()}';
+    if (c.completed.contains(id)) return false;
+    c.completed.add(id);
+    c.stars += 10;
+    _earn(15);
+    _changed();
+    return true;
+  }
+
+  // ---------- متجر الحديقة ----------
+
+  bool buy(String itemId, int price) {
+    final c = current;
+    if (c == null || c.owned.contains(itemId) || c.balance < price) return false;
+    c.owned.add(itemId);
+    c.spentStars += price;
+    _changed();
+    return true;
+  }
+
+  void addChallenge(String code) {
+    final c = current;
+    if (c == null || c.myChallenges.contains(code)) return;
+    c.myChallenges.insert(0, code);
+    if (c.myChallenges.length > 20) c.myChallenges.removeLast();
     _changed();
   }
 

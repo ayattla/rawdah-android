@@ -225,6 +225,59 @@ class Online {
     return [for (var i = 0; i < counts.length; i++) counts[i] - (i + 1 < counts.length ? counts[i + 1] : 0)];
   }
 
+  // ---------------------------------------------------------------- تحدي صديق
+
+  static const _codeChars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+
+  /// ينشئ تحديًا بخمسة أسئلة ونتيجة المنشئ، ويعيد رمزًا من 6 خانات يشاركه الوالد.
+  Future<String?> createChallenge(ChildProfile c, List<String> qids, int score) async {
+    if (!await ensure()) return null;
+    final now = DateTime.now().microsecondsSinceEpoch;
+    var seed = now ^ uid.hashCode;
+    final code = List.generate(6, (_) {
+      seed = (seed * 1103515245 + 12345) & 0x7fffffff;
+      return _codeChars[seed % _codeChars.length];
+    }).join();
+    try {
+      await _db.collection('challenges').doc(code).set({
+        'band': c.ageBand,
+        'qids': qids,
+        'aNick': c.nick,
+        'aSymbol': c.symbol,
+        'aScore': score,
+        'createdAt': FieldValue.serverTimestamp(),
+      });
+      return code;
+    } catch (_) {
+      return null;
+    }
+  }
+
+  Future<Map<String, dynamic>?> getChallenge(String code) async {
+    if (!await ensure()) return null;
+    try {
+      final d = await _db.collection('challenges').doc(code.trim().toUpperCase()).get();
+      return d.exists ? d.data() : null;
+    } catch (_) {
+      return null;
+    }
+  }
+
+  Future<bool> answerChallenge(String code, ChildProfile c, int score) async {
+    if (!await ensure()) return false;
+    try {
+      await _db.collection('challenges').doc(code).update({
+        'bNick': c.nick,
+        'bSymbol': c.symbol,
+        'bScore': score,
+        'bAt': FieldValue.serverTimestamp(),
+      });
+      return true;
+    } catch (_) {
+      return false;
+    }
+  }
+
   Future<void> report(String pid) async {
     if (!await ensure()) return;
     try {
