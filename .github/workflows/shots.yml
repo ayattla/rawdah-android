@@ -1,0 +1,35 @@
+name: لقطات الشاشات
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  shots:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          cache: true
+
+      - name: رسم الشاشات
+        run: |
+          flutter pub get
+          mkdir -p shots_out
+          flutter test test_shots --update-goldens 2>&1 | tee shots_out/log.txt || true
+
+      - name: نشر اللقطات في فرع shots
+        run: |
+          cd shots_out
+          git init -q
+          git checkout -q -b shots
+          git add .
+          git -c user.name=shots -c user.email=shots@rawdah.local commit -qm "لقطات ${GITHUB_SHA::7}"
+          git push -f -q "https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}.git" shots
