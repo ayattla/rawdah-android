@@ -203,7 +203,7 @@ class JourneyMap extends StatelessWidget {
                                   size: 104),
                             KhatamBadge(
                               icon: done ? Icons.check_rounded : (open ? _iconFor(s.type) : Icons.lock_rounded),
-                              color: done ? RC.gold : (open ? journey.color : RC.sandDark),
+                              color: done ? RC.gold : (open ? journey.color : const Color(0xFFAFC9C3)),
                               iconColor: done ? RC.ink : (open ? Colors.white : Colors.white),
                               size: current ? 84 : 72,
                             ),
@@ -214,7 +214,7 @@ class JourneyMap extends StatelessWidget {
                           child: Text(s.title,
                               textAlign: TextAlign.center,
                               style: RT.display(16,
-                                  weight: FontWeight.w700, color: open ? RC.ink : RC.ink.withValues(alpha: 0.4))),
+                                  weight: FontWeight.w700, color: open ? RC.ink : RC.ink.withValues(alpha: 0.6))),
                         ),
                         if (current)
                           Text('ابدأ من هنا', style: RT.body(14, color: journey.color, weight: FontWeight.w500)),
