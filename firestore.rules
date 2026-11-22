@@ -101,6 +101,49 @@ service cloud.firestore {
       }
     }
 
+    // المسابقة المباشرة: المعلم يدير الغرفة، والطفل يكتب إجابته مرة لكل سؤال وتزيد نقطته بواحد كحد أقصى.
+    match /rooms/{code} {
+      function roomData() { return get(/databases/$(database)/documents/rooms/$(code)).data; }
+      allow read: if signedIn();
+      allow create: if signedIn() && code.matches('[A-Z0-9]{6}')
+        && request.resource.data.keys().hasOnly(['owner', 'band', 'qids', 'index', 'state', 'createdAt'])
+        && request.resource.data.owner == request.auth.uid
+        && request.resource.data.band in [0, 1, 2]
+        && request.resource.data.qids is list
+        && request.resource.data.qids.size() >= 3 && request.resource.data.qids.size() <= 15
+        && request.resource.data.index == 0 && request.resource.data.state == 'wait'
+        && request.resource.data.createdAt == request.time;
+      allow update: if signedIn() && resource.data.owner == request.auth.uid
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['index', 'state'])
+        && request.resource.data.state in ['wait', 'q', 'end']
+        && request.resource.data.index is int && request.resource.data.index >= 0
+        && request.resource.data.index < resource.data.qids.size();
+      allow delete: if signedIn() && resource.data.owner == request.auth.uid;
+
+      match /players/{pid} {
+        allow read: if signedIn();
+        allow create: if owns(pid)
+          && exists(/databases/$(database)/documents/rooms/$(code))
+          && request.resource.data.keys().hasOnly(['nick', 'symbol', 'score', 'answered', 'updatedAt'])
+          && okNick(request.resource.data) && okSymbol(request.resource.data)
+          && request.resource.data.score == 0 && request.resource.data.answered == -1
+          && stamped(request.resource.data);
+        allow update: if owns(pid)
+          && request.resource.data.keys().hasOnly(['nick', 'symbol', 'score', 'answered', 'updatedAt'])
+          && request.resource.data.nick == resource.data.nick
+          && request.resource.data.symbol == resource.data.symbol
+          && roomData().state == 'q'
+          && request.resource.data.answered == roomData().index
+          && request.resource.data.answered > resource.data.answered
+          && request.resource.data.score is int
+          && request.resource.data.score >= resource.data.score
+          && request.resource.data.score <= resource.data.score + 1
+          && stamped(request.resource.data);
+        allow delete: if owns(pid)
+          || (signedIn() && get(/databases/$(database)/documents/rooms/$(code)).data.owner == request.auth.uid);
+      }
+    }
+
     // تحدي صديق: المنشئ يكتب نتيجته، والصديق يضيف نتيجته مرة واحدة فقط.
     match /challenges/{code} {
       allow read: if signedIn();

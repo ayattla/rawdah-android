@@ -5,6 +5,7 @@ import '../services/online.dart';
 import '../state/app_state.dart';
 import '../ui/widgets.dart';
 import 'competition.dart';
+import 'live.dart';
 
 /// اسم الحلقة: حروف عربية وأرقام ومسافات فقط.
 String? validateCircleName(String v) {
@@ -69,6 +70,15 @@ class _CirclesScreenState extends State<CirclesScreen> {
           style: TextStyle(fontSize: 15, color: Colors.black87),
         ),
         const SizedBox(height: 12),
+        FilledButton.icon(
+          style: FilledButton.styleFrom(minimumSize: const Size.fromHeight(54), backgroundColor: RC.sea),
+          onPressed: () => Navigator.of(context).push(MaterialPageRoute(builder: (_) => const LiveHostScreen())),
+          icon: const Icon(Icons.live_tv_rounded),
+          label: const Text('ابدأ مسابقة مباشرة', style: TextStyle(fontSize: 18)),
+        ),
+        const SizedBox(height: 18),
+        const Text('حلقة دائمة', style: TextStyle(fontSize: 17, fontWeight: FontWeight.w700)),
+        const SizedBox(height: 8),
         Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
           Expanded(
             child: TextField(

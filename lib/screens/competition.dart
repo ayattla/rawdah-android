@@ -4,6 +4,7 @@ import '../services/online.dart';
 import '../state/app_state.dart';
 import '../ui/widgets.dart';
 import 'challenge.dart';
+import 'live.dart';
 
 /// ميدان المنافسة أون لاين: ترتيب بالألقاب فقط، بلا أي تواصل بين الأطفال.
 class CompetitionScreen extends StatefulWidget {
@@ -47,12 +48,27 @@ class _CompetitionScreenState extends State<CompetitionScreen> {
             padding: const EdgeInsets.symmetric(horizontal: 16),
             child: SizedBox(
               width: double.infinity,
-              child: OutlinedButton.icon(
-                style: OutlinedButton.styleFrom(minimumSize: const Size.fromHeight(48)),
-                onPressed: () => Navigator.of(context).push(MaterialPageRoute(builder: (_) => const ChallengeScreen())),
-                icon: const Icon(Icons.sports_score_rounded, color: RC.coral),
-                label: const Text('تحدي صديق برمز', style: TextStyle(fontSize: 18)),
-              ),
+              child: Row(children: [
+                Expanded(
+                  child: OutlinedButton.icon(
+                    style: OutlinedButton.styleFrom(minimumSize: const Size.fromHeight(48)),
+                    onPressed: () =>
+                        Navigator.of(context).push(MaterialPageRoute(builder: (_) => const ChallengeScreen())),
+                    icon: const Icon(Icons.sports_score_rounded, color: RC.coral),
+                    label: const Text('تحدي صديق', style: TextStyle(fontSize: 17)),
+                  ),
+                ),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: OutlinedButton.icon(
+                    style: OutlinedButton.styleFrom(minimumSize: const Size.fromHeight(48)),
+                    onPressed: () =>
+                        Navigator.of(context).push(MaterialPageRoute(builder: (_) => const LiveJoinScreen())),
+                    icon: const Icon(Icons.live_tv_rounded, color: RC.sea),
+                    label: const Text('مسابقة مباشرة', style: TextStyle(fontSize: 17)),
+                  ),
+                ),
+              ]),
             ),
           ),
           Padding(

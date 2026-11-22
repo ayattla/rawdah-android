@@ -476,6 +476,104 @@ class Online {
     }
   }
 
+  // ---------------------------------------------------------------- المسابقة المباشرة
+
+  /// ينشئ غرفة مسابقة مباشرة (للمعلم) ويعيد رمزها.
+  Future<String?> createRoom(int band, List<String> qids) async {
+    if (!await ensure()) return null;
+    for (var attempt = 0; attempt < 3; attempt++) {
+      final code = _newCode();
+      try {
+        final ref = _db.collection('rooms').doc(code);
+        if ((await ref.get()).exists) continue;
+        await ref.set({
+          'owner': uid,
+          'band': band,
+          'qids': qids,
+          'index': 0,
+          'state': 'wait',
+          'createdAt': FieldValue.serverTimestamp(),
+        });
+        return code;
+      } catch (_) {}
+    }
+    return null;
+  }
+
+  Stream<LiveRoom?> roomStream(String code) => _db
+      .collection('rooms')
+      .doc(code)
+      .snapshots()
+      .map((d) => d.exists && d.data() != null ? LiveRoom.from(d.data()!) : null);
+
+  Stream<List<LivePlayer>> roomPlayers(String code) => _db
+      .collection('rooms')
+      .doc(code)
+      .collection('players')
+      .snapshots()
+      .map((q) => q.docs.map((d) => LivePlayer.from(d.id, d.data())).toList()
+        ..sort((a, b) => b.score.compareTo(a.score)));
+
+  Future<bool> setRoom(String code, {required int index, required String state}) async {
+    if (!await ensure()) return false;
+    try {
+      await _db.collection('rooms').doc(code).update({'index': index, 'state': state});
+      return true;
+    } catch (_) {
+      return false;
+    }
+  }
+
+  Future<void> deleteRoom(String code) async {
+    if (!await ensure()) return;
+    try {
+      await _db.collection('rooms').doc(code).delete();
+    } catch (_) {}
+  }
+
+  /// انضمام الطفل لغرفة. يعيد (رسالة خطأ، نقاطه، آخر سؤال أجابه).
+  Future<(String?, int, int)> joinRoom(ChildProfile c, String rawCode) async {
+    final code = rawCode.trim().toUpperCase();
+    if (!RegExp(r'^[A-Z0-9]{6}$').hasMatch(code)) return ('الرمز من 6 خانات', 0, -1);
+    if (!c.onlineEnabled) return ('اطلب من والديك تفعيل المنافسة أولًا', 0, -1);
+    if (!await ensure()) return ('تعذّر الاتصال بالإنترنت', 0, -1);
+    try {
+      final room = await _db.collection('rooms').doc(code).get();
+      if (!room.exists) return ('لم نجد مسابقة بهذا الرمز', 0, -1);
+      if (room.data()?['state'] == 'end') return ('انتهت هذه المسابقة', 0, -1);
+      final ref = _db.collection('rooms').doc(code).collection('players').doc(playerId(c));
+      final snap = await ref.get();
+      if (snap.exists) {
+        final d = snap.data()!;
+        return (null, (d['score'] as num?)?.toInt() ?? 0, (d['answered'] as num?)?.toInt() ?? -1);
+      }
+      await ref.set({
+        'nick': c.nick,
+        'symbol': c.symbol,
+        'score': 0,
+        'answered': -1,
+        'updatedAt': FieldValue.serverTimestamp(),
+      });
+      return (null, 0, -1);
+    } catch (_) {
+      return ('تعذّر الدخول، حاول مرة أخرى', 0, -1);
+    }
+  }
+
+  Future<bool> answerRoom(String code, ChildProfile c, int index, int newScore) async {
+    if (!await ensure()) return false;
+    try {
+      await _db.collection('rooms').doc(code).collection('players').doc(playerId(c)).update({
+        'answered': index,
+        'score': newScore,
+        'updatedAt': FieldValue.serverTimestamp(),
+      });
+      return true;
+    } catch (_) {
+      return false;
+    }
+  }
+
   Future<void> report(String pid) async {
     if (!await ensure()) return;
     try {
@@ -496,5 +594,37 @@ class RankRow {
         (d['nick'] ?? '').toString(),
         (d['symbol'] ?? 'star').toString(),
         (d[field] as num?)?.toInt() ?? 0,
+      );
+}
+
+class LiveRoom {
+  final int band;
+  final List<String> qids;
+  final int index;
+  final String state; // wait | q | end
+  const LiveRoom(this.band, this.qids, this.index, this.state);
+
+  factory LiveRoom.from(Map<String, dynamic> d) => LiveRoom(
+        (d['band'] as num?)?.toInt() ?? 0,
+        ((d['qids'] as List?) ?? const []).map((e) => e.toString()).toList(),
+        (d['index'] as num?)?.toInt() ?? 0,
+        (d['state'] ?? 'wait').toString(),
+      );
+}
+
+class LivePlayer {
+  final String id;
+  final String nick;
+  final String symbol;
+  final int score;
+  final int answered;
+  const LivePlayer(this.id, this.nick, this.symbol, this.score, this.answered);
+
+  factory LivePlayer.from(String id, Map<String, dynamic> d) => LivePlayer(
+        id,
+        (d['nick'] ?? '').toString(),
+        (d['symbol'] ?? 'star').toString(),
+        (d['score'] as num?)?.toInt() ?? 0,
+        (d['answered'] as num?)?.toInt() ?? -1,
       );
 }

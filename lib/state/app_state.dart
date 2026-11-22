@@ -444,6 +444,17 @@ class AppState extends ChangeNotifier {
     _changed();
   }
 
+  /// المسابقة المباشرة: نجمتان لكل إجابة صحيحة، ونقاط منافسة بحد أقصى 20.
+  void recordLiveScore(int score) {
+    final c = current;
+    if (c == null) return;
+    c.rollDay();
+    c.gamesToday++;
+    c.stars += score * 2;
+    _earn(score > 10 ? 20 : score * 2);
+    _changed();
+  }
+
   void recordLetterScore(int score) {
     final c = current;
     if (c == null) return;
