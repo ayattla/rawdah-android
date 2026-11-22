@@ -9,6 +9,7 @@ import 'games_hub.dart';
 import 'garden.dart';
 import 'journeys.dart';
 import 'quizzes.dart';
+import 'ramadan.dart';
 import 'school.dart';
 import 'stories.dart';
 
@@ -32,6 +33,7 @@ class HomeMapScreen extends StatelessWidget {
     _Place('المسابقات', 'أجب واجمع النجوم', Icons.emoji_events_rounded, RC.gold, (_) => const QuizHubScreen()),
     _Place('حديقتي', 'نخلتي وعادات الخير', Icons.park_rounded, RC.green, (_) => const GardenScreen()),
     _Place('ميدان المنافسة', 'نافس واصعد الهرم', Icons.leaderboard_rounded, RC.coral, (_) => const CompetitionScreen()),
+    _Place('رمضان', 'فانوس لكل يوم وكأس رمضان', Icons.nightlight_round, RC.night, (_) => const RamadanScreen()),
     _Place('مجلس العائلة', 'مسابقة مع أهلي', Icons.chair_rounded, RC.greenDark, (_) => const FamilyQuizScreen()),
   ];
 

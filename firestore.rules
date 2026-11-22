@@ -49,6 +49,25 @@ service cloud.firestore {
     }
 
     // إبلاغ عن لقب غير لائق: إنشاء فقط، ويراجعه المشرف من لوحة Firebase.
+    // كأس رمضان: مثل الدوري الأسبوعي تمامًا لكن بمفتاح الكأس.
+    match /cups/{cup}/entries/{pid} {
+      allow read: if signedIn();
+      allow create: if owns(pid) && cup.matches('r[0-9]+_b[0-2]')
+        && request.resource.data.keys().hasOnly(['nick', 'symbol', 'points', 'updatedAt'])
+        && okNick(request.resource.data) && okSymbol(request.resource.data)
+        && request.resource.data.points is int
+        && request.resource.data.points >= 0 && request.resource.data.points <= 60
+        && stamped(request.resource.data);
+      allow update: if owns(pid)
+        && request.resource.data.keys().hasOnly(['nick', 'symbol', 'points', 'updatedAt'])
+        && okNick(request.resource.data) && okSymbol(request.resource.data)
+        && request.resource.data.points is int
+        && request.resource.data.points >= resource.data.points
+        && request.resource.data.points <= resource.data.points + 60
+        && stamped(request.resource.data) && slow();
+      allow delete: if owns(pid);
+    }
+
     // تحدي صديق: المنشئ يكتب نتيجته، والصديق يضيف نتيجته مرة واحدة فقط.
     match /challenges/{code} {
       allow read: if signedIn();

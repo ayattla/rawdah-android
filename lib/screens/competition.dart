@@ -69,10 +69,10 @@ class _CompetitionScreenState extends State<CompetitionScreen> {
           ),
           Expanded(
             child: _tab == 0
-                ? _Board(key: const ValueKey('week'), loader: () => Online.instance.weekBoard(c.ageBand), meId: _meId(c))
+                ? RankBoard(key: const ValueKey('week'), loader: () => Online.instance.weekBoard(c.ageBand), meId: _meId(c))
                 : _tab == 1
                     ? _Pyramid(child: c)
-                    : _Board(key: const ValueKey('all'), loader: Online.instance.allTimeBoard, meId: _meId(c)),
+                    : RankBoard(key: const ValueKey('all'), loader: Online.instance.allTimeBoard, meId: _meId(c)),
           ),
         ],
       ]),
@@ -133,16 +133,16 @@ class _MyCardState extends State<_MyCard> {
   }
 }
 
-class _Board extends StatefulWidget {
+class RankBoard extends StatefulWidget {
   final Future<List<RankRow>> Function() loader;
   final String meId;
-  const _Board({super.key, required this.loader, required this.meId});
+  const RankBoard({super.key, required this.loader, required this.meId});
 
   @override
-  State<_Board> createState() => _BoardState();
+  State<RankBoard> createState() => _RankBoardState();
 }
 
-class _BoardState extends State<_Board> {
+class _RankBoardState extends State<RankBoard> {
   late Future<List<RankRow>> _f;
 
   @override

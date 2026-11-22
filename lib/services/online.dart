@@ -52,6 +52,31 @@ class Online {
 
   static String weekKey(int band) => 'w${weekIndex()}_b$band';
 
+  /// كأس رمضان 1448هـ: من 7 فبراير إلى 10 مارس 2027 تقريبًا (بتوقيت الرياض).
+  static final DateTime ramadanStart = DateTime(2027, 2, 7);
+  static final DateTime ramadanEnd = DateTime(2027, 3, 10, 23, 59);
+
+  static bool get ramadanActive {
+    final now = DateTime.now().toUtc().add(const Duration(hours: 3));
+    final n = DateTime(now.year, now.month, now.day, now.hour, now.minute);
+    return !n.isBefore(ramadanStart) && !n.isAfter(ramadanEnd);
+  }
+
+  /// رقم يوم رمضان من 1 إلى 30، أو 0 خارج رمضان.
+  static int get ramadanDay {
+    if (!ramadanActive) return 0;
+    final now = DateTime.now().toUtc().add(const Duration(hours: 3));
+    final d = DateTime(now.year, now.month, now.day).difference(ramadanStart).inDays + 1;
+    return d.clamp(1, 30);
+  }
+
+  static int get daysToRamadan {
+    final now = DateTime.now().toUtc().add(const Duration(hours: 3));
+    return ramadanStart.difference(DateTime(now.year, now.month, now.day)).inDays;
+  }
+
+  static String cupKeyFor(int band) => 'r1448_b$band';
+
   Future<bool> ensure() async {
     if (_ready && uid != null) return true;
     try {
@@ -155,7 +180,22 @@ class Online {
           'points': c.weekPoints + chunk,
           'updatedAt': FieldValue.serverTimestamp(),
         });
+        final cup = ramadanActive ? cupKeyFor(c.ageBand) : null;
+        if (cup != null) {
+          if (c.cupKey != cup) {
+            final cs = await _db.collection('cups').doc(cup).collection('entries').doc(pid).get();
+            c.cupKey = cup;
+            c.cupPoints = cs.exists ? (cs.data()?['points'] as num?)?.toInt() ?? 0 : 0;
+          }
+          batch.set(_db.collection('cups').doc(cup).collection('entries').doc(pid), {
+            'nick': c.nick,
+            'symbol': c.symbol,
+            'points': c.cupPoints + chunk,
+            'updatedAt': FieldValue.serverTimestamp(),
+          });
+        }
         await batch.commit().timeout(const Duration(seconds: 12));
+        if (cup != null) c.cupPoints += chunk;
         c.onlineTotal += chunk;
         c.weekPoints += chunk;
         c.pendingPoints -= chunk;
@@ -183,6 +223,18 @@ class Online {
     final q = await _db
         .collection('leagues')
         .doc(weekKey(band))
+        .collection('entries')
+        .orderBy('points', descending: true)
+        .limit(50)
+        .get();
+    return q.docs.map((d) => RankRow.from(d.id, d.data(), 'points')).toList();
+  }
+
+  Future<List<RankRow>> cupBoard(int band) async {
+    if (!await ensure()) return const [];
+    final q = await _db
+        .collection('cups')
+        .doc(cupKeyFor(band))
         .collection('entries')
         .orderBy('points', descending: true)
         .limit(50)

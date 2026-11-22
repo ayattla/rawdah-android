@@ -49,6 +49,8 @@ class ChildProfile {
   int learnToday;
   int gamesToday;
   List<String> myChallenges;
+  String cupKey;
+  int cupPoints;
   Set<String> completed;
   Set<String> wrongQuestions;
   List<PendingHabit> pendingHabits;
@@ -79,6 +81,8 @@ class ChildProfile {
     this.learnToday = 0,
     this.gamesToday = 0,
     List<String>? myChallenges,
+    this.cupKey = '',
+    this.cupPoints = 0,
     Set<String>? completed,
     Set<String>? wrongQuestions,
     List<PendingHabit>? pendingHabits,
@@ -154,6 +158,8 @@ class ChildProfile {
         'learnToday': learnToday,
         'gamesToday': gamesToday,
         'myChallenges': myChallenges,
+        'cupKey': cupKey,
+        'cupPoints': cupPoints,
         'completed': completed.toList(),
         'wrongQuestions': wrongQuestions.toList(),
         'pendingHabits': pendingHabits.map((e) => e.toJson()).toList(),
@@ -185,6 +191,8 @@ class ChildProfile {
         learnToday: (j['learnToday'] as num?)?.toInt() ?? 0,
         gamesToday: (j['gamesToday'] as num?)?.toInt() ?? 0,
         myChallenges: ((j['myChallenges'] as List?) ?? const []).map((e) => e.toString()).toList(),
+        cupKey: (j['cupKey'] as String?) ?? '',
+        cupPoints: (j['cupPoints'] as num?)?.toInt() ?? 0,
         completed: ((j['completed'] as List?) ?? const []).map((e) => e.toString()).toSet(),
         wrongQuestions: ((j['wrongQuestions'] as List?) ?? const []).map((e) => e.toString()).toSet(),
         pendingHabits: ((j['pendingHabits'] as List?) ?? const [])
