@@ -51,6 +51,10 @@ class ChildProfile {
   List<String> myChallenges;
   String cupKey;
   int cupPoints;
+  // الحلقة (فصل المعلم أو حلقة التحفيظ)
+  String circleCode;
+  String circleName;
+  int circlePoints;
   Set<String> completed;
   Set<String> wrongQuestions;
   List<PendingHabit> pendingHabits;
@@ -83,6 +87,9 @@ class ChildProfile {
     List<String>? myChallenges,
     this.cupKey = '',
     this.cupPoints = 0,
+    this.circleCode = '',
+    this.circleName = '',
+    this.circlePoints = 0,
     Set<String>? completed,
     Set<String>? wrongQuestions,
     List<PendingHabit>? pendingHabits,
@@ -160,6 +167,9 @@ class ChildProfile {
         'myChallenges': myChallenges,
         'cupKey': cupKey,
         'cupPoints': cupPoints,
+        'circleCode': circleCode,
+        'circleName': circleName,
+        'circlePoints': circlePoints,
         'completed': completed.toList(),
         'wrongQuestions': wrongQuestions.toList(),
         'pendingHabits': pendingHabits.map((e) => e.toJson()).toList(),
@@ -193,6 +203,9 @@ class ChildProfile {
         myChallenges: ((j['myChallenges'] as List?) ?? const []).map((e) => e.toString()).toList(),
         cupKey: (j['cupKey'] as String?) ?? '',
         cupPoints: (j['cupPoints'] as num?)?.toInt() ?? 0,
+        circleCode: (j['circleCode'] as String?) ?? '',
+        circleName: (j['circleName'] as String?) ?? '',
+        circlePoints: (j['circlePoints'] as num?)?.toInt() ?? 0,
         completed: ((j['completed'] as List?) ?? const []).map((e) => e.toString()).toSet(),
         wrongQuestions: ((j['wrongQuestions'] as List?) ?? const []).map((e) => e.toString()).toSet(),
         pendingHabits: ((j['pendingHabits'] as List?) ?? const [])
@@ -213,6 +226,9 @@ class AppState extends ChangeNotifier {
   bool voiceOn = true;
   List<ChildProfile> children = [];
   String? currentChildId;
+
+  /// الحلقات التي أنشأها هذا الجهاز (المعلم أو الوالد): «الرمز|الاسم».
+  List<String> ownedCircles = [];
 
   Timer? _ticker;
   bool _childActive = false;
@@ -249,6 +265,7 @@ class AppState extends ChangeNotifier {
         final j = jsonDecode(raw) as Map<String, dynamic>;
         consentGiven = (j['consentGiven'] as bool?) ?? false;
         voiceOn = (j['voiceOn'] as bool?) ?? true;
+        ownedCircles = ((j['ownedCircles'] as List?) ?? const []).map((e) => e.toString()).toList();
         children = ((j['children'] as List?) ?? const [])
             .map((e) => ChildProfile.fromJson(Map<String, dynamic>.from(e as Map)))
             .toList();
@@ -268,6 +285,7 @@ class AppState extends ChangeNotifier {
       jsonEncode({
         'consentGiven': consentGiven,
         'voiceOn': voiceOn,
+        'ownedCircles': ownedCircles,
         'children': children.map((c) => c.toJson()).toList(),
       }),
     );
@@ -276,6 +294,17 @@ class AppState extends ChangeNotifier {
   void _changed() {
     notifyListeners();
     save();
+  }
+
+  void addOwnedCircle(String code, String name) {
+    ownedCircles.removeWhere((e) => e.startsWith('$code|'));
+    ownedCircles.insert(0, '$code|$name');
+    _changed();
+  }
+
+  void removeOwnedCircle(String code) {
+    ownedCircles.removeWhere((e) => e.startsWith('$code|'));
+    _changed();
   }
 
   void giveConsent() {

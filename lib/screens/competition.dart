@@ -58,12 +58,13 @@ class _CompetitionScreenState extends State<CompetitionScreen> {
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
             child: SegmentedButton<int>(
-              segments: const [
-                ButtonSegment(value: 0, label: Text('هذا الأسبوع')),
-                ButtonSegment(value: 1, label: Text('الهرم')),
-                ButtonSegment(value: 2, label: Text('الأبطال')),
+              segments: [
+                const ButtonSegment(value: 0, label: Text('هذا الأسبوع')),
+                const ButtonSegment(value: 1, label: Text('الهرم')),
+                const ButtonSegment(value: 2, label: Text('الأبطال')),
+                if (c.circleCode.isNotEmpty) ButtonSegment(value: 3, label: Text('حلقتي')),
               ],
-              selected: {_tab},
+              selected: {_tab == 3 && c.circleCode.isEmpty ? 0 : _tab},
               onSelectionChanged: (v) => setState(() => _tab = v.first),
             ),
           ),
@@ -72,7 +73,18 @@ class _CompetitionScreenState extends State<CompetitionScreen> {
                 ? RankBoard(key: const ValueKey('week'), loader: () => Online.instance.weekBoard(c.ageBand), meId: _meId(c))
                 : _tab == 1
                     ? _Pyramid(child: c)
-                    : RankBoard(key: const ValueKey('all'), loader: Online.instance.allTimeBoard, meId: _meId(c)),
+                    : _tab == 3 && c.circleCode.isNotEmpty
+                        ? Column(children: [
+                            Text('حلقة: ${c.circleName}',
+                                style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w700, color: RC.green)),
+                            Expanded(
+                              child: RankBoard(
+                                  key: ValueKey('circle_${c.circleCode}'),
+                                  loader: () => Online.instance.circleBoard(c.circleCode),
+                                  meId: _meId(c)),
+                            ),
+                          ])
+                        : RankBoard(key: const ValueKey('all'), loader: Online.instance.allTimeBoard, meId: _meId(c)),
           ),
         ],
       ]),
@@ -136,7 +148,10 @@ class _MyCardState extends State<_MyCard> {
 class RankBoard extends StatefulWidget {
   final Future<List<RankRow>> Function() loader;
   final String meId;
-  const RankBoard({super.key, required this.loader, required this.meId});
+
+  /// للمعلم فقط: إخراج عضو من الحلقة بدل الإبلاغ.
+  final Future<bool> Function(RankRow r)? onRemove;
+  const RankBoard({super.key, required this.loader, required this.meId, this.onRemove});
 
   @override
   State<RankBoard> createState() => _RankBoardState();
@@ -149,6 +164,23 @@ class _RankBoardState extends State<RankBoard> {
   void initState() {
     super.initState();
     _f = widget.loader();
+  }
+
+  Future<void> _remove(RankRow r) async {
+    final ok = await showDialog<bool>(
+      context: context,
+      builder: (d) => AlertDialog(
+        title: const Text('إخراج من الحلقة'),
+        content: Text('هل تريد إخراج «${r.nick}» من الحلقة؟'),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(d, false), child: const Text('لا')),
+          TextButton(onPressed: () => Navigator.pop(d, true), child: const Text('نعم')),
+        ],
+      ),
+    );
+    if (ok == true && await widget.onRemove!(r) && mounted) {
+      setState(() => _f = widget.loader());
+    }
   }
 
   Future<void> _report(RankRow r) async {
@@ -209,7 +241,7 @@ class _RankBoardState extends State<RankBoard> {
                           ? const Color(0xFFCD8B5A)
                           : null;
               return GestureDetector(
-                onLongPress: me ? null : () => _report(r),
+                onLongPress: me ? null : () => widget.onRemove != null ? _remove(r) : _report(r),
                 child: Container(
                   padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
                   decoration: BoxDecoration(
@@ -234,6 +266,12 @@ class _RankBoardState extends State<RankBoard> {
                           style: TextStyle(fontSize: 18, fontWeight: me ? FontWeight.w700 : FontWeight.w500)),
                     ),
                     Text('${r.points}', style: const TextStyle(fontSize: 19, fontWeight: FontWeight.w700, color: RC.coral)),
+                    if (widget.onRemove != null)
+                      IconButton(
+                        tooltip: 'إخراج',
+                        icon: const Icon(Icons.remove_circle_outline_rounded, color: Colors.black38),
+                        onPressed: () => _remove(r),
+                      ),
                   ]),
                 ),
               );

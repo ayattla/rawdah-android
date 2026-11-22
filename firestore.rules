@@ -68,6 +68,39 @@ service cloud.firestore {
       allow delete: if owns(pid);
     }
 
+    // الحلقات: المعلم ينشئ حلقة برمز، والأطفال ينضمون بالرمز ويظهرون بالألقاب والنقاط فقط.
+    match /circles/{code} {
+      allow read: if signedIn();
+      allow create: if signedIn() && code.matches('[A-Z0-9]{6}')
+        && request.resource.data.keys().hasOnly(['name', 'owner', 'createdAt'])
+        && request.resource.data.name is string
+        && request.resource.data.name.size() >= 2 && request.resource.data.name.size() <= 30
+        && request.resource.data.owner == request.auth.uid
+        && request.resource.data.createdAt == request.time;
+      allow delete: if signedIn() && resource.data.owner == request.auth.uid;
+
+      match /members/{pid} {
+        allow read: if signedIn();
+        allow create: if owns(pid)
+          && exists(/databases/$(database)/documents/circles/$(code))
+          && request.resource.data.keys().hasOnly(['nick', 'symbol', 'points', 'updatedAt'])
+          && okNick(request.resource.data) && okSymbol(request.resource.data)
+          && request.resource.data.points is int
+          && request.resource.data.points >= 0 && request.resource.data.points <= 60
+          && stamped(request.resource.data);
+        allow update: if owns(pid)
+          && exists(/databases/$(database)/documents/circles/$(code))
+          && request.resource.data.keys().hasOnly(['nick', 'symbol', 'points', 'updatedAt'])
+          && okNick(request.resource.data) && okSymbol(request.resource.data)
+          && request.resource.data.points is int
+          && request.resource.data.points >= resource.data.points
+          && request.resource.data.points <= resource.data.points + 60
+          && stamped(request.resource.data) && slow();
+        allow delete: if owns(pid)
+          || (signedIn() && get(/databases/$(database)/documents/circles/$(code)).data.owner == request.auth.uid);
+      }
+    }
+
     // تحدي صديق: المنشئ يكتب نتيجته، والصديق يضيف نتيجته مرة واحدة فقط.
     match /challenges/{code} {
       allow read: if signedIn();

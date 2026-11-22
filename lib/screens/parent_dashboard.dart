@@ -6,6 +6,7 @@ import '../services/voice.dart';
 import '../state/app_state.dart';
 import '../ui/widgets.dart';
 import 'add_child.dart';
+import 'circles.dart';
 import 'garden.dart';
 
 class ParentDashboard extends StatelessWidget {
@@ -33,6 +34,13 @@ class ParentDashboard extends StatelessWidget {
             ),
           ),
         ),
+        const SizedBox(height: 12),
+        OutlinedButton.icon(
+          style: OutlinedButton.styleFrom(minimumSize: const Size.fromHeight(52)),
+          icon: const Icon(Icons.groups_2_outlined),
+          label: const Text('حلقاتي: للمعلم والمحفّظ', style: TextStyle(fontSize: 17)),
+          onPressed: () => Navigator.of(context).push(MaterialPageRoute(builder: (_) => const CirclesScreen())),
+        ),
         const SizedBox(height: 18),
         _Panel(title: 'الإعدادات', children: [
           SwitchListTile(
@@ -45,9 +53,9 @@ class ParentDashboard extends StatelessWidget {
         ]),
         _Panel(title: 'الخصوصية', children: const [
           ListTile(
-            leading: Icon(Icons.wifi_off_rounded),
-            title: Text('التطبيق لا يتصل بالإنترنت'),
-            subtitle: Text('كل البيانات محفوظة على هذا الجهاز فقط، ولا توجد إعلانات ولا أدوات تتبّع.'),
+            leading: Icon(Icons.shield_outlined),
+            title: Text('لا إعلانات ولا تتبّع ولا محادثات'),
+            subtitle: Text('البيانات محفوظة على هذا الجهاز. لا يتصل بالإنترنت إلا إذا فعّلت المنافسة لطفل، وعندها يُرسل لقبه ورمزه ونقاطه فقط.'),
           ),
           ListTile(
             leading: Icon(Icons.landscape_rounded),
@@ -323,6 +331,8 @@ class _OnlineCard extends StatefulWidget {
 
 class _OnlineCardState extends State<_OnlineCard> {
   late final TextEditingController _nick;
+  final _circle = TextEditingController();
+  String? _circleError;
   String? _error;
   bool _busy = false;
 
@@ -336,7 +346,21 @@ class _OnlineCardState extends State<_OnlineCard> {
   @override
   void dispose() {
     _nick.dispose();
+    _circle.dispose();
     super.dispose();
+  }
+
+  Future<void> _joinCircle() async {
+    final st = AppScope.read(context);
+    setState(() {
+      _busy = true;
+      _circleError = null;
+    });
+    final err = await Online.instance.joinCircle(st, widget.child, _circle.text);
+    if (mounted) setState(() {
+      _busy = false;
+      _circleError = err;
+    });
   }
 
   Future<void> _toggle(bool on) async {
@@ -363,6 +387,9 @@ class _OnlineCardState extends State<_OnlineCard> {
       await Online.instance.leave(c);
       c.onlineEnabled = false;
       c.pendingPoints = 0;
+      c.circleCode = '';
+      c.circleName = '';
+      c.circlePoints = 0;
       st.updateChild(c);
       if (mounted) setState(() => _busy = false);
     }
@@ -401,6 +428,46 @@ class _OnlineCardState extends State<_OnlineCard> {
         if (c.onlineEnabled)
           Text('النقاط الكلية: ${c.onlineTotal}  ·  نقاط الأسبوع: ${c.weekPoints}  ·  المنزلة: ${Online.tiers[Online.tierIndex(c.onlineTotal)].$1}',
               style: const TextStyle(fontSize: 13)),
+        if (c.onlineEnabled) ...[
+          const Divider(height: 20),
+          if (c.circleCode.isEmpty)
+            Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
+              Expanded(
+                child: TextField(
+                  controller: _circle,
+                  maxLength: 6,
+                  textCapitalization: TextCapitalization.characters,
+                  decoration: InputDecoration(
+                    labelText: 'رمز حلقة المعلم (اختياري)',
+                    errorText: _circleError,
+                    border: const OutlineInputBorder(),
+                    isDense: true,
+                  ),
+                ),
+              ),
+              const SizedBox(width: 8),
+              SizedBox(
+                height: 48,
+                child: FilledButton(onPressed: _busy ? null : _joinCircle, child: const Text('انضمام')),
+              ),
+            ])
+          else
+            Row(children: [
+              const Icon(Icons.groups_2_outlined, color: RC.green),
+              const SizedBox(width: 6),
+              Expanded(child: Text('في حلقة: ${c.circleName}  ·  ${c.circlePoints} نقطة')),
+              TextButton(
+                onPressed: _busy
+                    ? null
+                    : () async {
+                        setState(() => _busy = true);
+                        await Online.instance.leaveCircle(AppScope.read(context), c);
+                        if (mounted) setState(() => _busy = false);
+                      },
+                child: const Text('مغادرة'),
+              ),
+            ]),
+        ],
       ]),
     );
   }

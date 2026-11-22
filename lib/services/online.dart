@@ -194,7 +194,28 @@ class Online {
             'updatedAt': FieldValue.serverTimestamp(),
           });
         }
-        await batch.commit().timeout(const Duration(seconds: 12));
+        final circle = c.circleCode.isNotEmpty ? c.circleCode : null;
+        if (circle != null) {
+          batch.set(_db.collection('circles').doc(circle).collection('members').doc(pid), {
+            'nick': c.nick,
+            'symbol': c.symbol,
+            'points': c.circlePoints + chunk,
+            'updatedAt': FieldValue.serverTimestamp(),
+          });
+        }
+        try {
+          await batch.commit().timeout(const Duration(seconds: 12));
+        } catch (e) {
+          // إن حذف المعلم الحلقة أو أخرج الطفل منها، نفصلها ونعيد المحاولة لاحقًا.
+          if (circle != null && !await _circleMemberOk(circle, pid)) {
+            c.circleCode = '';
+            c.circleName = '';
+            c.circlePoints = 0;
+            st.updateChild(c);
+          }
+          rethrow;
+        }
+        if (circle != null) c.circlePoints += chunk;
         if (cup != null) c.cupPoints += chunk;
         c.onlineTotal += chunk;
         c.weekPoints += chunk;
@@ -213,6 +234,9 @@ class Online {
     try {
       await _db.collection('players').doc(playerId(c)).delete();
       await _db.collection('leagues').doc(weekKey(c.ageBand)).collection('entries').doc(playerId(c)).delete();
+      if (c.circleCode.isNotEmpty) {
+        await _db.collection('circles').doc(c.circleCode).collection('members').doc(playerId(c)).delete();
+      }
     } catch (_) {}
   }
 
@@ -324,6 +348,128 @@ class Online {
         'bScore': score,
         'bAt': FieldValue.serverTimestamp(),
       });
+      return true;
+    } catch (_) {
+      return false;
+    }
+  }
+
+  // ---------------------------------------------------------------- الحلقات
+
+  String _newCode() {
+    var seed = DateTime.now().microsecondsSinceEpoch ^ uid.hashCode;
+    return List.generate(6, (_) {
+      seed = (seed * 1103515245 + 12345) & 0x7fffffff;
+      return _codeChars[seed % _codeChars.length];
+    }).join();
+  }
+
+  Future<bool> _circleMemberOk(String code, String pid) async {
+    try {
+      final d = await _db.collection('circles').doc(code).get();
+      if (!d.exists) return false;
+      final m = await _db.collection('circles').doc(code).collection('members').doc(pid).get();
+      return m.exists;
+    } catch (_) {
+      return true; // خطأ شبكة: لا نفصل الطفل.
+    }
+  }
+
+  /// ينشئ حلقة جديدة (للمعلم أو الوالد) ويعيد رمزها.
+  Future<String?> createCircle(String name) async {
+    if (!await ensure()) return null;
+    for (var attempt = 0; attempt < 3; attempt++) {
+      final code = _newCode();
+      try {
+        final ref = _db.collection('circles').doc(code);
+        if ((await ref.get()).exists) continue;
+        await ref.set({'name': name, 'owner': uid, 'createdAt': FieldValue.serverTimestamp()});
+        return code;
+      } catch (_) {}
+    }
+    return null;
+  }
+
+  Future<String?> circleName(String code) async {
+    if (!await ensure()) return null;
+    try {
+      final d = await _db.collection('circles').doc(code.trim().toUpperCase()).get();
+      return d.exists ? (d.data()?['name'] ?? '').toString() : null;
+    } catch (_) {
+      return null;
+    }
+  }
+
+  /// انضمام الطفل إلى حلقة برمزها. يعيد رسالة خطأ أو null عند النجاح.
+  Future<String?> joinCircle(AppState st, ChildProfile c, String rawCode) async {
+    final code = rawCode.trim().toUpperCase();
+    if (!RegExp(r'^[A-Z0-9]{6}$').hasMatch(code)) return 'الرمز من 6 خانات';
+    if (!c.onlineEnabled) return 'فعّل المنافسة أون لاين أولًا';
+    final name = await circleName(code);
+    if (name == null) return 'لم نجد حلقة بهذا الرمز';
+    try {
+      final ref = _db.collection('circles').doc(code).collection('members').doc(playerId(c));
+      final snap = await ref.get();
+      if (snap.exists) {
+        c.circlePoints = (snap.data()?['points'] as num?)?.toInt() ?? 0;
+      } else {
+        await ref.set({
+          'nick': c.nick,
+          'symbol': c.symbol,
+          'points': 0,
+          'updatedAt': FieldValue.serverTimestamp(),
+        });
+        c.circlePoints = 0;
+      }
+      c.circleCode = code;
+      c.circleName = name;
+      st.updateChild(c);
+      return null;
+    } catch (_) {
+      return 'تعذّر الانضمام، حاول لاحقًا';
+    }
+  }
+
+  Future<void> leaveCircle(AppState st, ChildProfile c) async {
+    final code = c.circleCode;
+    c.circleCode = '';
+    c.circleName = '';
+    c.circlePoints = 0;
+    st.updateChild(c);
+    if (code.isEmpty || !await ensure()) return;
+    try {
+      await _db.collection('circles').doc(code).collection('members').doc(playerId(c)).delete();
+    } catch (_) {}
+  }
+
+  Future<List<RankRow>> circleBoard(String code) async {
+    if (!await ensure()) return const [];
+    final q = await _db
+        .collection('circles')
+        .doc(code)
+        .collection('members')
+        .orderBy('points', descending: true)
+        .limit(100)
+        .get();
+    return q.docs.map((d) => RankRow.from(d.id, d.data(), 'points')).toList();
+  }
+
+  /// للمعلم: إخراج عضو من حلقته.
+  Future<bool> removeMember(String code, String pid) async {
+    if (!await ensure()) return false;
+    try {
+      await _db.collection('circles').doc(code).collection('members').doc(pid).delete();
+      return true;
+    } catch (_) {
+      return false;
+    }
+  }
+
+  /// للمعلم: حذف الحلقة (يبقى الأعضاء حتى يُفصلوا تلقائيًا عند أول مزامنة).
+  Future<bool> deleteCircle(String code) async {
+    if (!await ensure()) return false;
+    try {
+      await _db.collection('circles').doc(code).delete();
       return true;
     } catch (_) {
       return false;
