@@ -1,5 +1,7 @@
 import 'dart:math';
 
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
@@ -47,6 +49,14 @@ class QuizHubScreen extends StatelessWidget {
                 Navigator.of(context).push(MaterialPageRoute(
                     builder: (_) => QuizRunner(title: 'مسابقة سريعة', questions: qs.take(5).toList())));
               },
+            ),
+            const SizedBox(height: 12),
+            BigTile(
+              title: 'سباق الدقيقة',
+              subtitle: c.bestRace == 0 ? 'أجب أكبر عدد في 60 ثانية' : 'أفضل نتيجة لك: ${c.bestRace}',
+              icon: Icons.timer_rounded,
+              color: RC.plum,
+              onTap: () => Navigator.of(context).push(MaterialPageRoute(builder: (_) => const RaceScreen())),
             ),
             const SizedBox(height: 12),
             BigTile(
@@ -235,6 +245,152 @@ class _OptionButton extends StatelessWidget {
               style: TextStyle(fontSize: 23, fontWeight: FontWeight.w700, color: state == 0 ? RC.ink : Colors.white)),
         ),
       ),
+    );
+  }
+}
+
+/// سباق الدقيقة: أسئلة متتالية سريعة، بلا شرح، والنتيجة عدد الإجابات الصحيحة.
+class RaceScreen extends StatefulWidget {
+  const RaceScreen({super.key});
+
+  @override
+  State<RaceScreen> createState() => _RaceScreenState();
+}
+
+class _RaceScreenState extends State<RaceScreen> {
+  static const _total = 60;
+  late List<Question> _qs;
+  int _i = 0;
+  int _right = 0;
+  int _left = _total;
+  int? _flash; // 1 صحيح، 2 خطأ
+  bool _started = false;
+  bool _done = false;
+  Timer? _timer;
+
+  @override
+  void initState() {
+    super.initState();
+    final c = AppScope.read(context).current;
+    _qs = questionsFor(c?.ageBand ?? 0)..shuffle();
+  }
+
+  @override
+  void dispose() {
+    _timer?.cancel();
+    super.dispose();
+  }
+
+  void _start() {
+    setState(() => _started = true);
+    _timer = Timer.periodic(const Duration(seconds: 1), (t) {
+      if (!mounted) return;
+      setState(() => _left--);
+      if (_left <= 0) _finish();
+    });
+  }
+
+  Future<void> _finish() async {
+    if (_done) return;
+    _done = true;
+    _timer?.cancel();
+    final st = AppScope.read(context);
+    final best = st.current?.bestRace ?? 0;
+    st.recordRaceScore(_right);
+    await showReward(context, stars: _right, title: _right > best ? 'رقم جديد! $_right' : '$_right إجابة صحيحة');
+    if (mounted) Navigator.of(context).pop();
+  }
+
+  void _answer(int k) {
+    if (_done || _flash != null) return;
+    final q = _qs[_i % _qs.length];
+    final ok = k == q.answer;
+    ok ? HapticFeedback.lightImpact() : HapticFeedback.heavyImpact();
+    setState(() {
+      _flash = ok ? 1 : 2;
+      if (ok) _right++;
+    });
+    Future.delayed(const Duration(milliseconds: 350), () {
+      if (!mounted) return;
+      setState(() {
+        _flash = null;
+        _i++;
+      });
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final q = _qs[_i % _qs.length];
+    return ChildShell(
+      child: Column(children: [
+        const KidBar(title: 'سباق الدقيقة'),
+        if (!_started)
+          Expanded(
+            child: Center(
+              child: Padding(
+                padding: const EdgeInsets.all(28),
+                child: Column(mainAxisSize: MainAxisSize.min, children: [
+                  const Icon(Icons.timer_rounded, size: 90, color: RC.plum),
+                  const SizedBox(height: 12),
+                  const Text('عندك 60 ثانية! أجب بسرعة وانتبه.',
+                      textAlign: TextAlign.center,
+                      style: TextStyle(fontSize: 24, fontWeight: FontWeight.w700, color: RC.ink)),
+                  const SizedBox(height: 20),
+                  PrimaryButton(label: 'ابدأ', onTap: _start),
+                ]),
+              ),
+            ),
+          )
+        else ...[
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 6),
+            child: Row(children: [
+              const Icon(Icons.timer_rounded, color: RC.plum),
+              const SizedBox(width: 6),
+              Text('$_left', style: const TextStyle(fontSize: 24, fontWeight: FontWeight.w700, color: RC.plum)),
+              const Spacer(),
+              const Icon(Icons.check_circle_rounded, color: RC.green),
+              const SizedBox(width: 6),
+              Text('$_right', style: const TextStyle(fontSize: 24, fontWeight: FontWeight.w700, color: RC.green)),
+            ]),
+          ),
+          LinearProgressIndicator(
+            value: _left / _total,
+            minHeight: 8,
+            color: _left > 10 ? RC.plum : RC.coral,
+            backgroundColor: Colors.white54,
+          ),
+          Expanded(
+            child: ListView(padding: const EdgeInsets.all(18), children: [
+              AnimatedContainer(
+                duration: const Duration(milliseconds: 200),
+                padding: const EdgeInsets.all(20),
+                decoration: BoxDecoration(
+                  color: _flash == 1
+                      ? const Color(0xFFDFF3E6)
+                      : _flash == 2
+                          ? const Color(0xFFFFE3DA)
+                          : Colors.white,
+                  borderRadius: BorderRadius.circular(26),
+                ),
+                child: Text(q.text,
+                    style: const TextStyle(fontSize: 24, fontWeight: FontWeight.w700, color: RC.ink, height: 1.5)),
+              ),
+              const SizedBox(height: 16),
+              for (var k = 0; k < q.options.length; k++)
+                Padding(
+                  padding: const EdgeInsets.only(bottom: 12),
+                  child: _OptionButton(
+                    text: q.options[k],
+                    state: _flash == null ? 0 : (k == q.answer ? 1 : 0),
+                    onTap: () => _answer(k),
+                  ),
+                ),
+            ]),
+          ),
+        ],
+      ]),
     );
   }
 }

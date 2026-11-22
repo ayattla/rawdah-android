@@ -55,6 +55,7 @@ class ChildProfile {
   String circleCode;
   String circleName;
   int circlePoints;
+  int bestRace;
   Set<String> completed;
   Set<String> wrongQuestions;
   List<PendingHabit> pendingHabits;
@@ -90,6 +91,7 @@ class ChildProfile {
     this.circleCode = '',
     this.circleName = '',
     this.circlePoints = 0,
+    this.bestRace = 0,
     Set<String>? completed,
     Set<String>? wrongQuestions,
     List<PendingHabit>? pendingHabits,
@@ -170,6 +172,7 @@ class ChildProfile {
         'circleCode': circleCode,
         'circleName': circleName,
         'circlePoints': circlePoints,
+        'bestRace': bestRace,
         'completed': completed.toList(),
         'wrongQuestions': wrongQuestions.toList(),
         'pendingHabits': pendingHabits.map((e) => e.toJson()).toList(),
@@ -206,6 +209,7 @@ class ChildProfile {
         circleCode: (j['circleCode'] as String?) ?? '',
         circleName: (j['circleName'] as String?) ?? '',
         circlePoints: (j['circlePoints'] as num?)?.toInt() ?? 0,
+        bestRace: (j['bestRace'] as num?)?.toInt() ?? 0,
         completed: ((j['completed'] as List?) ?? const []).map((e) => e.toString()).toSet(),
         wrongQuestions: ((j['wrongQuestions'] as List?) ?? const []).map((e) => e.toString()).toSet(),
         pendingHabits: ((j['pendingHabits'] as List?) ?? const [])
@@ -424,6 +428,19 @@ class AppState extends ChangeNotifier {
     } else {
       c.wrongQuestions.add(questionId);
     }
+    _changed();
+  }
+
+  /// سباق الدقيقة: نجمة لكل إجابة صحيحة، ونقاط منافسة بحد أقصى 20 للجولة.
+  void recordRaceScore(int score) {
+    final c = current;
+    if (c == null) return;
+    c.rollDay();
+    c.gamesToday++;
+    c.correctToday += score;
+    c.stars += score;
+    _earn(score > 10 ? 20 : score * 2);
+    if (score > c.bestRace) c.bestRace = score;
     _changed();
   }
 
