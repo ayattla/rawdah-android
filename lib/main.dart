@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
@@ -66,6 +67,28 @@ class _RawdahAppState extends State<RawdahApp> with WidgetsBindingObserver {
           GlobalCupertinoLocalizations.delegate,
         ],
         theme: rawdahTheme(),
+        // في معاينة الويب نعرض التطبيق بعرض هاتف.
+        builder: kIsWeb
+            ? (context, child) => ColoredBox(
+                  color: RC.ink,
+                  child: Center(
+                    child: ConstrainedBox(
+                      constraints: const BoxConstraints(maxWidth: 412),
+                      child: ClipRect(
+                        child: MediaQuery(
+                          data: MediaQuery.of(context).copyWith(
+                            size: Size(
+                              MediaQuery.of(context).size.width.clamp(0.0, 412.0).toDouble(),
+                              MediaQuery.of(context).size.height,
+                            ),
+                          ),
+                          child: child ?? const SizedBox(),
+                        ),
+                      ),
+                    ),
+                  ),
+                )
+            : null,
         home: const _Root(),
       ),
     );
