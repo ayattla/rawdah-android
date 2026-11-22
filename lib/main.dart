@@ -65,12 +65,7 @@ class _RawdahAppState extends State<RawdahApp> with WidgetsBindingObserver {
           GlobalWidgetsLocalizations.delegate,
           GlobalCupertinoLocalizations.delegate,
         ],
-        theme: ThemeData(
-          useMaterial3: true,
-          fontFamily: 'Rubik',
-          colorScheme: ColorScheme.fromSeed(seedColor: RC.green, brightness: Brightness.light),
-          scaffoldBackgroundColor: RC.sand,
-        ),
+        theme: rawdahTheme(),
         home: const _Root(),
       ),
     );

@@ -31,18 +31,24 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
   }
 
   List<Widget> _welcome() => [
-        const SizedBox(height: 30),
-        const Center(child: Lantern(size: 150, glow: 0.9)),
         const SizedBox(height: 18),
-        const Text('روضة',
-            textAlign: TextAlign.center, style: TextStyle(fontSize: 46, fontWeight: FontWeight.w700, color: RC.greenDark)),
-        const Text('قصص ودروس وألعاب ومسابقات لأطفالنا',
-            textAlign: TextAlign.center, style: TextStyle(fontSize: 20, color: RC.ink)),
+        SizedBox(
+          height: 200,
+          child: Stack(alignment: Alignment.center, children: [
+            const KhatamBadge(icon: Icons.circle, color: RC.ink, size: 200, iconColor: Colors.transparent),
+            const KhatamBadge(icon: Icons.circle, color: RC.green, size: 168, iconColor: Colors.transparent),
+            const Lantern(size: 130, glow: 1),
+          ]),
+        ),
+        const SizedBox(height: 14),
+        Text('روضة', textAlign: TextAlign.center, style: RT.display(52, color: RC.ink)),
+        Text('قصص ودروس وألعاب ومسابقات لأطفالنا',
+            textAlign: TextAlign.center, style: RT.display(20, weight: FontWeight.w500)),
         const SizedBox(height: 26),
         _card(const [
           _Point(Icons.block_rounded, 'بلا إعلانات وبلا موسيقى'),
           _Point(Icons.landscape_rounded, 'بلا صور لذوات الأرواح'),
-          _Point(Icons.wifi_off_rounded, 'يعمل بلا إنترنت، وبياناته على جهازك فقط'),
+          _Point(Icons.forum_outlined, 'لا محادثات ولا رسائل بين الأطفال إطلاقًا'),
           _Point(Icons.verified_rounded, 'آيات من نص المصحف، وأحاديث صحيحة مع تخريجها'),
         ]),
         const SizedBox(height: 22),
@@ -51,12 +57,11 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
 
   List<Widget> _consent(AppState st) => [
         const SizedBox(height: 10),
-        const Text('موافقة ولي الأمر',
-            style: TextStyle(fontSize: 30, fontWeight: FontWeight.w700, color: RC.greenDark)),
+        Text('موافقة ولي الأمر', style: RT.display(32)),
         const SizedBox(height: 12),
         _card(const [
           _Point(Icons.edit_note_rounded, 'نحفظ لكل طفل: لقبًا ورمزًا وفئة عمرية وتقدّمه فقط'),
-          _Point(Icons.phone_android_rounded, 'كل البيانات محفوظة على هذا الجهاز ولا تُرسل إلى أي خادم'),
+          _Point(Icons.phone_android_rounded, 'البيانات على هذا الجهاز، ولا يُرسل شيء إلا لقب الطفل ونقاطه إذا فعّلت له المنافسة'),
           _Point(Icons.do_not_disturb_on_rounded, 'لا نطلب موقعًا ولا صورًا ولا جهات اتصال ولا ميكروفونًا'),
           _Point(Icons.delete_outline_rounded, 'تستطيع حذف بيانات أي طفل في أي وقت من لوحة الوالدين'),
         ]),
@@ -84,19 +89,20 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
 
   List<Widget> _addChild() => [
         const SizedBox(height: 10),
-        const Text('أضف طفلك الأول',
-            style: TextStyle(fontSize: 30, fontWeight: FontWeight.w700, color: RC.greenDark)),
+        Text('أضف طفلك الأول', style: RT.display(32)),
         const SizedBox(height: 14),
         Container(
           padding: const EdgeInsets.all(16),
-          decoration: BoxDecoration(color: Colors.white.withValues(alpha: 0.85), borderRadius: BorderRadius.circular(24)),
+          decoration: BoxDecoration(
+              color: Colors.white, borderRadius: BorderRadius.circular(24), border: Border.all(color: RC.sandDark, width: 2)),
           child: const AddChildForm(),
         ),
       ];
 
   Widget _card(List<Widget> rows) => Container(
         padding: const EdgeInsets.all(16),
-        decoration: BoxDecoration(color: Colors.white.withValues(alpha: 0.9), borderRadius: BorderRadius.circular(24)),
+        decoration: BoxDecoration(
+            color: Colors.white, borderRadius: BorderRadius.circular(24), border: Border.all(color: RC.sandDark, width: 2)),
         child: Column(children: rows),
       );
 }
@@ -110,9 +116,9 @@ class _Point extends StatelessWidget {
   Widget build(BuildContext context) => Padding(
         padding: const EdgeInsets.symmetric(vertical: 7),
         child: Row(children: [
-          Icon(icon, color: RC.green, size: 28),
+          KhatamBadge(icon: icon, color: RC.green, size: 40),
           const SizedBox(width: 12),
-          Expanded(child: Text(text, style: const TextStyle(fontSize: 17, color: RC.ink))),
+          Expanded(child: Text(text, style: RT.body(17, weight: FontWeight.w500))),
         ]),
       );
 }

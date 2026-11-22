@@ -13,57 +13,84 @@ class ChildPickerScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final st = AppScope.of(context);
+    const colors = [RC.green, RC.plum, RC.sea, RC.coral, RC.goldDark, RC.ink];
     return Scaffold(
       body: SceneBackground(
-        child: Column(children: [
-          Padding(
-            padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
-            child: Row(children: [
-              const Expanded(
-                child: Text('من سيلعب الآن؟',
-                    style: TextStyle(fontSize: 30, fontWeight: FontWeight.w700, color: RC.greenDark)),
+        child: CustomScrollView(slivers: [
+          SliverToBoxAdapter(
+            child: Padding(
+              padding: const EdgeInsets.fromLTRB(18, 14, 18, 6),
+              child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                const Lantern(size: 74, glow: 0.9),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                    Text('روضة', style: RT.display(36, color: RC.green)),
+                    Text('من سيتعلم اليوم؟', style: RT.display(22, weight: FontWeight.w700)),
+                  ]),
+                ),
+                RoundIcon(
+                  icon: Icons.lock_rounded,
+                  color: RC.ink,
+                  size: 48,
+                  tooltip: 'لوحة الوالدين',
+                  onTap: () async {
+                    if (await passParentGate(context) && context.mounted) {
+                      Navigator.of(context).push(MaterialPageRoute(builder: (_) => const ParentDashboard()));
+                    }
+                  },
+                ),
+              ]),
+            ),
+          ),
+          SliverPadding(
+            padding: const EdgeInsets.all(18),
+            sliver: SliverGrid(
+              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                crossAxisCount: 2,
+                mainAxisSpacing: 16,
+                crossAxisSpacing: 16,
+                childAspectRatio: 0.9,
               ),
-              RoundIcon(
-                icon: Icons.lock_rounded,
-                color: RC.night,
-                size: 48,
-                onTap: () async {
-                  if (await passParentGate(context) && context.mounted) {
-                    Navigator.of(context).push(MaterialPageRoute(builder: (_) => const ParentDashboard()));
-                  }
+              delegate: SliverChildBuilderDelegate(
+                childCount: st.children.length,
+                (context, i) {
+                  final c = st.children[i];
+                  final color = colors[i % colors.length];
+                  return Chunky(
+                    color: color,
+                    radius: 28,
+                    depth: 7,
+                    semanticLabel: c.name,
+                    onTap: () {
+                      st.enterChild(c.id);
+                      Voice.instance.say('أهلًا ${c.name}');
+                      Navigator.of(context).push(MaterialPageRoute(builder: (_) => const HomeMapScreen()));
+                    },
+                    child: ClipRRect(
+                      borderRadius: BorderRadius.circular(28),
+                      child: CustomPaint(
+                        painter: ZellijPainter(color: Colors.white.withValues(alpha: 0.13), cell: 40),
+                        child: Center(
+                          child: Column(mainAxisSize: MainAxisSize.min, children: [
+                            KhatamBadge(icon: symbolIcon(c.symbol), color: Colors.white, size: 86, iconColor: color),
+                            const SizedBox(height: 10),
+                            Text(c.name,
+                                style: RT.display(24, color: Colors.white),
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis),
+                            Row(mainAxisSize: MainAxisSize.min, children: [
+                              const Icon(Icons.star_rounded, color: RC.gold, size: 20),
+                              Text(' ${c.stars}  ·  مستوى ${c.level}',
+                                  style: RT.body(15, color: Colors.white, weight: FontWeight.w500)),
+                            ]),
+                          ]),
+                        ),
+                      ),
+                    ),
+                  );
                 },
               ),
-            ]),
-          ),
-          const SizedBox(height: 8),
-          Expanded(
-            child: GridView.count(
-              padding: const EdgeInsets.all(18),
-              crossAxisCount: 2,
-              mainAxisSpacing: 16,
-              crossAxisSpacing: 16,
-              children: [
-                for (final c in st.children)
-                  Material(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(28),
-                    elevation: 3,
-                    child: InkWell(
-                      borderRadius: BorderRadius.circular(28),
-                      onTap: () {
-                        st.enterChild(c.id);
-                        Voice.instance.say('أهلًا ${c.name}');
-                        Navigator.of(context).push(MaterialPageRoute(builder: (_) => const HomeMapScreen()));
-                      },
-                      child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
-                        Icon(symbolIcon(c.symbol), size: 72, color: RC.gold),
-                        const SizedBox(height: 8),
-                        Text(c.name, style: const TextStyle(fontSize: 22, fontWeight: FontWeight.w700, color: RC.ink)),
-                        Text('${c.stars} نجمة', style: const TextStyle(fontSize: 16, color: Colors.black54)),
-                      ]),
-                    ),
-                  ),
-              ],
             ),
           ),
         ]),

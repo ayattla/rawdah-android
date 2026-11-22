@@ -28,6 +28,14 @@ flutter:
     - family: Rubik
       fonts:
         - asset: assets/fonts/Rubik.ttf
+    - family: Baloo
+      fonts:
+        - asset: assets/fonts/Baloo-500.ttf
+          weight: 500
+        - asset: assets/fonts/Baloo-700.ttf
+          weight: 700
+        - asset: assets/fonts/Baloo-800.ttf
+          weight: 800
     - family: AmiriQuran
       fonts:
         - asset: assets/fonts/AmiriQuran.ttf

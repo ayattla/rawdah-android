@@ -108,6 +108,7 @@ class _QuizRunnerState extends State<QuizRunner> {
   int _i = 0;
   int? _picked;
   int _right = 0;
+  final List<bool> _results = [];
 
   Question get _q => widget.questions[_i];
 
@@ -129,6 +130,7 @@ class _QuizRunnerState extends State<QuizRunner> {
     setState(() {
       _picked = k;
       if (ok) _right++;
+      _results.add(ok);
     });
     AppScope.read(context).recordAnswer(_q.id, ok);
     ok ? HapticFeedback.lightImpact() : HapticFeedback.heavyImpact();
@@ -161,26 +163,47 @@ class _QuizRunnerState extends State<QuizRunner> {
     return ChildShell(
       child: Column(children: [
         KidBar(title: widget.title),
-        LinearProgressIndicator(
-          value: (_i + 1) / widget.questions.length,
-          minHeight: 8,
-          color: RC.gold,
-          backgroundColor: Colors.white54,
+        // شريط التقدم: خانة لكل سؤال، تتلون بنتيجته
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 18),
+          child: Row(children: [
+            for (var k = 0; k < widget.questions.length; k++)
+              Expanded(
+                child: AnimatedContainer(
+                  duration: const Duration(milliseconds: 250),
+                  height: 10,
+                  margin: const EdgeInsets.symmetric(horizontal: 2),
+                  decoration: BoxDecoration(
+                    color: k < _results.length
+                        ? (_results[k] ? RC.green : RC.coral)
+                        : (k == _i ? RC.gold : Colors.white),
+                    borderRadius: BorderRadius.circular(6),
+                    border: Border.all(color: RC.sandDark),
+                  ),
+                ),
+              ),
+          ]),
         ),
         Expanded(
           child: ListView(padding: const EdgeInsets.all(18), children: [
             Container(
-              padding: const EdgeInsets.all(20),
-              decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(26)),
-              child: Row(children: [
-                Expanded(
-                  child: Text(q.text,
-                      style: const TextStyle(fontSize: 25, fontWeight: FontWeight.w700, color: RC.ink, height: 1.5)),
-                ),
-                IconButton(
-                  icon: const Icon(Icons.volume_up_rounded, color: RC.sea, size: 32),
-                  onPressed: () => Voice.instance.say(q.text),
-                ),
+              padding: const EdgeInsets.fromLTRB(20, 16, 10, 20),
+              decoration: BoxDecoration(
+                color: RC.ink,
+                borderRadius: BorderRadius.circular(28),
+              ),
+              child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                Row(children: [
+                  Text('السؤال ${_i + 1} من ${widget.questions.length}',
+                      style: RT.display(15, color: RC.gold, weight: FontWeight.w700)),
+                  const Spacer(),
+                  IconButton(
+                    tooltip: 'استمع',
+                    icon: const Icon(Icons.volume_up_rounded, color: RC.gold, size: 30),
+                    onPressed: () => Voice.instance.say(q.text),
+                  ),
+                ]),
+                Text(q.text, style: RT.display(26, color: Colors.white, weight: FontWeight.w700)),
               ]),
             ),
             const SizedBox(height: 16),
@@ -201,10 +224,20 @@ class _QuizRunnerState extends State<QuizRunner> {
               Container(
                 padding: const EdgeInsets.all(16),
                 decoration: BoxDecoration(
-                  color: _picked == q.answer ? const Color(0xFFDFF3E6) : const Color(0xFFFFF1D6),
-                  borderRadius: BorderRadius.circular(20),
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(22),
+                  border: Border.all(color: _picked == q.answer ? RC.green : RC.gold, width: 2.5),
                 ),
-                child: Text(q.explain, style: const TextStyle(fontSize: 19, color: RC.ink, height: 1.5)),
+                child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                  KhatamBadge(
+                    icon: _picked == q.answer ? Icons.check_rounded : Icons.lightbulb_rounded,
+                    color: _picked == q.answer ? RC.green : RC.gold,
+                    size: 40,
+                    iconColor: _picked == q.answer ? Colors.white : RC.ink,
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(child: Text(q.explain, style: RT.body(18, weight: FontWeight.w500))),
+                ]),
               ),
               const SizedBox(height: 14),
               PrimaryButton(label: _i < widget.questions.length - 1 ? 'التالي' : 'النتيجة', onTap: _next),
@@ -229,21 +262,29 @@ class _OptionButton extends StatelessWidget {
         : state == 2
             ? RC.coral
             : Colors.white;
-    return Material(
+    return Chunky(
       color: bg,
-      borderRadius: BorderRadius.circular(22),
-      elevation: 2,
-      child: InkWell(
-        borderRadius: BorderRadius.circular(22),
-        onTap: onTap,
-        child: Container(
-          constraints: const BoxConstraints(minHeight: 72),
-          alignment: Alignment.center,
-          padding: const EdgeInsets.all(12),
-          child: Text(text,
-              textAlign: TextAlign.center,
-              style: TextStyle(fontSize: 23, fontWeight: FontWeight.w700, color: state == 0 ? RC.ink : Colors.white)),
-        ),
+      edge: state == 0 ? RC.sandDark : null,
+      border: state == 0 ? Border.all(color: RC.sandDark, width: 2) : null,
+      radius: 22,
+      depth: 5,
+      onTap: onTap,
+      semanticLabel: text,
+      child: Container(
+        constraints: const BoxConstraints(minHeight: 68),
+        alignment: Alignment.center,
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+        child: Row(children: [
+          if (state != 0) ...[
+            Icon(state == 1 ? Icons.check_circle_rounded : Icons.cancel_rounded, color: Colors.white, size: 28),
+            const SizedBox(width: 8),
+          ],
+          Expanded(
+            child: Text(text,
+                textAlign: TextAlign.center, style: RT.display(23, color: state == 0 ? RC.ink : Colors.white)),
+          ),
+          if (state != 0) const SizedBox(width: 36),
+        ]),
       ),
     );
   }

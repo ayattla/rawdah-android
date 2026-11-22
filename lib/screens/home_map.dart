@@ -1,3 +1,5 @@
+import 'dart:math' as math;
+
 import 'package:flutter/material.dart';
 
 import '../data/content.dart';
@@ -23,27 +25,35 @@ class _Place {
   const _Place(this.title, this.hint, this.icon, this.color, this.builder);
 }
 
+/// الصفحة الرئيسية: «صحن الروضة».
+/// في الأعلى قوس كمحراب يطل على سماء المغرب وفانوس الطفل، وتحته بلاطات الأقسام.
 class HomeMapScreen extends StatelessWidget {
   const HomeMapScreen({super.key});
 
+  static final _journeys =
+      _Place('رحلاتي', 'محطات تصل بك إلى الشهادة', Icons.route_rounded, RC.ink, (_) => const JourneysScreen());
+
   static final List<_Place> _places = [
-    _Place('رحلاتي', 'محطات تصل بك إلى الشهادة', Icons.route_rounded, RC.plum, (_) => const JourneysScreen()),
-    _Place('بيت القصص', 'قصص نسمعها ونتعلم منها', Icons.auto_stories_rounded, RC.coral, (_) => const StoriesScreen()),
+    _Place('بيت القصص', 'قصص نتعلم منها', Icons.auto_stories_rounded, RC.coral, (_) => const StoriesScreen()),
     _Place('المدرسة', 'قرآن وأذكار ودروس', Icons.school_rounded, RC.sea, (_) => const SchoolScreen()),
+    _Place('المسابقات', 'أجب واجمع النجوم', Icons.emoji_events_rounded, RC.goldDark, (_) => const QuizHubScreen()),
     _Place('ساحة الألعاب', 'نلعب ونتعلم', Icons.extension_rounded, RC.plum, (_) => const GamesHubScreen()),
-    _Place('المسابقات', 'أجب واجمع النجوم', Icons.emoji_events_rounded, RC.gold, (_) => const QuizHubScreen()),
-    _Place('حديقتي', 'نخلتي وعادات الخير', Icons.park_rounded, RC.green, (_) => const GardenScreen()),
-    _Place('ميدان المنافسة', 'نافس واصعد الهرم', Icons.leaderboard_rounded, RC.coral, (_) => const CompetitionScreen()),
-    _Place('رمضان', 'فانوس لكل يوم وكأس رمضان', Icons.nightlight_round, RC.night, (_) => const RamadanScreen()),
-    _Place('مجلس العائلة', 'مسابقة مع أهلي', Icons.chair_rounded, RC.greenDark, (_) => const FamilyQuizScreen()),
+    _Place('ميدان المنافسة', 'نافس واصعد الهرم', Icons.leaderboard_rounded, RC.green, (_) => const CompetitionScreen()),
+    _Place('حديقتي', 'نخلتي وعادات الخير', Icons.park_rounded, const Color(0xFF3E9B4F), (_) => const GardenScreen()),
+    _Place('رمضان', 'فانوس لكل يوم', Icons.nightlight_round, RC.night, (_) => const RamadanScreen()),
+    _Place('مجلس العائلة', 'مسابقة مع أهلي', Icons.chair_rounded, const Color(0xFFB5527A), (_) => const FamilyQuizScreen()),
   ];
+
+  void _open(BuildContext context, _Place p) {
+    Voice.instance.say(p.title);
+    Navigator.of(context).push(MaterialPageRoute(builder: p.builder));
+  }
 
   @override
   Widget build(BuildContext context) {
     final st = AppScope.of(context);
     final c = st.current;
     if (c == null) return const Scaffold(body: SizedBox());
-    final glow = (c.streak / 7).clamp(0.2, 1.0).toDouble();
     return PopScope(
       canPop: true,
       onPopInvokedWithResult: (didPop, _) {
@@ -51,103 +61,357 @@ class HomeMapScreen extends StatelessWidget {
       },
       child: ChildShell(
         child: CustomScrollView(slivers: [
-          SliverToBoxAdapter(
-            child: Column(children: [
-            Padding(
-              padding: const EdgeInsets.fromLTRB(12, 8, 12, 0),
-              child: Row(children: [
-                RoundIcon(
-                  icon: Icons.swap_horiz_rounded,
-                  color: RC.plum,
-                  size: 48,
-                  onTap: () => Navigator.of(context).maybePop(),
-                ),
-                const SizedBox(width: 10),
-                Icon(symbolIcon(c.symbol), color: RC.gold, size: 34),
-                const SizedBox(width: 6),
-                Expanded(
-                  child: Text('أهلًا ${c.name}',
-                      style: const TextStyle(fontSize: 24, fontWeight: FontWeight.w700, color: RC.ink),
-                      overflow: TextOverflow.ellipsis),
-                ),
-                Container(
-                  margin: const EdgeInsets.only(left: 6),
-                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-                  decoration: BoxDecoration(color: RC.plum, borderRadius: BorderRadius.circular(30)),
-                  child: Text('مستوى ${c.level}',
-                      style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w700, fontSize: 15)),
-                ),
-                StarCount(stars: c.stars),
-              ]),
-            ),
-            Padding(
-              padding: const EdgeInsets.symmetric(vertical: 6),
-              child: Row(mainAxisAlignment: MainAxisAlignment.center, children: [
-                Lantern(size: 76, glow: glow),
-                const SizedBox(width: 10),
-                Flexible(
-                  child: Text(c.streak > 1 ? 'فانوسك يضيء ${c.streak} أيام متتالية' : 'تعال كل يوم ليزداد فانوسك نورًا',
-                      style: const TextStyle(fontSize: 16, color: RC.ink)),
-                ),
-              ]),
-            ),
-              if (c.onlineEnabled && c.circleCode.isNotEmpty) _CircleChip(child: c),
-              const _HadithCard(),
-              const _MissionsCard(),
-            ]),
-          ),
+          SliverToBoxAdapter(child: _TopBar(child: c)),
+          SliverToBoxAdapter(child: _ArchHeader(child: c)),
           SliverPadding(
-            padding: const EdgeInsets.fromLTRB(16, 4, 16, 24),
+            padding: const EdgeInsets.fromLTRB(16, 14, 16, 0),
+            sliver: SliverToBoxAdapter(child: _HeroTile(place: _journeys, onTap: () => _open(context, _journeys))),
+          ),
+          if (c.onlineEnabled && c.circleCode.isNotEmpty) SliverToBoxAdapter(child: _CircleChip(child: c)),
+          const SliverToBoxAdapter(child: _MissionsCard()),
+          SliverPadding(
+            padding: const EdgeInsets.fromLTRB(16, 4, 16, 8),
             sliver: SliverGrid(
               gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
                 crossAxisCount: 2,
                 mainAxisSpacing: 14,
                 crossAxisSpacing: 14,
-                childAspectRatio: 0.95,
+                childAspectRatio: 1.02,
               ),
               delegate: SliverChildBuilderDelegate(
                 childCount: _places.length,
-                (context, i) {
-                    final p = _places[i];
-                    return Material(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(28),
-                      elevation: 4,
-                      shadowColor: p.color.withValues(alpha: 0.35),
-                      child: InkWell(
-                        borderRadius: BorderRadius.circular(28),
-                        onTap: () {
-                          Voice.instance.say(p.title);
-                          Navigator.of(context).push(MaterialPageRoute(builder: p.builder));
-                        },
-                        child: Padding(
-                          padding: const EdgeInsets.all(12),
-                          child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
-                            Container(
-                              width: 84,
-                              height: 84,
-                              decoration: BoxDecoration(color: p.color.withValues(alpha: 0.16), shape: BoxShape.circle),
-                              child: Icon(p.icon, color: p.color, size: 50),
-                            ),
-                            const SizedBox(height: 10),
-                            Text(p.title,
-                                textAlign: TextAlign.center,
-                                style: const TextStyle(fontSize: 21, fontWeight: FontWeight.w700, color: RC.ink)),
-                            Text(p.hint,
-                                textAlign: TextAlign.center,
-                                style: TextStyle(fontSize: 14, color: RC.ink.withValues(alpha: 0.6))),
-                          ]),
-                        ),
-                      ),
-                    );
-                },
+                (context, i) => _PlaceTile(place: _places[i], onTap: () => _open(context, _places[i])),
               ),
             ),
           ),
+          const SliverToBoxAdapter(child: _HadithCard()),
+          const SliverToBoxAdapter(child: SizedBox(height: 24)),
         ]),
       ),
     );
   }
+}
+
+// ------------------------------------------------------------------ الشريط العلوي
+
+class _TopBar extends StatelessWidget {
+  final ChildProfile child;
+  const _TopBar({required this.child});
+
+  @override
+  Widget build(BuildContext context) => Padding(
+        padding: const EdgeInsets.fromLTRB(16, 10, 16, 8),
+        child: Row(children: [
+          RoundIcon(
+            icon: Icons.swap_horiz_rounded,
+            color: RC.ink,
+            size: 48,
+            tooltip: 'تبديل الطفل',
+            onTap: () => Navigator.of(context).maybePop(),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+              Text('السلام عليكم', style: RT.body(14, color: RC.ink.withValues(alpha: 0.65))),
+              Text(child.name, style: RT.display(26), overflow: TextOverflow.ellipsis),
+            ]),
+          ),
+          StarCount(stars: child.stars),
+        ]),
+      );
+}
+
+// ------------------------------------------------------------------ القوس
+
+class _ArchHeader extends StatelessWidget {
+  final ChildProfile child;
+  const _ArchHeader({required this.child});
+
+  @override
+  Widget build(BuildContext context) {
+    final c = child;
+    final glow = (c.streak / 7).clamp(0.25, 1.0).toDouble();
+    final lvl = c.level;
+    final from = AppState.levelStart(lvl);
+    final to = AppState.levelStart(lvl + 1);
+    final progress = lvl >= 50 ? 1.0 : ((c.stars - from) / (to - from)).clamp(0.0, 1.0).toDouble();
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16),
+      child: AspectRatio(
+        aspectRatio: 1.55,
+        child: LayoutBuilder(builder: (context, box) {
+          return Stack(children: [
+            Positioned.fill(child: CustomPaint(painter: _ArchPainter())),
+            // الفانوس معلّق من قمة القوس
+            Positioned(
+              top: box.maxHeight * 0.12,
+              left: 0,
+              right: 0,
+              child: Center(
+                child: Column(children: [
+                  Container(width: 2, height: box.maxHeight * 0.08, color: const Color(0xFF7A4E12)),
+                  Lantern(size: box.maxHeight * 0.42, glow: glow),
+                ]),
+              ),
+            ),
+            // المستوى والأيام المتتالية على عتبة القوس
+            Positioned(
+              left: 14,
+              right: 14,
+              bottom: 12,
+              child: Row(children: [
+                _LevelRing(level: lvl, progress: progress),
+                const SizedBox(width: 10),
+                Expanded(
+                  child: Text(
+                    c.streak > 1 ? 'فانوسك مضيء منذ ${c.streak} أيام' : 'تعال كل يوم ليزداد فانوسك نورًا',
+                    style: RT.display(16, color: Colors.white, weight: FontWeight.w700),
+                  ),
+                ),
+              ]),
+            ),
+          ]);
+        }),
+      ),
+    );
+  }
+}
+
+class _LevelRing extends StatelessWidget {
+  final int level;
+  final double progress;
+  const _LevelRing({required this.level, required this.progress});
+
+  @override
+  Widget build(BuildContext context) => Semantics(
+        label: 'المستوى $level',
+        child: SizedBox(
+          width: 58,
+          height: 58,
+          child: Stack(alignment: Alignment.center, children: [
+            const KhatamBadge(icon: Icons.circle, color: RC.gold, size: 58, iconColor: Colors.transparent),
+            SizedBox(
+              width: 40,
+              height: 40,
+              child: CircularProgressIndicator(
+                value: progress,
+                strokeWidth: 4,
+                color: RC.ink,
+                backgroundColor: Colors.white54,
+              ),
+            ),
+            Text('$level', style: RT.display(18, color: RC.ink)),
+          ]),
+        ),
+      );
+}
+
+/// قوس مدبب كمحراب: إطار فيروزي مزخرف، وفي داخله سماء المغرب وقبة ومئذنتان.
+class _ArchPainter extends CustomPainter {
+  Path _arch(Size s, double inset) {
+    final w = s.width, h = s.height;
+    final l = inset, r = w - inset, b = h - inset * 0.4;
+    final spring = h * 0.42 + inset * 0.3; // بداية انحناء القوس
+    final apex = inset * 0.9;
+    return Path()
+      ..moveTo(l, b)
+      ..lineTo(l, spring)
+      ..cubicTo(l, spring - h * 0.2, w / 2 - w * 0.12, apex + h * 0.06, w / 2, apex)
+      ..cubicTo(w / 2 + w * 0.12, apex + h * 0.06, r, spring - h * 0.2, r, spring)
+      ..lineTo(r, b)
+      ..close();
+  }
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final outer = _arch(size, 0);
+    final inner = _arch(size, 12);
+    // الإطار
+    canvas.drawPath(outer, Paint()..color = RC.green);
+    canvas.save();
+    canvas.clipPath(outer);
+    ZellijPainter(color: Colors.white.withValues(alpha: 0.22), cell: 26).paint(canvas, size);
+    canvas.restore();
+    // السماء
+    final rect = Offset.zero & size;
+    canvas.save();
+    canvas.clipPath(inner);
+    canvas.drawRect(
+        rect,
+        Paint()
+          ..shader = const LinearGradient(
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+            colors: [Color(0xFF1D2B64), Color(0xFF6A5AE0), Color(0xFFF59E5B)],
+            stops: [0.0, 0.55, 1.0],
+          ).createShader(rect));
+    // نجوم وهلال
+    final r = math.Random(3);
+    final star = Paint()..color = Colors.white.withValues(alpha: 0.85);
+    for (var i = 0; i < 18; i++) {
+      canvas.drawCircle(Offset(r.nextDouble() * size.width, r.nextDouble() * size.height * 0.45),
+          r.nextDouble() * 1.4 + 0.5, star);
+    }
+    final moon = Offset(size.width * 0.27, size.height * 0.3);
+    canvas.drawCircle(moon, size.height * 0.07, Paint()..color = const Color(0xFFFFE9A8));
+    canvas.drawCircle(moon + Offset(size.height * 0.03, -size.height * 0.018), size.height * 0.062,
+        Paint()..color = const Color(0xFF3B3E9A));
+    // قبة ومئذنتان على الأفق
+    final sil = Paint()..color = const Color(0xFF14204F);
+    final w = size.width, h = size.height;
+    final base = h * 0.86;
+    final dome = Path()
+      ..moveTo(w * 0.6, base)
+      ..lineTo(w * 0.6, h * 0.72)
+      ..cubicTo(w * 0.6, h * 0.6, w * 0.7, h * 0.56, w * 0.71, h * 0.52)
+      ..cubicTo(w * 0.72, h * 0.56, w * 0.82, h * 0.6, w * 0.82, h * 0.72)
+      ..lineTo(w * 0.82, base)
+      ..close();
+    canvas.drawPath(dome, sil);
+    canvas.drawRect(Rect.fromLTWH(w * 0.705, h * 0.47, w * 0.01, h * 0.06), sil);
+    for (final x in [0.55, 0.87]) {
+      canvas.drawRect(Rect.fromLTWH(w * x - w * 0.012, h * 0.55, w * 0.024, base - h * 0.55), sil);
+      canvas.drawPath(
+          Path()
+            ..moveTo(w * x - w * 0.016, h * 0.55)
+            ..lineTo(w * x, h * 0.48)
+            ..lineTo(w * x + w * 0.016, h * 0.55)
+            ..close(),
+          sil);
+    }
+    canvas.drawRect(Rect.fromLTWH(0, base, w, h - base), sil);
+    canvas.restore();
+  }
+
+  @override
+  bool shouldRepaint(covariant CustomPainter old) => false;
+}
+
+// ------------------------------------------------------------------ البلاطات
+
+/// بلاطة «رحلاتي» العريضة: لازوردية بنقش زليج ذهبي.
+class _HeroTile extends StatelessWidget {
+  final _Place place;
+  final VoidCallback onTap;
+  const _HeroTile({required this.place, required this.onTap});
+
+  @override
+  Widget build(BuildContext context) => Chunky(
+        color: place.color,
+        radius: 26,
+        depth: 6,
+        onTap: onTap,
+        semanticLabel: place.title,
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(26),
+          child: CustomPaint(
+            painter: ZellijPainter(color: RC.gold.withValues(alpha: 0.22), cell: 44),
+            child: Padding(
+              padding: const EdgeInsets.fromLTRB(16, 16, 16, 16),
+              child: Row(children: [
+                KhatamBadge(icon: place.icon, color: RC.gold, size: 72, iconColor: RC.ink),
+                const SizedBox(width: 14),
+                Expanded(
+                  child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                    Text(place.title, style: RT.display(28, color: Colors.white)),
+                    Text(place.hint, style: RT.body(16, color: Colors.white.withValues(alpha: 0.85))),
+                  ]),
+                ),
+                const Icon(Icons.chevron_left_rounded, color: RC.gold, size: 36),
+              ]),
+            ),
+          ),
+        ),
+      );
+}
+
+class _PlaceTile extends StatelessWidget {
+  final _Place place;
+  final VoidCallback onTap;
+  const _PlaceTile({required this.place, required this.onTap});
+
+  @override
+  Widget build(BuildContext context) => Chunky(
+        color: place.color,
+        radius: 24,
+        depth: 6,
+        onTap: onTap,
+        semanticLabel: place.title,
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(24),
+          child: Stack(children: [
+            // نجمة كبيرة مقصوصة في الزاوية: توقيع البلاطة
+            PositionedDirectional(
+              end: -34,
+              top: -34,
+              child: CustomPaint(
+                size: const Size(120, 120),
+                painter: _CornerStarPainter(Colors.white.withValues(alpha: 0.16)),
+              ),
+            ),
+            Padding(
+              padding: const EdgeInsets.all(14),
+              child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                KhatamBadge(icon: place.icon, color: Colors.white, size: 58, iconColor: place.color),
+                const Spacer(),
+                Text(place.title,
+                    style: RT.display(21, color: Colors.white), maxLines: 1, overflow: TextOverflow.ellipsis),
+                Text(place.hint,
+                    style: RT.body(13.5, color: Colors.white.withValues(alpha: 0.88)),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis),
+              ]),
+            ),
+          ]),
+        ),
+      );
+}
+
+class _CornerStarPainter extends CustomPainter {
+  final Color color;
+  _CornerStarPainter(this.color);
+  @override
+  void paint(Canvas canvas, Size size) {
+    final c = size.center(Offset.zero);
+    canvas.drawPath(khatamPath(c, size.width / 2), Paint()..color = color);
+    canvas.drawPath(
+        khatamPath(c, size.width * 0.3, rotation: math.pi / 8),
+        Paint()
+          ..color = color
+          ..style = PaintingStyle.stroke
+          ..strokeWidth = 3);
+  }
+
+  @override
+  bool shouldRepaint(covariant _CornerStarPainter old) => old.color != color;
+}
+
+// ------------------------------------------------------------------ البطاقات
+
+class _CircleChip extends StatelessWidget {
+  final ChildProfile child;
+  const _CircleChip({required this.child});
+
+  @override
+  Widget build(BuildContext context) => Padding(
+        padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
+        child: Chunky(
+          color: Colors.white,
+          edge: RC.sandDark,
+          border: Border.all(color: RC.sandDark, width: 2),
+          depth: 4,
+          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+          onTap: () => Navigator.of(context).push(MaterialPageRoute(builder: (_) => const CompetitionScreen())),
+          child: Row(children: [
+            const KhatamBadge(icon: Icons.groups_2_rounded, color: RC.green, size: 40),
+            const SizedBox(width: 10),
+            Expanded(
+              child: Text('حلقتي: ${child.circleName}', overflow: TextOverflow.ellipsis, style: RT.display(18)),
+            ),
+            Text('${child.circlePoints + child.pendingPoints} نقطة', style: RT.display(17, color: RC.coral)),
+          ]),
+        ),
+      );
 }
 
 class _MissionsCard extends StatelessWidget {
@@ -161,82 +425,71 @@ class _MissionsCard extends StatelessWidget {
     c.rollDay();
     final claimed = c.completed.contains('missions_${todayKey()}');
     final items = [
-      ('أجب 5 إجابات صحيحة', c.correctToday >= 5, '${c.correctToday > 5 ? 5 : c.correctToday}/5'),
-      ('أكمل قصة أو درسًا أو سورة', c.learnToday >= 1, c.learnToday >= 1 ? '1/1' : '0/1'),
-      ('العب لعبة واحدة', c.gamesToday >= 1, c.gamesToday >= 1 ? '1/1' : '0/1'),
+      (Icons.check_circle_outline_rounded, '5 إجابات صحيحة', (c.correctToday / 5).clamp(0.0, 1.0).toDouble()),
+      (Icons.menu_book_rounded, 'قصة أو درس أو سورة', c.learnToday >= 1 ? 1.0 : 0.0),
+      (Icons.extension_rounded, 'لعبة واحدة', c.gamesToday >= 1 ? 1.0 : 0.0),
     ];
     return Container(
-      margin: const EdgeInsets.fromLTRB(16, 0, 16, 8),
-      padding: const EdgeInsets.fromLTRB(12, 10, 12, 10),
-      decoration: BoxDecoration(color: Colors.white.withValues(alpha: 0.92), borderRadius: BorderRadius.circular(20)),
+      margin: const EdgeInsets.fromLTRB(16, 14, 16, 12),
+      padding: const EdgeInsets.fromLTRB(14, 12, 14, 14),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(24),
+        border: Border.all(color: RC.sandDark, width: 2),
+      ),
       child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
         Row(children: [
-          const Icon(Icons.flag_rounded, color: RC.coral),
-          const SizedBox(width: 6),
-          const Expanded(
-            child: Text('مهام اليوم', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w700, color: RC.ink)),
-          ),
+          Expanded(child: Text('مهام اليوم', style: RT.display(20))),
           if (claimed)
-            const Text('أنجزتها اليوم', style: TextStyle(color: RC.green, fontWeight: FontWeight.w700))
+            Text('أنجزتها، بارك الله فيك', style: RT.display(15, color: RC.green, weight: FontWeight.w700))
           else if (st.missionsDone)
-            FilledButton.icon(
-              style: FilledButton.styleFrom(backgroundColor: RC.gold),
-              onPressed: () {
+            Chunky(
+              color: RC.gold,
+              radius: 14,
+              depth: 4,
+              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
+              onTap: () {
                 if (st.claimMissions()) showReward(context, stars: 10, title: 'أنجزت مهام اليوم');
               },
-              icon: const Icon(Icons.card_giftcard_rounded),
-              label: const Text('استلم الجائزة'),
+              child: Text('استلم 10 نجوم', style: RT.display(16)),
             )
           else
-            const Text('جائزة: 10 نجوم', style: TextStyle(color: Colors.black54)),
-        ]),
-        const SizedBox(height: 6),
-        for (final m in items)
-          Padding(
-            padding: const EdgeInsets.only(top: 4),
-            child: Row(children: [
-              Icon(m.$2 ? Icons.check_circle_rounded : Icons.radio_button_unchecked_rounded,
-                  color: m.$2 ? RC.green : Colors.black26, size: 22),
-              const SizedBox(width: 8),
-              Expanded(child: Text(m.$1, style: const TextStyle(fontSize: 15, color: RC.ink))),
-              Text(m.$3, style: const TextStyle(fontSize: 14, color: Colors.black54)),
+            Row(children: [
+              const Icon(Icons.star_rounded, color: RC.goldDark, size: 20),
+              Text(' 10 عند الإتمام', style: RT.body(14, color: RC.ink.withValues(alpha: 0.7))),
             ]),
-          ),
+        ]),
+        const SizedBox(height: 10),
+        Row(children: [
+          for (final m in items)
+            Expanded(
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 4),
+                child: Column(children: [
+                  SizedBox(
+                    width: 52,
+                    height: 52,
+                    child: Stack(alignment: Alignment.center, children: [
+                      SizedBox.expand(
+                        child: CircularProgressIndicator(
+                          value: m.$3,
+                          strokeWidth: 5,
+                          color: m.$3 >= 1 ? RC.green : RC.gold,
+                          backgroundColor: RC.sandDark,
+                        ),
+                      ),
+                      Icon(m.$3 >= 1 ? Icons.check_rounded : m.$1, color: m.$3 >= 1 ? RC.green : RC.ink, size: 24),
+                    ]),
+                  ),
+                  const SizedBox(height: 6),
+                  Text(m.$2, textAlign: TextAlign.center, style: RT.body(13, weight: FontWeight.w500)),
+                ]),
+              ),
+            ),
+        ]),
       ]),
     );
   }
-}
-
-class _CircleChip extends StatelessWidget {
-  final ChildProfile child;
-  const _CircleChip({required this.child});
-
-  @override
-  Widget build(BuildContext context) => Padding(
-        padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
-        child: Material(
-          color: RC.green.withValues(alpha: 0.12),
-          borderRadius: BorderRadius.circular(18),
-          child: InkWell(
-            borderRadius: BorderRadius.circular(18),
-            onTap: () => Navigator.of(context).push(MaterialPageRoute(builder: (_) => const CompetitionScreen())),
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-              child: Row(children: [
-                const Icon(Icons.groups_2_outlined, color: RC.green),
-                const SizedBox(width: 8),
-                Expanded(
-                  child: Text('حلقتي: ${child.circleName}',
-                      overflow: TextOverflow.ellipsis,
-                      style: const TextStyle(fontSize: 17, fontWeight: FontWeight.w700, color: RC.greenDark)),
-                ),
-                Text('${child.circlePoints + child.pendingPoints} نقطة',
-                    style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w700, color: RC.coral)),
-              ]),
-            ),
-          ),
-        ),
-      );
 }
 
 class _HadithCard extends StatelessWidget {
@@ -248,27 +501,24 @@ class _HadithCard extends StatelessWidget {
     final day = DateTime(now.year, now.month, now.day).difference(DateTime(2024)).inDays;
     final h = kDailyHadith[day % kDailyHadith.length];
     return Container(
-      margin: const EdgeInsets.fromLTRB(16, 0, 16, 8),
-      padding: const EdgeInsets.fromLTRB(12, 10, 6, 10),
-      decoration: BoxDecoration(
-        color: RC.sand,
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: RC.sandDark),
-      ),
+      margin: const EdgeInsets.fromLTRB(16, 8, 16, 0),
+      padding: const EdgeInsets.fromLTRB(16, 14, 8, 14),
+      decoration: BoxDecoration(color: RC.ink, borderRadius: BorderRadius.circular(24)),
       child: Row(children: [
-        const Icon(Icons.menu_book_rounded, color: RC.greenDark),
-        const SizedBox(width: 8),
         Expanded(
           child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-            const Text('حديث اليوم', style: TextStyle(fontSize: 14, color: Colors.black54)),
-            Text('قال رسول الله ﷺ: ${h.$1}',
-                style: const TextStyle(fontSize: 17, fontWeight: FontWeight.w700, color: RC.ink, height: 1.4)),
-            Text(h.$2, style: const TextStyle(fontSize: 13, color: Colors.black54)),
+            Text('حديث اليوم', style: RT.display(15, color: RC.gold, weight: FontWeight.w700)),
+            const SizedBox(height: 4),
+            Text('قال رسول الله ﷺ: ${h.$1}', style: RT.display(19, color: Colors.white, weight: FontWeight.w700)),
+            const SizedBox(height: 2),
+            Text(h.$2, style: RT.body(13, color: Colors.white70)),
           ]),
         ),
         IconButton(
-          icon: const Icon(Icons.volume_up_rounded, color: RC.sea),
-          onPressed: () => Voice.instance.say('قال رسول الله صلى الله عليه وسلم: ${h.$1.replaceAll('«', '').replaceAll('»', '')}'),
+          tooltip: 'استمع',
+          icon: const Icon(Icons.volume_up_rounded, color: RC.gold, size: 30),
+          onPressed: () => Voice.instance
+              .say('قال رسول الله صلى الله عليه وسلم: ${h.$1.replaceAll('«', '').replaceAll('»', '')}'),
         ),
       ]),
     );
