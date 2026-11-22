@@ -9,8 +9,14 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'package:rawdah/data/content.dart';
+import 'package:rawdah/data/journeys.dart';
 import 'package:rawdah/screens/child_picker.dart';
+import 'package:rawdah/screens/competition.dart';
 import 'package:rawdah/screens/games_hub.dart';
+import 'package:rawdah/screens/garden.dart';
+import 'package:rawdah/screens/journeys.dart';
+import 'package:rawdah/screens/parent_dashboard.dart';
+import 'package:rawdah/screens/ramadan.dart';
 import 'package:rawdah/screens/home_map.dart';
 import 'package:rawdah/screens/onboarding.dart';
 import 'package:rawdah/screens/quizzes.dart';
@@ -78,7 +84,9 @@ Future<void> _shot(WidgetTester tester, String name, AppState st, Widget home,
   ));
   await tester.pump(const Duration(milliseconds: 300));
   if (act != null) await act();
-  await tester.pump(const Duration(milliseconds: 900));
+  for (var i = 0; i < 6; i++) {
+    await tester.pump(const Duration(milliseconds: 200));
+  }
   await expectLater(find.byType(MaterialApp), matchesGoldenFile('../shots_out/$name.png'));
   st.pauseClock();
   await tester.pumpWidget(const SizedBox());
@@ -152,5 +160,41 @@ void main() {
       await t.tap(find.text('x'));
       await t.pump(const Duration(milliseconds: 500));
     });
+  });
+
+  testWidgets('10 قصة', (t) async {
+    final st = await _state();
+    await _shot(t, '10_story', st, StoryReader(story: kStories.first));
+  });
+
+  testWidgets('11 الرحلات', (t) async {
+    final st = await _state();
+    await _shot(t, '11_journeys', st, const JourneysScreen(), height: 1300);
+  });
+
+  testWidgets('12 خريطة رحلة', (t) async {
+    final st = await _state();
+    await _shot(t, '12_journey_map', st, JourneyMap(journey: kJourneys.first), height: 1500);
+  });
+
+  testWidgets('13 حديقتي', (t) async {
+    final st = await _state();
+    await _shot(t, '13_garden', st, const GardenScreen(), height: 1500);
+  });
+
+  testWidgets('14 المنافسة', (t) async {
+    final st = await _state();
+    await _shot(t, '14_competition', st, const CompetitionScreen());
+  });
+
+  testWidgets('15 رمضان', (t) async {
+    final st = await _state();
+    await _shot(t, '15_ramadan', st, const RamadanScreen(), height: 1300);
+  });
+
+  testWidgets('16 لوحة الوالدين', (t) async {
+    final st = await _state();
+    st.leaveChild();
+    await _shot(t, '16_parents', st, const ParentDashboard(), height: 1800);
   });
 }

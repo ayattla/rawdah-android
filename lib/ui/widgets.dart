@@ -49,9 +49,21 @@ Color shadeOf(Color c, [double amount = 0.18]) {
 /// أنماط الخط. «بلو بهيجان» للعناوين والأرقام، و«روبيك» للنص.
 class RT {
   static TextStyle display(double size, {Color color = RC.ink, FontWeight weight = FontWeight.w800}) =>
-      TextStyle(fontFamily: 'Baloo', fontSize: size, fontWeight: weight, color: color, height: 1.25);
+      TextStyle(
+          fontFamily: 'Baloo',
+          fontFamilyFallback: const ['Rubik', 'AmiriQuran'],
+          fontSize: size,
+          fontWeight: weight,
+          color: color,
+          height: 1.25);
   static TextStyle body(double size, {Color color = RC.ink, FontWeight weight = FontWeight.w400}) =>
-      TextStyle(fontFamily: 'Rubik', fontSize: size, fontWeight: weight, color: color, height: 1.45);
+      TextStyle(
+          fontFamily: 'Rubik',
+          fontFamilyFallback: const ['AmiriQuran'],
+          fontSize: size,
+          fontWeight: weight,
+          color: color,
+          height: 1.45);
 }
 
 ThemeData rawdahTheme() {
@@ -356,7 +368,11 @@ class KhatamBadge extends StatelessWidget {
   final Color color;
   final double size;
   final Color iconColor;
-  const KhatamBadge({super.key, required this.icon, required this.color, this.size = 64, this.iconColor = Colors.white});
+
+  /// نص بدل الأيقونة (رقم السورة مثلًا).
+  final String? label;
+  const KhatamBadge(
+      {super.key, required this.icon, required this.color, this.size = 64, this.iconColor = Colors.white, this.label});
 
   @override
   Widget build(BuildContext context) => SizedBox(
@@ -364,7 +380,11 @@ class KhatamBadge extends StatelessWidget {
         height: size,
         child: DecoratedBox(
           decoration: ShapeDecoration(color: color, shape: const KhatamBorder()),
-          child: Icon(icon, color: iconColor, size: size * 0.48),
+          child: Center(
+            child: label != null
+                ? Text(label!, style: RT.display(size * 0.36, color: iconColor))
+                : Icon(icon, color: iconColor, size: size * 0.48),
+          ),
         ),
       );
 }
@@ -456,6 +476,7 @@ class BigTile extends StatelessWidget {
   final Color color;
   final VoidCallback onTap;
   final bool done;
+  final String? badge;
   const BigTile({
     super.key,
     required this.title,
@@ -464,6 +485,7 @@ class BigTile extends StatelessWidget {
     required this.onTap,
     this.subtitle,
     this.done = false,
+    this.badge,
   });
 
   @override
@@ -479,7 +501,7 @@ class BigTile extends StatelessWidget {
         onTap();
       },
       child: Row(children: [
-        KhatamBadge(icon: icon, color: color, size: 62),
+        KhatamBadge(icon: icon, color: color, size: 62, label: badge),
         const SizedBox(width: 14),
         Expanded(
           child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
@@ -602,7 +624,7 @@ class _RewardCardState extends State<_RewardCard> with SingleTickerProviderState
               builder: (_, v, __) => Row(mainAxisAlignment: MainAxisAlignment.center, children: [
                 const Icon(Icons.star_rounded, color: RC.gold, size: 38),
                 const SizedBox(width: 4),
-                Text('+$v', style: RT.display(34, color: Colors.white)),
+                Text('+$v', textDirection: TextDirection.ltr, style: RT.display(34, color: Colors.white)),
               ]),
             ),
           const SizedBox(height: 16),

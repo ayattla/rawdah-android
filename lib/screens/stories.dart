@@ -28,8 +28,18 @@ class StoriesScreen extends StatelessWidget {
               return BigTile(
                 title: s.title,
                 subtitle: s.moral,
-                icon: Icons.auto_stories_rounded,
-                color: RC.coral,
+                icon: switch (s.scene) {
+                  'night' => Icons.nightlight_round,
+                  'desert' => Icons.wb_sunny_rounded,
+                  'city' => Icons.mosque_rounded,
+                  _ => Icons.local_florist_rounded,
+                },
+                color: switch (s.scene) {
+                  'night' => RC.ink,
+                  'desert' => RC.goldDark,
+                  'city' => RC.sea,
+                  _ => RC.green,
+                },
                 done: c.completed.contains(s.id),
                 onTap: () => Navigator.of(context).push(MaterialPageRoute(builder: (_) => StoryReader(story: s))),
               );
@@ -104,12 +114,13 @@ class _StoryReaderState extends State<StoryReader> {
                     width: double.infinity,
                     padding: const EdgeInsets.all(22),
                     decoration: BoxDecoration(
-                      color: Colors.white.withValues(alpha: 0.92),
+                      color: Colors.white,
                       borderRadius: BorderRadius.circular(28),
+                      border: Border.all(color: s.scene == 'night' ? RC.gold : RC.sandDark, width: 3),
                     ),
                     child: Text(p.text,
                         textAlign: TextAlign.center,
-                        style: const TextStyle(fontSize: 25, height: 1.7, color: RC.ink, fontWeight: FontWeight.w500)),
+                        style: RT.display(25, weight: FontWeight.w500).copyWith(height: 1.75)),
                   ),
                   if (p.passage.isNotEmpty) ...[
                     const SizedBox(height: 16),
@@ -134,9 +145,20 @@ class _StoryReaderState extends State<StoryReader> {
           child: Row(children: [
             RoundIcon(icon: Icons.volume_up_rounded, color: RC.sea, onTap: () => _read(_page)),
             const SizedBox(width: 12),
+            // نقاط الصفحات: نجمة لكل صفحة، تمتلئ حتى الصفحة الحالية
             Expanded(
-              child: Text('${_page + 1} / ${s.pages.length}',
-                  textAlign: TextAlign.center, style: const TextStyle(fontSize: 20, color: RC.ink)),
+              child: Wrap(alignment: WrapAlignment.center, spacing: 6, runSpacing: 6, children: [
+                for (var k = 0; k < s.pages.length; k++)
+                  AnimatedContainer(
+                    duration: const Duration(milliseconds: 250),
+                    width: k == _page ? 22 : 14,
+                    height: k == _page ? 22 : 14,
+                    decoration: ShapeDecoration(
+                      color: k <= _page ? RC.gold : (s.scene == 'night' ? Colors.white24 : RC.sandDark),
+                      shape: const KhatamBorder(),
+                    ),
+                  ),
+              ]),
             ),
             const SizedBox(width: 12),
             last

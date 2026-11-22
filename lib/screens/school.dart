@@ -28,6 +28,7 @@ class SchoolScreen extends StatelessWidget {
                   title: 'سورة ${s.name}',
                   subtitle: '${s.ayat.length} آيات',
                   icon: Icons.menu_book_rounded,
+                  badge: '${s.number}',
                   color: RC.green,
                   done: c.completed.contains('surah_${s.number}'),
                   onTap: () => Navigator.of(context).push(MaterialPageRoute(builder: (_) => SurahScreen(surah: s))),
