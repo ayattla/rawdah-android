@@ -44,44 +44,42 @@ class JourneysScreen extends StatelessWidget {
               final j = kJourneys[i];
               final st = stationsFor(j, c.ageBand);
               final done = st.where((s) => c.completed.contains(s.doneId(j.id))).length;
-              return Material(
+              final ratio = st.isEmpty ? 0.0 : done / st.length;
+              return Chunky(
                 color: Colors.white,
-                borderRadius: BorderRadius.circular(24),
-                elevation: 3,
-                child: InkWell(
-                  borderRadius: BorderRadius.circular(24),
-                  onTap: () => Navigator.of(context).push(MaterialPageRoute(builder: (_) => JourneyMap(journey: j))),
-                  child: Padding(
-                    padding: const EdgeInsets.all(14),
-                    child: Row(children: [
-                      Container(
-                        width: 64,
-                        height: 64,
-                        decoration: BoxDecoration(color: j.color.withValues(alpha: 0.15), shape: BoxShape.circle),
-                        child: Icon(j.icon, color: j.color, size: 36),
+                edge: j.color.withValues(alpha: 0.45),
+                border: Border.all(color: j.color.withValues(alpha: 0.3), width: 2),
+                padding: const EdgeInsets.all(14),
+                semanticLabel: j.title,
+                onTap: () => Navigator.of(context).push(MaterialPageRoute(builder: (_) => JourneyMap(journey: j))),
+                child: Row(children: [
+                  KhatamBadge(
+                    icon: ratio >= 1 ? Icons.workspace_premium_rounded : j.icon,
+                    color: ratio >= 1 ? RC.gold : j.color,
+                    iconColor: ratio >= 1 ? RC.ink : Colors.white,
+                    size: 66,
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                      Row(children: [
+                        Expanded(child: Text(j.title, style: RT.display(21))),
+                        Text('$done من ${st.length}', style: RT.display(15, color: j.color, weight: FontWeight.w700)),
+                      ]),
+                      Text(j.subtitle, style: RT.body(15, color: RC.ink.withValues(alpha: 0.7))),
+                      const SizedBox(height: 8),
+                      ClipRRect(
+                        borderRadius: BorderRadius.circular(8),
+                        child: LinearProgressIndicator(
+                          value: ratio,
+                          minHeight: 10,
+                          color: j.color,
+                          backgroundColor: j.color.withValues(alpha: 0.14),
+                        ),
                       ),
-                      const SizedBox(width: 12),
-                      Expanded(
-                        child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                          Text(j.title, style: const TextStyle(fontSize: 21, fontWeight: FontWeight.w700, color: RC.ink)),
-                          Text(j.subtitle, style: const TextStyle(fontSize: 15, color: Colors.black54)),
-                          const SizedBox(height: 6),
-                          ClipRRect(
-                            borderRadius: BorderRadius.circular(8),
-                            child: LinearProgressIndicator(
-                              value: st.isEmpty ? 0 : done / st.length,
-                              minHeight: 10,
-                              color: j.color,
-                              backgroundColor: j.color.withValues(alpha: 0.12),
-                            ),
-                          ),
-                        ]),
-                      ),
-                      const SizedBox(width: 10),
-                      Text('$done/${st.length}', style: const TextStyle(fontSize: 17, fontWeight: FontWeight.w700)),
                     ]),
                   ),
-                ),
+                ]),
               );
             },
           ),
@@ -167,51 +165,61 @@ class JourneyMap extends StatelessWidget {
               final done = doneFlags[i];
               final open = done || i == firstOpen;
               final alignRight = i.isEven;
+              final current = i == firstOpen;
               return Column(children: [
                 if (i > 0)
-                  Container(width: 6, height: 26, color: done || open ? journey.color : Colors.black12),
+                  Container(
+                    width: 8,
+                    height: 24,
+                    decoration: BoxDecoration(
+                      color: done || open ? journey.color : RC.sandDark,
+                      borderRadius: BorderRadius.circular(4),
+                    ),
+                  ),
                 Align(
                   alignment: alignRight ? const Alignment(0.45, 0) : const Alignment(-0.45, 0),
-                  child: GestureDetector(
-                    onTap: () {
-                      if (!open) {
-                        Voice.instance.say('أكمل المحطة السابقة أولًا');
-                        return;
-                      }
-                      final screen = _screenFor(s, c.ageBand);
-                      if (screen != null) Navigator.of(context).push(MaterialPageRoute(builder: (_) => screen));
-                    },
-                    child: Column(children: [
-                      Container(
-                        width: 76,
-                        height: 76,
-                        decoration: BoxDecoration(
-                          color: done ? journey.color : (open ? Colors.white : const Color(0xFFE6E6E6)),
-                          shape: BoxShape.circle,
-                          border: Border.all(color: open ? journey.color : Colors.black12, width: 4),
-                          boxShadow: i == firstOpen
-                              ? [BoxShadow(color: journey.color.withValues(alpha: 0.5), blurRadius: 14)]
-                              : null,
+                  child: Semantics(
+                    button: true,
+                    label: s.title,
+                    child: GestureDetector(
+                      onTap: () {
+                        if (!open) {
+                          Voice.instance.say('أكمل المحطة السابقة أولًا');
+                          return;
+                        }
+                        final screen = _screenFor(s, c.ageBand);
+                        if (screen != null) Navigator.of(context).push(MaterialPageRoute(builder: (_) => screen));
+                      },
+                      child: Column(children: [
+                        SizedBox(
+                          width: 104,
+                          height: 104,
+                          child: Stack(alignment: Alignment.center, children: [
+                            if (current)
+                              KhatamBadge(
+                                  icon: Icons.circle,
+                                  color: journey.color.withValues(alpha: 0.22),
+                                  iconColor: Colors.transparent,
+                                  size: 104),
+                            KhatamBadge(
+                              icon: done ? Icons.check_rounded : (open ? _iconFor(s.type) : Icons.lock_rounded),
+                              color: done ? RC.gold : (open ? journey.color : RC.sandDark),
+                              iconColor: done ? RC.ink : (open ? Colors.white : Colors.white),
+                              size: current ? 84 : 72,
+                            ),
+                          ]),
                         ),
-                        child: Icon(
-                          done
-                              ? Icons.check_rounded
-                              : (open ? _iconFor(s.type) : Icons.lock_rounded),
-                          color: done ? Colors.white : (open ? journey.color : Colors.black38),
-                          size: 38,
+                        SizedBox(
+                          width: 160,
+                          child: Text(s.title,
+                              textAlign: TextAlign.center,
+                              style: RT.display(16,
+                                  weight: FontWeight.w700, color: open ? RC.ink : RC.ink.withValues(alpha: 0.4))),
                         ),
-                      ),
-                      const SizedBox(height: 4),
-                      SizedBox(
-                        width: 150,
-                        child: Text(s.title,
-                            textAlign: TextAlign.center,
-                            style: TextStyle(
-                                fontSize: 15,
-                                fontWeight: FontWeight.w600,
-                                color: open ? RC.ink : Colors.black38)),
-                      ),
-                    ]),
+                        if (current)
+                          Text('ابدأ من هنا', style: RT.body(14, color: journey.color, weight: FontWeight.w500)),
+                      ]),
+                    ),
                   ),
                 ),
               ]);

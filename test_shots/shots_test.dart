@@ -162,10 +162,13 @@ void main() {
     });
   });
 
-  testWidgets('10 قصة', (t) async {
-    final st = await _state();
-    await _shot(t, '10_story', st, StoryReader(story: kStories.first));
-  });
+  for (final scene in ['desert', 'night', 'garden', 'city']) {
+    testWidgets('10 قصة $scene', (t) async {
+      final st = await _state();
+      final story = kStories.firstWhere((x) => x.scene == scene, orElse: () => kStories.first);
+      await _shot(t, '10_story_$scene', st, StoryReader(story: story));
+    });
+  }
 
   testWidgets('11 الرحلات', (t) async {
     final st = await _state();

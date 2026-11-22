@@ -87,7 +87,9 @@ ThemeData rawdahTheme() {
       foregroundColor: RC.ink,
       elevation: 0,
       scrolledUnderElevation: 0,
-      titleTextStyle: RT.display(23),
+      // بلا لون حتى يتبع foregroundColor في الأشرطة الداكنة
+      titleTextStyle: const TextStyle(
+          fontFamily: 'Baloo', fontFamilyFallback: ['Rubik', 'AmiriQuran'], fontSize: 23, fontWeight: FontWeight.w800),
     ),
     cardTheme: CardThemeData(
       color: Colors.white,
@@ -410,13 +412,17 @@ class KidBar extends StatelessWidget {
           if (showBack)
             RoundIcon(
               icon: Icons.arrow_back_rounded,
-              color: RC.ink,
+              color: NightScope.of(context) ? RC.green : RC.ink,
               size: 50,
               tooltip: 'رجوع',
               onTap: () => Navigator.of(context).maybePop(),
             ),
           const SizedBox(width: 12),
-          Expanded(child: Text(title, style: RT.display(25), overflow: TextOverflow.ellipsis)),
+          Expanded(
+            child: Text(title,
+                style: RT.display(25, color: NightScope.of(context) ? Colors.white : RC.ink),
+                overflow: TextOverflow.ellipsis),
+          ),
           if (trailing != null) trailing!,
           if (c != null) StarCount(stars: c.stars),
         ],
@@ -734,6 +740,15 @@ class _LanternPainter extends CustomPainter {
   bool shouldRepaint(covariant _LanternPainter old) => old.glow != glow;
 }
 
+/// يخبر العناصر داخل الشاشة أن الخلفية ليلية (لتصبح النصوص فاتحة).
+class NightScope extends InheritedWidget {
+  final bool night;
+  const NightScope({super.key, required this.night, required super.child});
+  static bool of(BuildContext context) => context.dependOnInheritedWidgetOfExactType<NightScope>()?.night ?? false;
+  @override
+  bool updateShouldNotify(NightScope old) => old.night != night;
+}
+
 /// يغلّف شاشات الطفل: عند انتهاء الوقت اليومي تظهر شاشة الاستراحة.
 class ChildShell extends StatelessWidget {
   final Widget child;
@@ -773,6 +788,6 @@ class ChildShell extends StatelessWidget {
         ),
       );
     }
-    return Scaffold(body: SceneBackground(night: night, child: child));
+    return Scaffold(body: SceneBackground(night: night, child: NightScope(night: night, child: child)));
   }
 }
