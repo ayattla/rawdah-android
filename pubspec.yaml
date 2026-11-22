@@ -1,0 +1,30 @@
+name: rawdah
+description: "روضة — تطبيق ثقافي وتعليمي وألعاب ومسابقات دينية للأطفال، خالٍ من ذوات الأرواح والموسيقى والإعلانات."
+publish_to: 'none'
+version: 0.1.0+1
+
+environment:
+  sdk: ">=3.4.0 <4.0.0"
+
+dependencies:
+  flutter:
+    sdk: flutter
+  flutter_localizations:
+    sdk: flutter
+  flame: ">=1.18.0 <2.0.0"
+  flutter_tts: ">=4.0.0 <5.0.0"
+  shared_preferences: ">=2.2.0 <3.0.0"
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+
+flutter:
+  uses-material-design: true
+  fonts:
+    - family: Rubik
+      fonts:
+        - asset: assets/fonts/Rubik.ttf
+    - family: AmiriQuran
+      fonts:
+        - asset: assets/fonts/AmiriQuran.ttf

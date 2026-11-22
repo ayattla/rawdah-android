@@ -1,0 +1,89 @@
+import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
+
+import 'screens/child_picker.dart';
+import 'screens/onboarding.dart';
+import 'services/voice.dart';
+import 'state/app_state.dart';
+import 'ui/widgets.dart';
+
+void main() {
+  WidgetsFlutterBinding.ensureInitialized();
+  SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp]);
+  final state = AppState();
+  state.load();
+  runApp(RawdahApp(state: state));
+}
+
+class RawdahApp extends StatefulWidget {
+  final AppState state;
+  const RawdahApp({super.key, required this.state});
+
+  @override
+  State<RawdahApp> createState() => _RawdahAppState();
+}
+
+class _RawdahAppState extends State<RawdahApp> with WidgetsBindingObserver {
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addObserver(this);
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState s) {
+    if (s == AppLifecycleState.resumed) {
+      widget.state.resumeClock();
+    } else {
+      widget.state.pauseClock();
+      Voice.instance.stop();
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AppScope(
+      state: widget.state,
+      child: MaterialApp(
+        title: 'روضة',
+        debugShowCheckedModeBanner: false,
+        locale: const Locale('ar'),
+        supportedLocales: const [Locale('ar')],
+        localizationsDelegates: const [
+          GlobalMaterialLocalizations.delegate,
+          GlobalWidgetsLocalizations.delegate,
+          GlobalCupertinoLocalizations.delegate,
+        ],
+        theme: ThemeData(
+          useMaterial3: true,
+          fontFamily: 'Rubik',
+          colorScheme: ColorScheme.fromSeed(seedColor: RC.green, brightness: Brightness.light),
+          scaffoldBackgroundColor: RC.sand,
+        ),
+        home: const _Root(),
+      ),
+    );
+  }
+}
+
+class _Root extends StatelessWidget {
+  const _Root();
+
+  @override
+  Widget build(BuildContext context) {
+    final st = AppScope.of(context);
+    Voice.instance.enabled = st.voiceOn;
+    if (!st.loaded) {
+      return const Scaffold(body: SceneBackground(child: Center(child: Lantern(size: 120, glow: 0.8))));
+    }
+    if (!st.consentGiven || st.children.isEmpty) return const OnboardingScreen();
+    return const ChildPickerScreen();
+  }
+}
