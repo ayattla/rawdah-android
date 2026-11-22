@@ -1,6 +1,7 @@
 import 'dart:math';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
 import '../data/content.dart';
 import '../services/voice.dart';
@@ -118,6 +119,7 @@ class _QuizRunnerState extends State<QuizRunner> {
       if (ok) _right++;
     });
     AppScope.read(context).recordAnswer(_q.id, ok);
+    ok ? HapticFeedback.lightImpact() : HapticFeedback.heavyImpact();
     Voice.instance.say(ok ? 'إجابة صحيحة. ${_q.explain}' : 'الإجابة الصحيحة: ${_q.options[_q.answer]}. ${_q.explain}');
   }
 

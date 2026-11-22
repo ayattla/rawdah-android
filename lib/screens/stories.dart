@@ -111,9 +111,12 @@ class _StoryReaderState extends State<StoryReader> {
                         textAlign: TextAlign.center,
                         style: const TextStyle(fontSize: 25, height: 1.7, color: RC.ink, fontWeight: FontWeight.w500)),
                   ),
-                  if (p.ayat.isNotEmpty) ...[
+                  if (p.passage.isNotEmpty) ...[
                     const SizedBox(height: 16),
-                    QuranText(ayat: resolveAyat(p.ayat), firstNumber: s.id == 'story_naml' ? 18 : 1),
+                    Builder(builder: (_) {
+                      final r = resolvePassage(p.passage);
+                      return QuranText(ayat: r.ayat, firstNumber: r.from);
+                    }),
                     const SizedBox(height: 6),
                     Text(p.ayatRef, style: const TextStyle(fontSize: 15, color: Colors.black54)),
                   ],

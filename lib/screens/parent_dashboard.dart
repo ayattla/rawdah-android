@@ -157,6 +157,10 @@ class _ChildCard extends StatelessWidget {
             _Stat('مرحلة النخلة', '${palmStage(c.stars) + 1} من 6'),
           ]),
           const SizedBox(height: 14),
+          const Text('الاستخدام في آخر 7 أيام (بالدقائق)', style: TextStyle(fontWeight: FontWeight.w700)),
+          const SizedBox(height: 8),
+          _WeekBars(child: c),
+          const SizedBox(height: 14),
           const Text('الحد اليومي للاستخدام', style: TextStyle(fontWeight: FontWeight.w700)),
           const SizedBox(height: 6),
           Wrap(spacing: 8, children: [
@@ -214,4 +218,42 @@ class _Stat extends StatelessWidget {
           Text(label, style: const TextStyle(fontSize: 13, color: Colors.black54)),
         ]),
       );
+}
+
+class _WeekBars extends StatelessWidget {
+  final ChildProfile child;
+  const _WeekBars({required this.child});
+
+  static const _days = ['إثنين', 'ثلاثاء', 'أربعاء', 'خميس', 'جمعة', 'سبت', 'أحد'];
+
+  @override
+  Widget build(BuildContext context) {
+    final now = DateTime.now();
+    final days = [for (var i = 6; i >= 0; i--) now.subtract(Duration(days: i))];
+    final mins = [for (final d in days) (child.usageSeconds[todayKey(d)] ?? 0) ~/ 60];
+    final top = mins.fold<int>(0, (a, b) => a > b ? a : b);
+    final scaleMax = top < 10 ? 10 : top;
+    return SizedBox(
+      height: 130,
+      child: Row(crossAxisAlignment: CrossAxisAlignment.end, children: [
+        for (var i = 0; i < days.length; i++)
+          Expanded(
+            child: Column(mainAxisAlignment: MainAxisAlignment.end, children: [
+              Text('${mins[i]}', style: const TextStyle(fontSize: 12, color: Colors.black54)),
+              const SizedBox(height: 2),
+              Container(
+                height: 80 * mins[i] / scaleMax + 2,
+                margin: const EdgeInsets.symmetric(horizontal: 5),
+                decoration: BoxDecoration(
+                  color: i == days.length - 1 ? RC.green : RC.green.withValues(alpha: 0.45),
+                  borderRadius: BorderRadius.circular(6),
+                ),
+              ),
+              const SizedBox(height: 4),
+              Text(_days[days[i].weekday - 1], style: const TextStyle(fontSize: 10)),
+            ]),
+          ),
+      ]),
+    );
+  }
 }

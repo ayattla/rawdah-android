@@ -9,6 +9,7 @@ import '../game/letter_game.dart';
 import '../services/voice.dart';
 import '../state/app_state.dart';
 import '../ui/widgets.dart';
+import 'more_games.dart';
 
 class GamesHubScreen extends StatelessWidget {
   const GamesHubScreen({super.key});
@@ -37,6 +38,24 @@ class GamesHubScreen extends StatelessWidget {
               color: RC.sea,
               done: c.completed.contains('game_wudu'),
               onTap: () => Navigator.of(context).push(MaterialPageRoute(builder: (_) => const WuduOrderGame())),
+            ),
+            const SizedBox(height: 12),
+            BigTile(
+              title: 'ابنِ المسجد',
+              subtitle: 'كل إجابة صحيحة تبني جزءًا',
+              icon: Icons.mosque_rounded,
+              color: RC.green,
+              done: c.completed.contains('game_mosque'),
+              onTap: () => Navigator.of(context).push(MaterialPageRoute(builder: (_) => const MosqueBuilderGame())),
+            ),
+            const SizedBox(height: 12),
+            BigTile(
+              title: 'بطاقات الذاكرة',
+              subtitle: 'ابحث عن الشكلين المتشابهين',
+              icon: Icons.grid_view_rounded,
+              color: RC.coral,
+              done: c.completed.contains('game_memory'),
+              onTap: () => Navigator.of(context).push(MaterialPageRoute(builder: (_) => const MemoryGame())),
             ),
             const SizedBox(height: 12),
             BigTile(

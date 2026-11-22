@@ -13,21 +13,20 @@ Surah? surahByNumber(int n) {
   return null;
 }
 
-/// يحوّل العناصر الرمزية في القصص إلى آيات من نص المصحف.
-List<String> resolveAyat(List<String> raw) {
-  final out = <String>[];
-  for (final r in raw) {
-    if (r == '__NAML__') {
-      out.addAll(kNamlAyat);
-    } else if (r.startsWith('__SURAH_')) {
-      final n = int.tryParse(r.replaceAll('__SURAH_', '').replaceAll('__', ''));
-      final s = n == null ? null : surahByNumber(n);
-      if (s != null) out.addAll(s.ayat);
-    } else {
-      out.add(r);
-    }
+class ResolvedAyat {
+  final List<String> ayat;
+  final int from;
+  const ResolvedAyat(this.ayat, this.from);
+}
+
+/// يحوّل مفتاح المقطع إلى آيات من نص المصحف: 'surah:105' أو مفتاح من kPassages.
+ResolvedAyat resolvePassage(String key) {
+  if (key.startsWith('surah:')) {
+    final s = surahByNumber(int.tryParse(key.substring(6)) ?? 0);
+    return ResolvedAyat(s?.ayat ?? const [], 1);
   }
-  return out;
+  final p = kPassages[key];
+  return p == null ? const ResolvedAyat([], 1) : ResolvedAyat(p.ayat, p.from);
 }
 
 /// عرض آيات بخط المصحف مع أرقام الآيات. لا يُقرأ بالصوت الآلي.
