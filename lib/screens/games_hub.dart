@@ -66,12 +66,39 @@ class GamesHubScreen extends StatelessWidget {
               done: c.completed.contains('game_match'),
               onTap: () => Navigator.of(context).push(MaterialPageRoute(builder: (_) => const MatchGame())),
             ),
+            for (final g in _orderGames)
+              if (c.ageBand >= g.$5) ...[
+                const SizedBox(height: 12),
+                BigTile(
+                  title: g.$2,
+                  subtitle: 'رتّب البطاقات بالترتيب الصحيح',
+                  icon: Icons.format_list_numbered_rounded,
+                  color: RC.greenDark,
+                  done: c.completed.contains(g.$1),
+                  onTap: () => Navigator.of(context).push(MaterialPageRoute(
+                      builder: (_) => WuduOrderGame(title: g.$2, prompt: g.$3, gameId: g.$1, items: g.$4))),
+                ),
+              ],
           ]),
         ),
       ]),
     );
   }
 }
+
+/// ألعاب الترتيب: (المعرّف، العنوان، التعليمة الصوتية، الترتيب الصحيح، أقل فئة عمرية).
+const List<(String, String, String, List<String>, int)> _orderGames = [
+  ('game_order_salah', 'رتّب الصلوات الخمس', 'رتب الصلوات من أول اليوم إلى آخره',
+      ['الفجر', 'الظهر', 'العصر', 'المغرب', 'العشاء'], 0),
+  ('game_order_short', 'رتّب السور كما في المصحف', 'رتب السور كما في المصحف',
+      ['الكوثر', 'الكافرون', 'النصر', 'المسد', 'الإخلاص', 'الفلق', 'الناس'], 0),
+  ('game_order_khulafa', 'رتّب الخلفاء الراشدين', 'رتب الخلفاء الراشدين من الأول إلى الرابع',
+      ['أبو بكر الصديق', 'عمر بن الخطاب', 'عثمان بن عفان', 'علي بن أبي طالب'], 1),
+  ('game_order_hajj', 'رتّب أيام الحج', 'رتب أعمال الحج حسب الأيام',
+      ['يوم التروية في منى', 'الوقوف بعرفة', 'المبيت بمزدلفة', 'رمي جمرة العقبة يوم النحر'], 1),
+  ('game_order_months', 'رتّب الأشهر الهجرية', 'رتب الأشهر الهجرية من محرم إلى ذي الحجة',
+      ['محرم', 'صفر', 'ربيع الأول', 'ربيع الآخر', 'جمادى الأولى', 'جمادى الآخرة', 'رجب', 'شعبان', 'رمضان', 'شوال', 'ذو القعدة', 'ذو الحجة'], 2),
+];
 
 // ------------------------------------------------------------------ صيد الحروف
 
@@ -189,7 +216,18 @@ class _LetterGameScreenState extends State<LetterGameScreen> {
 // ------------------------------------------------------------------ ترتيب الوضوء
 
 class WuduOrderGame extends StatefulWidget {
-  const WuduOrderGame({super.key});
+  /// لعبة ترتيب عامة: بلا معاملات هي ترتيب خطوات الوضوء.
+  final String title;
+  final String prompt;
+  final String gameId;
+  final List<String>? items;
+  const WuduOrderGame({
+    super.key,
+    this.title = 'رتّب خطوات الوضوء',
+    this.prompt = 'رتب خطوات الوضوء من الأولى إلى الأخيرة',
+    this.gameId = 'game_wudu',
+    this.items,
+  });
 
   @override
   State<WuduOrderGame> createState() => _WuduOrderGameState();
@@ -203,16 +241,16 @@ class _WuduOrderGameState extends State<WuduOrderGame> {
   @override
   void initState() {
     super.initState();
-    _correct = kLessons.firstWhere((l) => l.id == 'lesson_wudu').items.map((e) => e.title).toList();
+    _correct = widget.items ?? kLessons.firstWhere((l) => l.id == 'lesson_wudu').items.map((e) => e.title).toList();
     _items = List.of(_correct)..shuffle();
-    Voice.instance.say('رتب خطوات الوضوء من الأولى إلى الأخيرة');
+    Voice.instance.say(widget.prompt);
   }
 
   Future<void> _check() async {
     final ok = List.generate(_items.length, (i) => _items[i] == _correct[i]).every((e) => e);
     setState(() => _result = ok);
     if (ok) {
-      final first = AppScope.read(context).complete('game_wudu', stars: 5);
+      final first = AppScope.read(context).complete(widget.gameId, stars: 5);
       await showReward(context, stars: first ? 5 : 0, title: 'ترتيب صحيح');
     } else {
       Voice.instance.say('قريب! راجع الترتيب مرة أخرى');
@@ -223,7 +261,7 @@ class _WuduOrderGameState extends State<WuduOrderGame> {
   Widget build(BuildContext context) {
     return ChildShell(
       child: Column(children: [
-        const KidBar(title: 'رتّب خطوات الوضوء'),
+        KidBar(title: widget.title),
         const Padding(
           padding: EdgeInsets.symmetric(horizontal: 16),
           child: Text('اضغط مطوّلًا على البطاقة واسحبها إلى مكانها', style: TextStyle(fontSize: 17, color: RC.ink)),
