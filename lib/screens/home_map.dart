@@ -132,8 +132,8 @@ class _ArchHeader extends StatelessWidget {
     final c = child;
     final glow = (c.streak / 7).clamp(0.25, 1.0).toDouble();
     final lvl = c.level;
-    final from = AppState.levelStart(lvl);
-    final to = AppState.levelStart(lvl + 1);
+    final from = ChildProfile.levelStart(lvl);
+    final to = ChildProfile.levelStart(lvl + 1);
     final progress = lvl >= 50 ? 1.0 : ((c.stars - from) / (to - from)).clamp(0.0, 1.0).toDouble();
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16),
