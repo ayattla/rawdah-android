@@ -7,6 +7,7 @@ import 'competition.dart';
 import 'family_quiz.dart';
 import 'games_hub.dart';
 import 'garden.dart';
+import 'journeys.dart';
 import 'quizzes.dart';
 import 'school.dart';
 import 'stories.dart';
@@ -24,6 +25,7 @@ class HomeMapScreen extends StatelessWidget {
   const HomeMapScreen({super.key});
 
   static final List<_Place> _places = [
+    _Place('رحلاتي', 'محطات تصل بك إلى الشهادة', Icons.route_rounded, RC.plum, (_) => const JourneysScreen()),
     _Place('بيت القصص', 'قصص نسمعها ونتعلم منها', Icons.auto_stories_rounded, RC.coral, (_) => const StoriesScreen()),
     _Place('المدرسة', 'قرآن وأذكار ودروس', Icons.school_rounded, RC.sea, (_) => const SchoolScreen()),
     _Place('ساحة الألعاب', 'نلعب ونتعلم', Icons.extension_rounded, RC.plum, (_) => const GamesHubScreen()),
