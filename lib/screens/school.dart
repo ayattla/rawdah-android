@@ -98,7 +98,7 @@ class _SurahScreenState extends State<SurahScreen> {
           child: SegmentedButton<bool>(
             segments: const [
               ButtonSegment(value: false, label: Text('أقرأ'), icon: Icon(Icons.chrome_reader_mode_rounded)),
-              ButtonSegment(value: true, label: Text('أختبر حفظي'), icon: Icon(Icons.visibility_off_rounded)),
+              ButtonSegment(value: true, label: Text('أختبر حفظي'), icon: Icon(Icons.quiz_rounded)),
             ],
             selected: {_memorize},
             onSelectionChanged: (v) => setState(() {
@@ -125,7 +125,7 @@ class _SurahScreenState extends State<SurahScreen> {
                   const SizedBox(height: 10),
                   PrimaryButton(
                     label: 'اكشف الآية',
-                    icon: Icons.visibility_rounded,
+                    icon: Icons.lightbulb_rounded,
                     color: RC.sea,
                     onTap: () => setState(() => _shown++),
                   ),
