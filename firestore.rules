@@ -1,173 +1,169 @@
 rules_version = '2';
-// قواعد روضة: منافسة بالألقاب فقط، بلا أي تواصل بين الأطفال.
-// كل جهاز يدخل دخولًا مجهولًا، ولا يكتب إلا ملفات أطفاله، والنقاط تزيد بحد أقصى 60 كل 8 ثوانٍ.
+// قواعد روضة — نموذج «انعدام الثقة» (Zero-Trust):
+// 1) كل شيء ممنوع ما لم يُسمح به صراحةً هنا.
+// 2) لا يُوثق بأي قيمة من التطبيق: الأشكال والحدود والأوقات يتحقق منها الخادم.
+// 3) لا نص حر: الألقاب وأسماء الحلقات حروف عربية فقط بطول محدود، ولا يوجد أي حقل رسائل.
+// 4) حد السرعة لكل مستخدم: أقصى 60 نقطة كل 8 ثوانٍ، مهما كان عدد الأطفال على الجهاز.
 service cloud.firestore {
   match /databases/{database}/documents {
-    function signedIn() { return request.auth != null; }
-    function owns(pid) { return signedIn() && pid.matches(request.auth.uid + '_[A-Za-z0-9]+'); }
-    function okNick(d) { return d.nick is string && d.nick.size() >= 2 && d.nick.size() <= 24; }
-    function okSymbol(d) { return d.symbol in ['star', 'moon', 'sun', 'tree', 'book', 'gem']; }
-    function stamped(d) { return d.updatedAt == request.time; }
-    function slow() { return request.time > resource.data.updatedAt + duration.value(8, 's'); }
 
+    // ------------------------------------------------------------ أدوات مشتركة
+    function signedIn() { return request.auth != null; }
+    function isUid(uid) { return signedIn() && request.auth.uid == uid; }
+    // معرّف اللاعب = uid الجهاز + _ + معرّف الطفل
+    function owns(pid) { return signedIn() && pid.matches(request.auth.uid + '_[A-Za-z0-9]{1,40}'); }
+    function data() { return request.resource.data; }
+    function stamped(field) { return data()[field] == request.time; }
+    // لقب الطفل: حروف عربية ومسافات فقط، من 2 إلى 16
+    function okNickValue(v) { return v is string && v.size() >= 2 && v.size() <= 16 && v.matches('[ء-ي ]+'); }
+    function okSymbolValue(v) { return v in ['star', 'moon', 'sun', 'tree', 'book', 'gem']; }
+    function okIdentity() { return okNickValue(data().nick) && okSymbolValue(data().symbol); }
+    function okCode(code) { return code.matches('[A-Z0-9]{6}'); }
+
+    // ------------------------------------------------------------ حد السرعة لكل مستخدم
+    // كل دفعة نقاط يجب أن تكتب معها limits/{uid} في الدفعة نفسها بوقت الخادم،
+    // ولا تُقبل كتابته إلا بعد مرور 8 ثوانٍ على آخر دفعة، ولطفل واحد في كل دفعة.
+    function limitDoc() { return /databases/$(database)/documents/limits/$(request.auth.uid); }
+    function throttled(pid) {
+      return getAfter(limitDoc()).data.at == request.time && getAfter(limitDoc()).data.pid == pid;
+    }
+    function okLimitShape() {
+      return data().keys().hasOnly(['at', 'pid']) && stamped('at') && owns(data().pid);
+    }
+    match /limits/{uid} {
+      allow get: if isUid(uid);
+      allow create: if isUid(uid) && okLimitShape();
+      allow update: if isUid(uid) && okLimitShape() && request.time > resource.data.at + duration.value(8, 's');
+    }
+
+    // نقاط في ملف منافسة: تزيد فقط، بحد أقصى 60 في الدفعة، ومع حد السرعة
+    function pointsCreate(pid, field) {
+      return data()[field] is int && data()[field] >= 0 && data()[field] <= 60
+        && (data()[field] == 0 || throttled(pid));
+    }
+    function pointsUpdate(pid, field) {
+      return data()[field] is int
+        && data()[field] >= resource.data[field]
+        && data()[field] <= resource.data[field] + 60
+        && throttled(pid);
+    }
+    function entryShape() { return data().keys().hasOnly(['nick', 'symbol', 'points', 'updatedAt']) && okIdentity() && stamped('updatedAt'); }
+
+    // ------------------------------------------------------------ لوحات الترتيب
     match /players/{pid} {
       allow read: if signedIn();
       allow create: if owns(pid)
-        && request.resource.data.keys().hasOnly(['nick', 'symbol', 'band', 'total', 'updatedAt'])
-        && okNick(request.resource.data) && okSymbol(request.resource.data)
-        && request.resource.data.band in [0, 1, 2]
-        && request.resource.data.total is int
-        && request.resource.data.total >= 0 && request.resource.data.total <= 60
-        && stamped(request.resource.data);
+        && data().keys().hasOnly(['nick', 'symbol', 'band', 'total', 'updatedAt'])
+        && okIdentity() && data().band in [0, 1, 2] && stamped('updatedAt')
+        && pointsCreate(pid, 'total');
       allow update: if owns(pid)
-        && request.resource.data.keys().hasOnly(['nick', 'symbol', 'band', 'total', 'updatedAt'])
-        && okNick(request.resource.data) && okSymbol(request.resource.data)
-        && request.resource.data.band in [0, 1, 2]
-        && request.resource.data.total is int
-        && request.resource.data.total >= resource.data.total
-        && request.resource.data.total <= resource.data.total + 60
-        && stamped(request.resource.data) && slow();
+        && data().keys().hasOnly(['nick', 'symbol', 'band', 'total', 'updatedAt'])
+        && okIdentity() && data().band in [0, 1, 2] && stamped('updatedAt')
+        && pointsUpdate(pid, 'total');
       allow delete: if owns(pid);
     }
 
     match /leagues/{week}/entries/{pid} {
       allow read: if signedIn();
-      allow create: if owns(pid) && week.matches('w[0-9]+_b[0-2]')
-        && request.resource.data.keys().hasOnly(['nick', 'symbol', 'points', 'updatedAt'])
-        && okNick(request.resource.data) && okSymbol(request.resource.data)
-        && request.resource.data.points is int
-        && request.resource.data.points >= 0 && request.resource.data.points <= 60
-        && stamped(request.resource.data);
-      allow update: if owns(pid)
-        && request.resource.data.keys().hasOnly(['nick', 'symbol', 'points', 'updatedAt'])
-        && okNick(request.resource.data) && okSymbol(request.resource.data)
-        && request.resource.data.points is int
-        && request.resource.data.points >= resource.data.points
-        && request.resource.data.points <= resource.data.points + 60
-        && stamped(request.resource.data) && slow();
+      allow create: if owns(pid) && week.matches('w[0-9]{1,5}_b[0-2]') && entryShape() && pointsCreate(pid, 'points');
+      allow update: if owns(pid) && entryShape() && pointsUpdate(pid, 'points');
       allow delete: if owns(pid);
     }
 
-    // إبلاغ عن لقب غير لائق: إنشاء فقط، ويراجعه المشرف من لوحة Firebase.
-    // كأس رمضان: مثل الدوري الأسبوعي تمامًا لكن بمفتاح الكأس.
     match /cups/{cup}/entries/{pid} {
       allow read: if signedIn();
-      allow create: if owns(pid) && cup.matches('r[0-9]+_b[0-2]')
-        && request.resource.data.keys().hasOnly(['nick', 'symbol', 'points', 'updatedAt'])
-        && okNick(request.resource.data) && okSymbol(request.resource.data)
-        && request.resource.data.points is int
-        && request.resource.data.points >= 0 && request.resource.data.points <= 60
-        && stamped(request.resource.data);
-      allow update: if owns(pid)
-        && request.resource.data.keys().hasOnly(['nick', 'symbol', 'points', 'updatedAt'])
-        && okNick(request.resource.data) && okSymbol(request.resource.data)
-        && request.resource.data.points is int
-        && request.resource.data.points >= resource.data.points
-        && request.resource.data.points <= resource.data.points + 60
-        && stamped(request.resource.data) && slow();
+      allow create: if owns(pid) && cup.matches('r[0-9]{4}_b[0-2]') && entryShape() && pointsCreate(pid, 'points');
+      allow update: if owns(pid) && entryShape() && pointsUpdate(pid, 'points');
       allow delete: if owns(pid);
     }
 
-    // الحلقات: المعلم ينشئ حلقة برمز، والأطفال ينضمون بالرمز ويظهرون بالألقاب والنقاط فقط.
+    // ------------------------------------------------------------ حلقات المعلم
+    // لا يمكن سرد الحلقات؛ لا يصل إلى الحلقة إلا من يعرف رمزها.
     match /circles/{code} {
-      allow read: if signedIn();
-      allow create: if signedIn() && code.matches('[A-Z0-9]{6}')
-        && request.resource.data.keys().hasOnly(['name', 'owner', 'createdAt'])
-        && request.resource.data.name is string
-        && request.resource.data.name.size() >= 2 && request.resource.data.name.size() <= 30
-        && request.resource.data.owner == request.auth.uid
-        && request.resource.data.createdAt == request.time;
+      function circle() { return get(/databases/$(database)/documents/circles/$(code)).data; }
+      allow get: if signedIn();
+      allow list: if false;
+      allow create: if signedIn() && okCode(code)
+        && data().keys().hasOnly(['name', 'owner', 'createdAt'])
+        && data().name is string && data().name.size() >= 2 && data().name.size() <= 30
+        && data().name.matches('[ء-ي0-9٠-٩ ]+')
+        && data().owner == request.auth.uid && stamped('createdAt');
+      allow update: if false;
       allow delete: if signedIn() && resource.data.owner == request.auth.uid;
 
       match /members/{pid} {
         allow read: if signedIn();
-        allow create: if owns(pid)
-          && exists(/databases/$(database)/documents/circles/$(code))
-          && request.resource.data.keys().hasOnly(['nick', 'symbol', 'points', 'updatedAt'])
-          && okNick(request.resource.data) && okSymbol(request.resource.data)
-          && request.resource.data.points is int
-          && request.resource.data.points >= 0 && request.resource.data.points <= 60
-          && stamped(request.resource.data);
-        allow update: if owns(pid)
-          && exists(/databases/$(database)/documents/circles/$(code))
-          && request.resource.data.keys().hasOnly(['nick', 'symbol', 'points', 'updatedAt'])
-          && okNick(request.resource.data) && okSymbol(request.resource.data)
-          && request.resource.data.points is int
-          && request.resource.data.points >= resource.data.points
-          && request.resource.data.points <= resource.data.points + 60
-          && stamped(request.resource.data) && slow();
-        allow delete: if owns(pid)
-          || (signedIn() && get(/databases/$(database)/documents/circles/$(code)).data.owner == request.auth.uid);
+        // الانضمام بصفر نقطة فقط؛ من أُخرج لا يعود بنقاطه إلا بانضمام جديد
+        allow create: if owns(pid) && exists(/databases/$(database)/documents/circles/$(code))
+          && entryShape() && data().points == 0;
+        allow update: if owns(pid) && exists(/databases/$(database)/documents/circles/$(code))
+          && entryShape() && pointsUpdate(pid, 'points');
+        allow delete: if owns(pid) || (signedIn() && circle().owner == request.auth.uid);
       }
     }
 
-    // المسابقة المباشرة: المعلم يدير الغرفة، والطفل يكتب إجابته مرة لكل سؤال وتزيد نقطته بواحد كحد أقصى.
+    // ------------------------------------------------------------ المسابقة المباشرة
     match /rooms/{code} {
-      function roomData() { return get(/databases/$(database)/documents/rooms/$(code)).data; }
-      allow read: if signedIn();
-      allow create: if signedIn() && code.matches('[A-Z0-9]{6}')
-        && request.resource.data.keys().hasOnly(['owner', 'band', 'qids', 'index', 'state', 'createdAt'])
-        && request.resource.data.owner == request.auth.uid
-        && request.resource.data.band in [0, 1, 2]
-        && request.resource.data.qids is list
-        && request.resource.data.qids.size() >= 3 && request.resource.data.qids.size() <= 15
-        && request.resource.data.index == 0 && request.resource.data.state == 'wait'
-        && request.resource.data.createdAt == request.time;
+      function room() { return get(/databases/$(database)/documents/rooms/$(code)).data; }
+      allow get: if signedIn();
+      allow list: if false;
+      allow create: if signedIn() && okCode(code)
+        && data().keys().hasOnly(['owner', 'band', 'qids', 'index', 'state', 'createdAt'])
+        && data().owner == request.auth.uid
+        && data().band in [0, 1, 2]
+        && data().qids is list && data().qids.size() >= 3 && data().qids.size() <= 15
+        && data().index == 0 && data().state == 'wait' && stamped('createdAt');
       allow update: if signedIn() && resource.data.owner == request.auth.uid
-        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['index', 'state'])
-        && request.resource.data.state in ['wait', 'q', 'end']
-        && request.resource.data.index is int && request.resource.data.index >= 0
-        && request.resource.data.index < resource.data.qids.size();
+        && data().diff(resource.data).affectedKeys().hasOnly(['index', 'state'])
+        && data().state in ['wait', 'q', 'end']
+        && data().index is int && data().index >= 0 && data().index < resource.data.qids.size();
       allow delete: if signedIn() && resource.data.owner == request.auth.uid;
 
       match /players/{pid} {
         allow read: if signedIn();
-        allow create: if owns(pid)
-          && exists(/databases/$(database)/documents/rooms/$(code))
-          && request.resource.data.keys().hasOnly(['nick', 'symbol', 'score', 'answered', 'updatedAt'])
-          && okNick(request.resource.data) && okSymbol(request.resource.data)
-          && request.resource.data.score == 0 && request.resource.data.answered == -1
-          && stamped(request.resource.data);
+        allow create: if owns(pid) && exists(/databases/$(database)/documents/rooms/$(code))
+          && data().keys().hasOnly(['nick', 'symbol', 'score', 'answered', 'updatedAt'])
+          && okIdentity() && data().score == 0 && data().answered == -1 && stamped('updatedAt');
+        // إجابة واحدة لكل سؤال، أثناء عرضه فقط، ونقطة واحدة كحد أقصى
         allow update: if owns(pid)
-          && request.resource.data.keys().hasOnly(['nick', 'symbol', 'score', 'answered', 'updatedAt'])
-          && request.resource.data.nick == resource.data.nick
-          && request.resource.data.symbol == resource.data.symbol
-          && roomData().state == 'q'
-          && request.resource.data.answered == roomData().index
-          && request.resource.data.answered > resource.data.answered
-          && request.resource.data.score is int
-          && request.resource.data.score >= resource.data.score
-          && request.resource.data.score <= resource.data.score + 1
-          && stamped(request.resource.data);
-        allow delete: if owns(pid)
-          || (signedIn() && get(/databases/$(database)/documents/rooms/$(code)).data.owner == request.auth.uid);
+          && data().diff(resource.data).affectedKeys().hasOnly(['score', 'answered', 'updatedAt'])
+          && room().state == 'q'
+          && data().answered == room().index
+          && data().answered > resource.data.answered
+          && data().score is int && data().score >= resource.data.score && data().score <= resource.data.score + 1
+          && stamped('updatedAt');
+        allow delete: if owns(pid) || (signedIn() && room().owner == request.auth.uid);
       }
     }
 
-    // تحدي صديق: المنشئ يكتب نتيجته، والصديق يضيف نتيجته مرة واحدة فقط.
+    // ------------------------------------------------------------ تحدي صديق
     match /challenges/{code} {
-      allow read: if signedIn();
-      allow create: if signedIn() && code.matches('[A-Z0-9]{6}')
-        && request.resource.data.keys().hasOnly(['band', 'qids', 'aNick', 'aSymbol', 'aScore', 'createdAt'])
-        && request.resource.data.band in [0, 1, 2]
-        && request.resource.data.qids is list && request.resource.data.qids.size() == 5
-        && request.resource.data.aNick is string && request.resource.data.aNick.size() <= 24
-        && request.resource.data.aSymbol in ['star', 'moon', 'sun', 'tree', 'book', 'gem']
-        && request.resource.data.aScore is int && request.resource.data.aScore >= 0 && request.resource.data.aScore <= 5
-        && request.resource.data.createdAt == request.time;
+      allow get: if signedIn();
+      allow list: if false;
+      allow create: if signedIn() && okCode(code)
+        && data().keys().hasOnly(['band', 'qids', 'aNick', 'aSymbol', 'aScore', 'createdAt'])
+        && data().band in [0, 1, 2]
+        && data().qids is list && data().qids.size() == 5
+        && okNickValue(data().aNick) && okSymbolValue(data().aSymbol)
+        && data().aScore is int && data().aScore >= 0 && data().aScore <= 5
+        && stamped('createdAt');
+      // الصديق يضيف نتيجته مرة واحدة فقط
       allow update: if signedIn() && !('bScore' in resource.data)
-        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['bNick', 'bSymbol', 'bScore', 'bAt'])
-        && request.resource.data.bNick is string && request.resource.data.bNick.size() <= 24
-        && request.resource.data.bSymbol in ['star', 'moon', 'sun', 'tree', 'book', 'gem']
-        && request.resource.data.bScore is int && request.resource.data.bScore >= 0 && request.resource.data.bScore <= 5
-        && request.resource.data.bAt == request.time;
+        && data().diff(resource.data).affectedKeys().hasOnly(['bNick', 'bSymbol', 'bScore', 'bAt'])
+        && okNickValue(data().bNick) && okSymbolValue(data().bSymbol)
+        && data().bScore is int && data().bScore >= 0 && data().bScore <= 5
+        && stamped('bAt');
+      allow delete: if false;
     }
 
+    // ------------------------------------------------------------ البلاغات
+    // إنشاء فقط، ويراجعها المشرف من لوحة Firebase. لا يقرؤها أحد من التطبيق.
     match /reports/{rid} {
+      allow read, update, delete: if false;
       allow create: if signedIn()
-        && request.resource.data.keys().hasOnly(['target', 'createdAt'])
-        && request.resource.data.target is string && request.resource.data.target.size() < 80
-        && request.resource.data.createdAt == request.time;
+        && data().keys().hasOnly(['target', 'createdAt'])
+        && data().target is string && data().target.size() < 80
+        && stamped('createdAt');
     }
   }
 }

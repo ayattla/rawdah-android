@@ -2,13 +2,15 @@ import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import 'screens/child_picker.dart';
-import 'screens/onboarding.dart';
-import 'services/online.dart';
-import 'services/voice.dart';
-import 'state/app_state.dart';
-import 'ui/widgets.dart';
+import 'package:rawdah/features/profiles/presentation/child_picker_screen.dart';
+import 'package:rawdah/features/onboarding/presentation/onboarding_screen.dart';
+import 'package:rawdah/features/competition/data/online_service.dart';
+import 'package:rawdah/core/di/providers.dart';
+import 'package:rawdah/core/services/voice.dart';
+import 'package:rawdah/core/state/app_state.dart';
+import 'package:rawdah/core/design_system/widgets.dart';
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
@@ -18,7 +20,10 @@ void main() {
   state.load().then((_) {
     if (state.children.any((c) => c.onlineEnabled)) Online.instance.scheduleFlush(state);
   });
-  runApp(RawdahApp(state: state));
+  runApp(ProviderScope(
+    overrides: [appStateProvider.overrideWithValue(state)],
+    child: RawdahApp(state: state),
+  ));
 }
 
 class RawdahApp extends StatefulWidget {

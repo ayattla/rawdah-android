@@ -19,6 +19,27 @@ for name in ("build.gradle.kts", "build.gradle"):
         f.write_text(s, encoding="utf-8")
         print("applicationId and minSdk patched in", name)
 
+# 1ب) R8: تصغير الكود والموارد وإخفاء الأسماء في نسخة الإصدار
+shutil.copy(root / "ci" / "android" / "proguard-rules.pro", app / "proguard-rules.pro")
+for name in ("build.gradle.kts", "build.gradle"):
+    f = app / name
+    if not f.exists():
+        continue
+    s = f.read_text(encoding="utf-8")
+    if "proguard-rules.pro" not in s:
+        if name.endswith(".kts"):
+            block = ('isMinifyEnabled = true\n            isShrinkResources = true\n'
+                     '            proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")\n'
+                     '            signingConfig = signingConfigs.getByName("debug")')
+            s = s.replace('signingConfig = signingConfigs.getByName("debug")', block, 1)
+        else:
+            block = ("minifyEnabled true\n            shrinkResources true\n"
+                     "            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'\n"
+                     "            signingConfig signingConfigs.debug")
+            s = s.replace("signingConfig signingConfigs.debug", block, 1)
+        f.write_text(s, encoding="utf-8")
+        print("R8 enabled in", name, "proguard-rules.pro" in s)
+
 # 2) الاسم الظاهر وصلاحية محرك النطق، دون إنترنت
 manifest = app / "src" / "main" / "AndroidManifest.xml"
 m = manifest.read_text(encoding="utf-8")

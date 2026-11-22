@@ -5,26 +5,29 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-import 'package:rawdah/data/content.dart';
-import 'package:rawdah/data/journeys.dart';
-import 'package:rawdah/screens/child_picker.dart';
-import 'package:rawdah/screens/competition.dart';
-import 'package:rawdah/screens/games_hub.dart';
-import 'package:rawdah/screens/garden.dart';
-import 'package:rawdah/screens/journeys.dart';
-import 'package:rawdah/screens/parent_dashboard.dart';
-import 'package:rawdah/screens/ramadan.dart';
-import 'package:rawdah/screens/home_map.dart';
-import 'package:rawdah/screens/onboarding.dart';
-import 'package:rawdah/screens/quizzes.dart';
-import 'package:rawdah/screens/school.dart';
-import 'package:rawdah/screens/stories.dart';
-import 'package:rawdah/services/voice.dart';
-import 'package:rawdah/state/app_state.dart';
-import 'package:rawdah/ui/widgets.dart';
+import 'package:rawdah/core/content/content.dart';
+import 'package:rawdah/core/di/providers.dart';
+import 'package:rawdah/core/storage/parental_store.dart';
+import 'package:rawdah/features/journeys/data/journeys_data.dart';
+import 'package:rawdah/features/profiles/presentation/child_picker_screen.dart';
+import 'package:rawdah/features/competition/presentation/competition_screen.dart';
+import 'package:rawdah/features/games/presentation/games_hub_screen.dart';
+import 'package:rawdah/features/garden/presentation/garden_screen.dart';
+import 'package:rawdah/features/journeys/presentation/journeys_screen.dart';
+import 'package:rawdah/features/parents/presentation/parent_dashboard_screen.dart';
+import 'package:rawdah/features/ramadan/presentation/ramadan_screen.dart';
+import 'package:rawdah/features/home/presentation/home_screen.dart';
+import 'package:rawdah/features/onboarding/presentation/onboarding_screen.dart';
+import 'package:rawdah/features/quizzes/presentation/quizzes_screen.dart';
+import 'package:rawdah/features/school/presentation/school_screen.dart';
+import 'package:rawdah/features/stories/presentation/stories_screen.dart';
+import 'package:rawdah/core/services/voice.dart';
+import 'package:rawdah/core/state/app_state.dart';
+import 'package:rawdah/core/design_system/widgets.dart';
 
 Future<void> _loadFonts() async {
   Future<void> family(String name, List<String> assets) async {
@@ -48,7 +51,7 @@ Future<void> _loadFonts() async {
 
 Future<AppState> _state({bool withKids = true}) async {
   SharedPreferences.setMockInitialValues({});
-  final st = AppState();
+  final st = AppState(parental: MemoryParentalStore());
   await st.load();
   if (withKids) {
     st.giveConsent();
@@ -67,7 +70,9 @@ Future<void> _shot(WidgetTester tester, String name, AppState st, Widget home,
   tester.view.physicalSize = Size(412 * 2, height * 2);
   tester.view.devicePixelRatio = 2;
   addTearDown(tester.view.reset);
-  await tester.pumpWidget(AppScope(
+  await tester.pumpWidget(ProviderScope(
+    overrides: [appStateProvider.overrideWithValue(st)],
+    child: AppScope(
     state: st,
     child: MaterialApp(
       debugShowCheckedModeBanner: false,
@@ -81,7 +86,7 @@ Future<void> _shot(WidgetTester tester, String name, AppState st, Widget home,
       ],
       home: home,
     ),
-  ));
+  )));
   await tester.pump(const Duration(milliseconds: 300));
   if (act != null) await act();
   for (var i = 0; i < 6; i++) {

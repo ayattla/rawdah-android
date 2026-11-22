@@ -31,7 +31,7 @@ jobs:
       - name: توليد مجلد الويب
         run: |
           flutter create --platforms=web --org com.rawdah --project-name rawdah .
-          rm -rf test
+          rm -f test/widget_test.dart
 
       - name: بناء نسخة الويب
         run: |
