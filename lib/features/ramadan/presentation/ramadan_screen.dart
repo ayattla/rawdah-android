@@ -5,6 +5,7 @@ import 'package:rawdah/features/competition/data/online_service.dart';
 import 'package:rawdah/core/services/voice.dart';
 import 'package:rawdah/core/state/app_state.dart';
 import 'package:rawdah/core/design_system/design_system.dart';
+import 'package:rawdah/core/di/providers.dart';
 import 'package:rawdah/features/competition/presentation/competition_screen.dart';
 import 'package:rawdah/features/quizzes/presentation/quizzes_screen.dart';
 
@@ -116,7 +117,7 @@ class RamadanScreen extends StatelessWidget {
                       const KidBar(title: 'كأس رمضان'),
                       Expanded(
                         child: RankBoard(
-                          loader: () => Online.instance.cupBoard(c.ageBand),
+                          loader: () => competitionRepo(context).cupBoard(c.ageBand),
                           meId: Online.instance.uid == null ? '' : Online.instance.playerId(c),
                         ),
                       ),

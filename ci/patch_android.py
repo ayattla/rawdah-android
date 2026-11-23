@@ -69,5 +69,9 @@ src = root / "branding" / "android" / "res"
 for d in src.iterdir():
     dst = app / "src" / "main" / "res" / d.name
     dst.mkdir(parents=True, exist_ok=True)
-    shutil.copy(d / "ic_launcher.png", dst / "ic_launcher.png")
+    # الأيقونة بصيغة WebP (أصغر حجمًا)، ونحذف نسخة PNG الافتراضية حتى لا يتكرر المورد
+    for old in dst.glob("ic_launcher.*"):
+        old.unlink()
+    for f in d.glob("ic_launcher.*"):
+        shutil.copy(f, dst / f.name)
 print("icons copied")

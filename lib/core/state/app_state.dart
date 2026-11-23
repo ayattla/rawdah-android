@@ -4,6 +4,7 @@ import 'dart:convert';
 import 'package:flutter/widgets.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import 'package:rawdah/core/storage/local_store.dart';
 import 'package:rawdah/core/storage/parental_store.dart';
 
 /// الفئات العمرية: 0 = 4-6، 1 = 7-9، 2 = 10-12
@@ -224,7 +225,7 @@ class ChildProfile {
 }
 
 /// حالة التطبيق محفوظة على الجهاز. إعدادات الوالدين في مخزن مشفّر منفصل (ParentalStore)،
-/// وبقية التقدم في SharedPreferences. لا يتصل بالإنترنت إلا عبر خدمة المنافسة إن فُعّلت.
+/// وبقية التقدم في Hive (LocalStore). لا يتصل بالإنترنت إلا عبر خدمة المنافسة إن فُعّلت.
 class AppState extends ChangeNotifier {
   static const _key = 'rawdah_state_v1';
 
@@ -232,7 +233,10 @@ class AppState extends ChangeNotifier {
   static const _parentalChildKeys = ['dailyLimitMinutes', 'onlineEnabled', 'nick'];
 
   final ParentalStore parental;
-  AppState({ParentalStore? parental}) : parental = parental ?? SecureParentalStore();
+  final LocalStore local;
+  AppState({ParentalStore? parental, LocalStore? local})
+      : parental = parental ?? SecureParentalStore(),
+        local = local ?? HiveLocalStore();
 
   bool loaded = false;
   bool consentGiven = false;
@@ -277,8 +281,16 @@ class AppState extends ChangeNotifier {
 
   Future<void> load() async {
     try {
-      final p = await SharedPreferences.getInstance();
-      final raw = p.getString(_key);
+      var raw = await local.read(_key);
+      if (raw == null) {
+        // ترحيل لمرة واحدة من التخزين القديم (SharedPreferences) إلى Hive
+        final p = await SharedPreferences.getInstance();
+        raw = p.getString(_key);
+        if (raw != null) {
+          await local.write(_key, raw);
+          await p.remove(_key);
+        }
+      }
       if (raw != null) {
         final j = jsonDecode(raw) as Map<String, dynamic>;
         consentGiven = (j['consentGiven'] as bool?) ?? false;
@@ -324,8 +336,7 @@ class AppState extends ChangeNotifier {
   Future<void> save() async {
     // نكتب المشفّر أولًا، ولا نحذف القيم من الملف العادي إلا إذا نجحت الكتابة المشفّرة.
     final secured = await parental.write(_parentalSnapshot());
-    final p = await SharedPreferences.getInstance();
-    await p.setString(
+    await local.write(
       _key,
       jsonEncode({
         if (!secured) 'consentGiven': consentGiven,

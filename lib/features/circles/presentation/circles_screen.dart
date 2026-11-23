@@ -4,6 +4,7 @@ import 'package:flutter/services.dart';
 import 'package:rawdah/features/competition/data/online_service.dart';
 import 'package:rawdah/core/state/app_state.dart';
 import 'package:rawdah/core/design_system/design_system.dart';
+import 'package:rawdah/core/di/providers.dart';
 import 'package:rawdah/features/competition/presentation/competition_screen.dart';
 import 'package:rawdah/features/circles/presentation/live_quiz_screen.dart';
 
@@ -191,7 +192,7 @@ class CircleBoardScreen extends StatelessWidget {
         ),
         Expanded(
           child: RankBoard(
-            loader: () => Online.instance.circleBoard(code),
+            loader: () => competitionRepo(context).circleBoard(code),
             meId: '',
             onRemove: owner ? (r) => Online.instance.removeMember(code, r.id) : null,
           ),

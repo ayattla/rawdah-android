@@ -47,14 +47,23 @@ jobs:
           mkdir -p ~/.android
           cp ci/test-debug.keystore ~/.android/debug.keystore
 
-      - name: بناء APK
-        run: flutter build apk --release --obfuscate --split-debug-info=build/symbols
+      - name: بناء APK مقسّم حسب المعالج
+        run: |
+          flutter build apk --release --split-per-abi --obfuscate --split-debug-info=build/symbols
+          cd build/app/outputs/flutter-apk
+          # الرابط الثابت app-release.apk = نسخة arm64 (كل هواتف أندرويد الحديثة)
+          cp app-arm64-v8a-release.apk app-release.apk
+          ls -la *.apk
+          echo "### أحجام ملفات التثبيت" >> $GITHUB_STEP_SUMMARY
+          for f in app-*-release.apk; do echo "- $f: $(du -h $f | cut -f1)" >> $GITHUB_STEP_SUMMARY; done
 
       - name: رفع الملف
         uses: actions/upload-artifact@v4
         with:
           name: rawdah-apk
-          path: build/app/outputs/flutter-apk/app-release.apk
+          path: |
+            build/app/outputs/flutter-apk/app-release.apk
+            build/app/outputs/flutter-apk/app-armeabi-v7a-release.apk
 
       - name: نشر إصدار تجريبي
         uses: softprops/action-gh-release@v2
@@ -62,7 +71,10 @@ jobs:
           tag_name: build-${{ github.run_number }}
           name: روضة — نسخة تجريبية ${{ github.run_number }}
           prerelease: true
-          files: build/app/outputs/flutter-apk/app-release.apk
+          files: |
+            build/app/outputs/flutter-apk/app-release.apk
+            build/app/outputs/flutter-apk/app-armeabi-v7a-release.apk
           body: |
             نسخة تجريبية من تطبيق روضة للتثبيت المباشر على أجهزة أندرويد.
-            لا تحتاج إنترنت، ولا تحتوي إعلانات ولا موسيقى ولا صورًا لذوات الأرواح.
+            app-release.apk لأغلب الهواتف (arm64)، وapp-armeabi-v7a-release.apk للهواتف القديمة جدًا.
+            تعمل بلا إنترنت، ولا تحتوي إعلانات ولا موسيقى ولا صورًا لذوات الأرواح.

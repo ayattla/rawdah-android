@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
 
@@ -80,7 +81,13 @@ class Online {
   Future<bool> ensure() async {
     if (_ready && uid != null) return true;
     try {
-      if (Firebase.apps.isEmpty) await Firebase.initializeApp(options: _options);
+      if (Firebase.apps.isEmpty) {
+        await Firebase.initializeApp(options: _options);
+        // نوقف طابور الكتابة الخفي في Firestore: نحن ندير الطابور بأنفسنا (pendingPoints)،
+        // ولو بقي مفعّلًا لأُعيدت دفعة معلّقة بعد عودة الاتصال فتُحسب النقاط مرتين.
+        // القراءة بلا اتصال تتولاها طبقة Hive في CachedCompetitionRepository.
+        FirebaseFirestore.instance.settings = const Settings(persistenceEnabled: false);
+      }
       final auth = FirebaseAuth.instance;
       if (auth.currentUser == null) await auth.signInAnonymously();
       uid = auth.currentUser?.uid;
@@ -148,7 +155,40 @@ class Online {
 
   /// يرسل النقاط المتراكمة على دفعات (60 نقطة كحد أقصى كل 10 ثوانٍ، كما تشترط قواعد الخادم).
   void scheduleFlush(AppState st) {
-    _flushTimer ??= Timer.periodic(const Duration(seconds: 10), (_) => flush(st));
+    _watchConnectivity(st);
+    _flushTimer ??= Timer.periodic(const Duration(seconds: 10), (_) {
+      // تراجع أُسّي عند الفشل: 10، 20، 40 ثانية ثم دقيقة كحد أقصى
+      if (_skipTicks > 0) {
+        _skipTicks--;
+        return;
+      }
+      flush(st);
+    });
+  }
+
+  int _failures = 0;
+  int _skipTicks = 0;
+  StreamSubscription<List<ConnectivityResult>>? _connSub;
+
+  /// عند عودة الاتصال نرسل فورًا بدل انتظار دورة التراجع.
+  void _watchConnectivity(AppState st) {
+    _connSub ??= Connectivity().onConnectivityChanged.listen((results) {
+      if (results.any((r) => r != ConnectivityResult.none)) {
+        _failures = 0;
+        _skipTicks = 0;
+        if (st.children.any((c) => c.onlineEnabled && c.pendingPoints > 0)) scheduleFlush(st);
+      }
+    });
+  }
+
+  void _onFlushResult(bool ok) {
+    if (ok) {
+      _failures = 0;
+      _skipTicks = 0;
+    } else {
+      _failures = (_failures + 1).clamp(0, 6);
+      _skipTicks = (1 << (_failures - 1)).clamp(0, 5);
+    }
   }
 
   Future<void> flush(AppState st) async {
@@ -159,8 +199,12 @@ class Online {
       _flushTimer = null;
       return;
     }
-    if (!await ensure()) return;
+    if (!await ensure()) {
+      _onFlushResult(false);
+      return;
+    }
     _flushing = true;
+    var ok = false;
     try {
       // طفل واحد في كل دورة: قواعد الخادم تسمح بدفعة واحدة لكل مستخدم كل 8 ثوانٍ.
       for (final c in pending.take(1)) {
@@ -226,10 +270,12 @@ class Online {
         c.pendingPoints -= chunk;
       }
       st.updateChild(pending.first);
+      ok = true;
     } catch (_) {
-      // نعيد المحاولة في الدورة القادمة.
+      // نعيد المحاولة لاحقًا مع التراجع.
     } finally {
       _flushing = false;
+      _onFlushResult(ok);
     }
   }
 

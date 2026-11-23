@@ -111,7 +111,8 @@ class LetterGameScreen extends StatefulWidget {
 
 class _LetterGameScreenState extends State<LetterGameScreen> {
   late LetterWord _word;
-  late LetterGame _game;
+  LetterGame? _gameInstance;
+  LetterGame get _game => _gameInstance!;
   int _score = 0;
   int _seconds = 45;
   Timer? _timer;
@@ -129,13 +130,18 @@ class _LetterGameScreenState extends State<LetterGameScreen> {
     _score = 0;
     _seconds = 45;
     _over = false;
-    _game = LetterGame(
-      target: _word.letter,
-      pool: kLetterWords.map((w) => w.letter).toList(),
-      speedFactor: 0.8 + band * 0.3,
-      onHit: () => setState(() => _score++),
-      onMiss: () {},
-    );
+    // لعبة واحدة لكل الجولات: الجولة الجديدة تعيد ضبطها ولا تنشئ لعبة ومجمّعًا جديدين
+    if (_gameInstance == null) {
+      _gameInstance = LetterGame(
+        target: _word.letter,
+        pool: kLetterWords.map((w) => w.letter).toSet().toList(),
+        speedFactor: 0.8 + band * 0.3,
+        onHit: () => setState(() => _score++),
+        onMiss: () {},
+      );
+    } else {
+      _game.restart(_word.letter);
+    }
     _timer?.cancel();
     _timer = Timer.periodic(const Duration(seconds: 1), (t) {
       if (!mounted) return;
@@ -186,8 +192,14 @@ class _LetterGameScreenState extends State<LetterGameScreen> {
           ]),
         ),
         Expanded(
-          child: _over
-              ? Center(
+          // اللعبة تبقى مركّبة دائمًا، ونافذة النتيجة تظهر فوقها
+          child: Stack(children: [
+            Positioned.fill(child: GameWidget(game: _game)),
+            if (_over)
+              Positioned.fill(
+                child: ColoredBox(
+                  color: RC.night.withValues(alpha: 0.85),
+                  child: Center(
                   child: Padding(
                     padding: const EdgeInsets.all(24),
                     child: Column(mainAxisSize: MainAxisSize.min, children: [
@@ -205,8 +217,10 @@ class _LetterGameScreenState extends State<LetterGameScreen> {
                       ),
                     ]),
                   ),
-                )
-              : GameWidget(key: ValueKey(_game), game: _game),
+                ),
+                ),
+              ),
+          ]),
         ),
       ]),
     );

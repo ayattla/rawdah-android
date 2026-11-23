@@ -3,6 +3,8 @@ import 'package:flutter/material.dart';
 import 'package:rawdah/features/competition/data/online_service.dart';
 import 'package:rawdah/core/state/app_state.dart';
 import 'package:rawdah/core/design_system/design_system.dart';
+import 'package:rawdah/core/di/providers.dart';
+import 'package:rawdah/features/competition/data/cached_competition_repository.dart';
 import 'package:rawdah/features/competition/presentation/challenge_screen.dart';
 import 'package:rawdah/features/circles/presentation/live_quiz_screen.dart';
 
@@ -86,7 +88,7 @@ class _CompetitionScreenState extends State<CompetitionScreen> {
           ),
           Expanded(
             child: _tab == 0
-                ? RankBoard(key: const ValueKey('week'), loader: () => Online.instance.weekBoard(c.ageBand), meId: _meId(c))
+                ? RankBoard(key: const ValueKey('week'), loader: () => competitionRepo(context).weekBoard(c.ageBand), meId: _meId(c))
                 : _tab == 1
                     ? _Pyramid(child: c)
                     : _tab == 3 && c.circleCode.isNotEmpty
@@ -96,11 +98,11 @@ class _CompetitionScreenState extends State<CompetitionScreen> {
                             Expanded(
                               child: RankBoard(
                                   key: ValueKey('circle_${c.circleCode}'),
-                                  loader: () => Online.instance.circleBoard(c.circleCode),
+                                  loader: () => competitionRepo(context).circleBoard(c.circleCode),
                                   meId: _meId(c)),
                             ),
                           ])
-                        : RankBoard(key: const ValueKey('all'), loader: Online.instance.allTimeBoard, meId: _meId(c)),
+                        : RankBoard(key: const ValueKey('all'), loader: competitionRepo(context).allTimeBoard, meId: _meId(c)),
           ),
         ],
       ]),
@@ -234,15 +236,22 @@ class _RankBoardState extends State<RankBoard> {
           }
           final rows = snap.data ?? const [];
           if (snap.hasError || rows.isEmpty) {
-            return ListView(children: const [
-              SizedBox(height: 80),
+            return ListView(children: [
+              const SizedBox(height: 80),
               Center(
-                child: Text('لا توجد نتائج بعد. كن أول المتسابقين!',
-                    style: TextStyle(fontSize: 19, color: RC.ink)),
+                child: Text(
+                    snap.hasError
+                        ? 'لا يوجد اتصال بالإنترنت الآن. اسحب للأسفل لإعادة المحاولة.'
+                        : 'لا توجد نتائج بعد. كن أول المتسابقين!',
+                    textAlign: TextAlign.center,
+                    style: const TextStyle(fontSize: 19, color: RC.ink)),
               ),
             ]);
           }
-          return ListView.separated(
+          final offline = rows is BoardRows && rows.fromCache;
+          return Column(children: [
+            if (offline) _OfflineNote(at: (rows as BoardRows).fetchedAt),
+            Expanded(child: ListView.separated(
             padding: const EdgeInsets.fromLTRB(16, 4, 16, 24),
             itemCount: rows.length,
             separatorBuilder: (_, __) => const SizedBox(height: 8),
@@ -292,7 +301,8 @@ class _RankBoardState extends State<RankBoard> {
                 ),
               );
             },
-          );
+          )),
+          ]);
         },
       ),
     );
@@ -358,6 +368,40 @@ class _PyramidState extends State<_Pyramid> {
               textAlign: TextAlign.center, style: TextStyle(fontSize: 15, color: Colors.black54)),
         ]);
       },
+    );
+  }
+}
+
+/// يظهر أعلى اللوحة عند عرض النسخة المخزّنة بلا اتصال.
+class _OfflineNote extends StatelessWidget {
+  final DateTime? at;
+  const _OfflineNote({required this.at});
+
+  @override
+  Widget build(BuildContext context) {
+    final mins = at == null ? null : DateTime.now().difference(at!).inMinutes;
+    final when = mins == null
+        ? ''
+        : mins < 1
+            ? ' (قبل لحظات)'
+            : mins < 60
+                ? ' (قبل $mins دقيقة)'
+                : ' (قبل ${mins ~/ 60} ساعة)';
+    return Semantics(
+      liveRegion: true,
+      child: Container(
+        margin: const EdgeInsets.fromLTRB(16, 4, 16, 4),
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+        decoration: BoxDecoration(color: RC.ink, borderRadius: BorderRadius.circular(14)),
+        child: Row(children: [
+          const Icon(Icons.cloud_off_rounded, color: RC.gold, size: 20),
+          const SizedBox(width: 8),
+          Expanded(
+            child: Text('بلا اتصال: آخر ترتيب محفوظ$when',
+                style: const TextStyle(color: Colors.white, fontSize: 15)),
+          ),
+        ]),
+      ),
     );
   }
 }

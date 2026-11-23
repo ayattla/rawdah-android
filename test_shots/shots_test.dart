@@ -11,6 +11,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 import 'package:rawdah/core/content/content.dart';
 import 'package:rawdah/core/di/providers.dart';
+import 'package:rawdah/core/storage/local_store.dart';
 import 'package:rawdah/core/storage/parental_store.dart';
 import 'package:rawdah/features/journeys/data/journeys_data.dart';
 import 'package:rawdah/features/profiles/presentation/child_picker_screen.dart';
@@ -51,7 +52,7 @@ Future<void> _loadFonts() async {
 
 Future<AppState> _state({bool withKids = true}) async {
   SharedPreferences.setMockInitialValues({});
-  final st = AppState(parental: MemoryParentalStore());
+  final st = AppState(parental: MemoryParentalStore(), local: MemoryLocalStore());
   await st.load();
   if (withKids) {
     st.giveConsent();
