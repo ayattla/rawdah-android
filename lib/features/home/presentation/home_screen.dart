@@ -308,7 +308,8 @@ class _HeroTile extends StatelessWidget {
         child: ClipRRect(
           borderRadius: BorderRadius.circular(26),
           child: CustomPaint(
-            painter: ZellijPainter(color: RC.gold.withValues(alpha: 0.22), cell: 44),
+            painter: ZellijPainter(
+                color: RC.gold.withValues(alpha: A11y.highContrastOf(context) ? 0 : 0.22), cell: 44),
             child: Padding(
               padding: const EdgeInsets.fromLTRB(16, 16, 16, 16),
               child: Row(children: [
