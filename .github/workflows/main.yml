@@ -126,10 +126,13 @@ jobs:
         with:
           name: rawdah-android
           path: out
+      # الترقيم يكمل بعد آخر إصدار من خط البناء القديم (28)
+      - name: رقم الإصدار
+        run: echo "BUILD_NO=$((GITHUB_RUN_NUMBER + 28))" >> $GITHUB_ENV
       - uses: softprops/action-gh-release@v2
         with:
-          tag_name: build-${{ github.run_number }}
-          name: روضة — نسخة تجريبية ${{ github.run_number }}
+          tag_name: build-${{ env.BUILD_NO }}
+          name: روضة — نسخة تجريبية ${{ env.BUILD_NO }}
           prerelease: true
           files: |
             out/app/outputs/flutter-apk/app-release.apk
