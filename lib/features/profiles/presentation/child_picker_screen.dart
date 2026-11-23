@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 
 import 'package:rawdah/core/services/voice.dart';
 import 'package:rawdah/core/state/app_state.dart';
-import 'package:rawdah/core/design_system/widgets.dart';
+import 'package:rawdah/core/design_system/design_system.dart';
 import 'package:rawdah/features/home/presentation/home_screen.dart';
 import 'package:rawdah/features/parents/presentation/parent_dashboard_screen.dart';
 import 'package:rawdah/features/parents/presentation/parent_gate.dart';
@@ -21,7 +22,7 @@ class ChildPickerScreen extends StatelessWidget {
             child: Padding(
               padding: const EdgeInsets.fromLTRB(18, 14, 18, 6),
               child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                const Lantern(size: 74, glow: 0.9),
+                SvgPicture.asset('assets/brand/rawdah_mark.svg', width: 70, height: 70, excludeFromSemantics: true),
                 const SizedBox(width: 12),
                 Expanded(
                   child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [

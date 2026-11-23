@@ -5,7 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:rawdah/core/content/content.dart';
 import 'package:rawdah/core/services/voice.dart';
 import 'package:rawdah/core/state/app_state.dart';
-import 'package:rawdah/core/design_system/widgets.dart';
+import 'package:rawdah/core/design_system/design_system.dart';
 import 'package:rawdah/features/competition/presentation/competition_screen.dart';
 import 'package:rawdah/features/quizzes/presentation/family_quiz_screen.dart';
 import 'package:rawdah/features/games/presentation/games_hub_screen.dart';
@@ -39,9 +39,9 @@ class HomeMapScreen extends StatelessWidget {
     _Place('المسابقات', 'أجب واجمع النجوم', Icons.emoji_events_rounded, RC.goldDark, (_) => const QuizHubScreen()),
     _Place('ساحة الألعاب', 'نلعب ونتعلم', Icons.extension_rounded, RC.plum, (_) => const GamesHubScreen()),
     _Place('ميدان المنافسة', 'نافس واصعد الهرم', Icons.leaderboard_rounded, RC.green, (_) => const CompetitionScreen()),
-    _Place('حديقتي', 'نخلتي وعادات الخير', Icons.park_rounded, const Color(0xFF3E9B4F), (_) => const GardenScreen()),
+    _Place('حديقتي', 'نخلتي وعادات الخير', Icons.park_rounded, RC.garden, (_) => const GardenScreen()),
     _Place('رمضان', 'فانوس لكل يوم', Icons.nightlight_round, RC.night, (_) => const RamadanScreen()),
-    _Place('مجلس العائلة', 'مسابقة مع أهلي', Icons.chair_rounded, const Color(0xFFB5527A), (_) => const FamilyQuizScreen()),
+    _Place('مجلس العائلة', 'مسابقة مع أهلي', Icons.chair_rounded, RC.rose, (_) => const FamilyQuizScreen()),
   ];
 
   void _open(BuildContext context, _Place p) {
@@ -72,11 +72,12 @@ class HomeMapScreen extends StatelessWidget {
           SliverPadding(
             padding: const EdgeInsets.fromLTRB(16, 4, 16, 8),
             sliver: SliverGrid(
-              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+              // البلاطة تطول مع تكبير الخط حتى لا يُقص العنوان
+              gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
                 crossAxisCount: 2,
                 mainAxisSpacing: 14,
                 crossAxisSpacing: 14,
-                childAspectRatio: 1.02,
+                childAspectRatio: 1.02 / MediaQuery.textScalerOf(context).scale(1).clamp(1.0, 1.6),
               ),
               delegate: SliverChildBuilderDelegate(
                 childCount: _places.length,
@@ -112,7 +113,7 @@ class _TopBar extends StatelessWidget {
           const SizedBox(width: 12),
           Expanded(
             child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-              Text('السلام عليكم', style: RT.body(14, color: RC.ink.withValues(alpha: 0.65))),
+              Text('السلام عليكم', style: RT.body(14, color: RC.inkSoft)),
               Text(child.name, style: RT.display(26), overflow: TextOverflow.ellipsis),
             ]),
           ),
@@ -149,8 +150,10 @@ class _ArchHeader extends StatelessWidget {
               right: 0,
               child: Center(
                 child: Column(children: [
-                  Container(width: 2, height: box.maxHeight * 0.08, color: const Color(0xFF7A4E12)),
-                  Lantern(size: box.maxHeight * 0.42, glow: glow),
+                  _SwayingLantern(
+                    chain: box.maxHeight * 0.08,
+                    child: Lantern(size: box.maxHeight * 0.42, glow: glow),
+                  ),
                 ]),
               ),
             ),
@@ -247,7 +250,7 @@ class _ArchPainter extends CustomPainter {
           ).createShader(rect));
     // نجوم وهلال
     final r = math.Random(3);
-    final star = Paint()..color = Colors.white.withValues(alpha: 0.85);
+    final star = Paint()..color = Colors.white;
     for (var i = 0; i < 18; i++) {
       canvas.drawCircle(Offset(r.nextDouble() * size.width, r.nextDouble() * size.height * 0.45),
           r.nextDouble() * 1.4 + 0.5, star);
@@ -301,7 +304,7 @@ class _HeroTile extends StatelessWidget {
         radius: 26,
         depth: 6,
         onTap: onTap,
-        semanticLabel: place.title,
+        semanticLabel: '${place.title}، ${place.hint}',
         child: ClipRRect(
           borderRadius: BorderRadius.circular(26),
           child: CustomPaint(
@@ -314,7 +317,7 @@ class _HeroTile extends StatelessWidget {
                 Expanded(
                   child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
                     Text(place.title, style: RT.display(28, color: Colors.white)),
-                    Text(place.hint, style: RT.body(16, color: Colors.white.withValues(alpha: 0.85))),
+                    Text(place.hint, style: RT.body(16, color: Colors.white)),
                   ]),
                 ),
                 const Icon(Icons.chevron_left_rounded, color: RC.gold, size: 36),
@@ -336,11 +339,12 @@ class _PlaceTile extends StatelessWidget {
         radius: 24,
         depth: 6,
         onTap: onTap,
-        semanticLabel: place.title,
+        semanticLabel: '${place.title}، ${place.hint}',
         child: ClipRRect(
           borderRadius: BorderRadius.circular(24),
           child: Stack(children: [
-            // نجمة كبيرة مقصوصة في الزاوية: توقيع البلاطة
+            // نجمة كبيرة مقصوصة في الزاوية: توقيع البلاطة (تختفي في التباين العالي)
+            if (!A11y.highContrastOf(context))
             PositionedDirectional(
               end: -34,
               top: -34,
@@ -357,7 +361,7 @@ class _PlaceTile extends StatelessWidget {
                 Text(place.title,
                     style: RT.display(21, color: Colors.white), maxLines: 1, overflow: TextOverflow.ellipsis),
                 Text(place.hint,
-                    style: RT.body(13.5, color: Colors.white.withValues(alpha: 0.88)),
+                    style: RT.body(13.5, color: Colors.white),
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis),
               ]),
@@ -456,7 +460,7 @@ class _MissionsCard extends StatelessWidget {
           else
             Row(children: [
               const Icon(Icons.star_rounded, color: RC.goldDark, size: 20),
-              Text(' 10 عند الإتمام', style: RT.body(14, color: RC.ink.withValues(alpha: 0.7))),
+              Text(' 10 عند الإتمام', style: RT.body(14, color: RC.inkSoft)),
             ]),
         ]),
         const SizedBox(height: 10),
@@ -523,4 +527,51 @@ class _HadithCard extends StatelessWidget {
       ]),
     );
   }
+}
+
+/// الفانوس يتأرجح برفق من سلسلته: الحركة الوحيدة الدائمة في الرئيسية،
+/// وتتوقف تمامًا عند تفعيل تقليل الحركة.
+class _SwayingLantern extends StatefulWidget {
+  final double chain;
+  final Widget child;
+  const _SwayingLantern({required this.chain, required this.child});
+
+  @override
+  State<_SwayingLantern> createState() => _SwayingLanternState();
+}
+
+class _SwayingLanternState extends State<_SwayingLantern> with SingleTickerProviderStateMixin {
+  late final AnimationController _c =
+      AnimationController(vsync: this, duration: const Duration(milliseconds: 3600));
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (A11y.reduceMotionOf(context)) {
+      _c.stop();
+      _c.value = 0.5;
+    } else if (!_c.isAnimating) {
+      _c.repeat(reverse: true);
+    }
+  }
+
+  @override
+  void dispose() {
+    _c.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) => AnimatedBuilder(
+        animation: _c,
+        builder: (_, child) => Transform.rotate(
+          angle: (Curves.easeInOut.transform(_c.value) - 0.5) * 0.09,
+          alignment: Alignment.topCenter,
+          child: child,
+        ),
+        child: Column(children: [
+          Container(width: 2, height: widget.chain, color: const Color(0xFF7A4E12)),
+          widget.child,
+        ]),
+      );
 }

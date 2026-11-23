@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 
 import 'package:rawdah/features/competition/data/online_service.dart';
 import 'package:rawdah/core/state/app_state.dart';
-import 'package:rawdah/core/design_system/widgets.dart';
+import 'package:rawdah/core/design_system/design_system.dart';
 import 'package:rawdah/features/competition/presentation/challenge_screen.dart';
 import 'package:rawdah/features/circles/presentation/live_quiz_screen.dart';
 

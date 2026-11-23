@@ -8,7 +8,7 @@ import 'package:rawdah/core/content/content.dart';
 import 'package:rawdah/features/games/presentation/flame/letter_game.dart';
 import 'package:rawdah/core/services/voice.dart';
 import 'package:rawdah/core/state/app_state.dart';
-import 'package:rawdah/core/design_system/widgets.dart';
+import 'package:rawdah/core/design_system/design_system.dart';
 import 'package:rawdah/features/games/presentation/more_games_screen.dart';
 
 class GamesHubScreen extends StatelessWidget {

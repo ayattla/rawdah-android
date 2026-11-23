@@ -5,7 +5,7 @@ import 'package:rawdah/core/content/quran_data.dart';
 import 'package:rawdah/core/services/voice.dart';
 import 'package:rawdah/core/state/app_state.dart';
 import 'package:rawdah/core/design_system/quran_text.dart';
-import 'package:rawdah/core/design_system/widgets.dart';
+import 'package:rawdah/core/design_system/design_system.dart';
 
 class SchoolScreen extends StatelessWidget {
   const SchoolScreen({super.key});

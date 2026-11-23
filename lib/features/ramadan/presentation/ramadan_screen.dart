@@ -4,7 +4,7 @@ import 'package:rawdah/core/content/content.dart';
 import 'package:rawdah/features/competition/data/online_service.dart';
 import 'package:rawdah/core/services/voice.dart';
 import 'package:rawdah/core/state/app_state.dart';
-import 'package:rawdah/core/design_system/widgets.dart';
+import 'package:rawdah/core/design_system/design_system.dart';
 import 'package:rawdah/features/competition/presentation/competition_screen.dart';
 import 'package:rawdah/features/quizzes/presentation/quizzes_screen.dart';
 

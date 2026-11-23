@@ -10,7 +10,7 @@ import 'package:rawdah/features/competition/data/online_service.dart';
 import 'package:rawdah/core/di/providers.dart';
 import 'package:rawdah/core/services/voice.dart';
 import 'package:rawdah/core/state/app_state.dart';
-import 'package:rawdah/core/design_system/widgets.dart';
+import 'package:rawdah/core/design_system/design_system.dart';
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
@@ -72,28 +72,32 @@ class _RawdahAppState extends State<RawdahApp> with WidgetsBindingObserver {
           GlobalCupertinoLocalizations.delegate,
         ],
         theme: rawdahTheme(),
-        // في معاينة الويب نعرض التطبيق بعرض هاتف.
-        builder: kIsWeb
-            ? (context, child) => ColoredBox(
-                  color: RC.ink,
-                  child: Center(
-                    child: ConstrainedBox(
-                      constraints: const BoxConstraints(maxWidth: 412),
-                      child: ClipRect(
-                        child: MediaQuery(
-                          data: MediaQuery.of(context).copyWith(
-                            size: Size(
-                              MediaQuery.of(context).size.width.clamp(0.0, 412.0).toDouble(),
-                              MediaQuery.of(context).size.height,
-                            ),
-                          ),
-                          child: child ?? const SizedBox(),
-                        ),
-                      ),
-                    ),
+        builder: (context, child) {
+          final st = AppScope.of(context);
+          final app = A11yScope(
+            appTextScale: st.textScale,
+            highContrast: st.highContrast,
+            reduceMotion: st.reduceMotion,
+            child: child ?? const SizedBox(),
+          );
+          if (!kIsWeb) return app;
+          // في معاينة الويب نعرض التطبيق بعرض هاتف.
+          final mq = MediaQuery.of(context);
+          return ColoredBox(
+            color: RC.ink,
+            child: Center(
+              child: ConstrainedBox(
+                constraints: const BoxConstraints(maxWidth: 412),
+                child: ClipRect(
+                  child: MediaQuery(
+                    data: mq.copyWith(size: Size(mq.size.width.clamp(0.0, 412.0).toDouble(), mq.size.height)),
+                    child: app,
                   ),
-                )
-            : null,
+                ),
+              ),
+            ),
+          );
+        },
         home: const _Root(),
       ),
     );

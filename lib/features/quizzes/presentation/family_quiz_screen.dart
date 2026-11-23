@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:rawdah/core/content/content.dart';
 import 'package:rawdah/core/services/voice.dart';
 import 'package:rawdah/core/state/app_state.dart';
-import 'package:rawdah/core/design_system/widgets.dart';
+import 'package:rawdah/core/design_system/design_system.dart';
 
 /// «مجلس العائلة» على جهاز واحد: يتناوب أفراد الأسرة على الأسئلة.
 /// النسخة المباشرة بين عدة أجهزة تأتي مع الخلفية السحابية لاحقًا.

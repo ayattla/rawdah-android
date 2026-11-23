@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 
 import 'package:rawdah/core/state/app_state.dart';
-import 'package:rawdah/core/design_system/widgets.dart';
+import 'package:rawdah/core/design_system/design_system.dart';
 import 'package:rawdah/features/profiles/presentation/add_child_screen.dart';
 
 class OnboardingScreen extends StatefulWidget {
@@ -32,13 +33,19 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
 
   List<Widget> _welcome() => [
         const SizedBox(height: 18),
-        SizedBox(
-          height: 200,
-          child: Stack(alignment: Alignment.center, children: [
-            const KhatamBadge(icon: Icons.circle, color: RC.ink, size: 200, iconColor: Colors.transparent),
-            const KhatamBadge(icon: Icons.circle, color: RC.green, size: 168, iconColor: Colors.transparent),
-            const Lantern(size: 130, glow: 1),
-          ]),
+        // شعار روضة (SVG متجه) يظهر بحركة واحدة عند أول فتح
+        Center(
+          child: TweenAnimationBuilder<double>(
+            tween: Tween(begin: A11y.reduceMotionOf(context) ? 1 : 0.6, end: 1),
+            duration: const Duration(milliseconds: 700),
+            curve: Curves.easeOutBack,
+            builder: (_, v, child) => Transform.rotate(angle: (1 - v) * 0.8, child: Transform.scale(scale: v, child: child)),
+            child: Semantics(
+              image: true,
+              label: 'شعار روضة: نجمة ثمانية',
+              child: SvgPicture.asset('assets/brand/rawdah_mark.svg', width: 190, height: 190),
+            ),
+          ),
         ),
         const SizedBox(height: 14),
         Text('روضة', textAlign: TextAlign.center, style: RT.display(52, color: RC.ink)),

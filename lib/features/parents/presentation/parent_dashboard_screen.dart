@@ -4,7 +4,7 @@ import 'package:rawdah/core/content/content.dart';
 import 'package:rawdah/features/competition/data/online_service.dart';
 import 'package:rawdah/core/services/voice.dart';
 import 'package:rawdah/core/state/app_state.dart';
-import 'package:rawdah/core/design_system/widgets.dart';
+import 'package:rawdah/core/design_system/design_system.dart';
 import 'package:rawdah/features/profiles/presentation/add_child_screen.dart';
 import 'package:rawdah/features/circles/presentation/circles_screen.dart';
 import 'package:rawdah/features/garden/presentation/garden_screen.dart';
@@ -50,6 +50,39 @@ class ParentDashboard extends StatelessWidget {
             subtitle: const Text('يقرأ التعليمات والقصص بصوت الجهاز. لا يقرأ آيات القرآن.'),
           ),
           const _VoiceStatus(),
+        ]),
+        _Panel(title: 'سهولة الاستخدام', children: [
+          SwitchListTile(
+            value: st.highContrast,
+            onChanged: (v) => st.setAccessibility(highContrast: v),
+            title: const Text('تباين عالٍ'),
+            subtitle: const Text('يزيل النقوش من الخلفيات ويقوّي الحدود والنصوص، لمن يصعب عليه التمييز.'),
+          ),
+          SwitchListTile(
+            value: st.reduceMotion,
+            onChanged: (v) => st.setAccessibility(reduceMotion: v),
+            title: const Text('تقليل الحركة'),
+            subtitle: const Text('يوقف تأرجح الفانوس ودوران النجوم.'),
+          ),
+          Padding(
+            padding: const EdgeInsets.fromLTRB(16, 4, 16, 12),
+            child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+              const Text('حجم الخط', style: TextStyle(fontSize: 17, fontWeight: FontWeight.w700)),
+              const SizedBox(height: 6),
+              SegmentedButton<double>(
+                segments: const [
+                  ButtonSegment(value: 1.0, label: Text('عادي')),
+                  ButtonSegment(value: 1.15, label: Text('كبير')),
+                  ButtonSegment(value: 1.3, label: Text('أكبر')),
+                ],
+                selected: {st.textScale},
+                onSelectionChanged: (v) => st.setAccessibility(textScale: v.first),
+              ),
+              const SizedBox(height: 4),
+              const Text('يُضاف إلى حجم خط الجهاز، بحد أقصى آمن لا يقص النصوص.',
+                  style: TextStyle(fontSize: 13)),
+            ]),
+          ),
         ]),
         _Panel(title: 'الخصوصية', children: const [
           ListTile(

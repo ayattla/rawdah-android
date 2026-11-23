@@ -6,7 +6,7 @@ import 'package:rawdah/core/content/content.dart';
 import 'package:rawdah/core/services/voice.dart';
 import 'package:rawdah/core/state/app_state.dart';
 import 'package:rawdah/core/design_system/quran_text.dart';
-import 'package:rawdah/core/design_system/widgets.dart';
+import 'package:rawdah/core/design_system/design_system.dart';
 
 class StoriesScreen extends StatelessWidget {
   const StoriesScreen({super.key});
@@ -186,9 +186,18 @@ class StoryScene extends StatelessWidget {
   const StoryScene({super.key, required this.scene, this.page = 0});
 
   @override
-  Widget build(BuildContext context) => ClipRRect(
-        borderRadius: BorderRadius.circular(28),
-        child: AspectRatio(aspectRatio: 2.1, child: CustomPaint(painter: _ScenePainter(scene, page))),
+  Widget build(BuildContext context) => Semantics(
+        image: true,
+        label: switch (scene) {
+          'night' => 'رسم: ليل ونجوم وهلال',
+          'desert' => 'رسم: صحراء ونخلة',
+          'city' => 'رسم: مدينة بقباب ومآذن',
+          _ => 'رسم: بستان نخيل',
+        },
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(28),
+          child: AspectRatio(aspectRatio: 2.1, child: CustomPaint(painter: _ScenePainter(scene, page))),
+        ),
       );
 }
 

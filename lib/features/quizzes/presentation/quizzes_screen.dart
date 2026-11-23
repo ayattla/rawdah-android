@@ -8,7 +8,7 @@ import 'package:rawdah/core/content/content.dart';
 import 'package:rawdah/core/di/providers.dart';
 import 'package:rawdah/core/services/voice.dart';
 import 'package:rawdah/core/state/app_state.dart';
-import 'package:rawdah/core/design_system/widgets.dart';
+import 'package:rawdah/core/design_system/design_system.dart';
 import 'package:rawdah/features/quizzes/presentation/quiz_controller.dart';
 
 class QuizHubScreen extends ConsumerWidget {
@@ -251,7 +251,11 @@ class _OptionButton extends StatelessWidget {
       radius: 22,
       depth: 5,
       onTap: onTap,
-      semanticLabel: text,
+      semanticLabel: switch (state) {
+        1 => '$text، الإجابة الصحيحة',
+        2 => '$text، إجابتك، خطأ',
+        _ => text,
+      },
       child: Container(
         constraints: const BoxConstraints(minHeight: 68),
         alignment: Alignment.center,

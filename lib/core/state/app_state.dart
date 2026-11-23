@@ -243,6 +243,11 @@ class AppState extends ChangeNotifier {
   /// الحلقات التي أنشأها هذا الجهاز (المعلم أو الوالد): «الرمز|الاسم».
   List<String> ownedCircles = [];
 
+  /// إعدادات الوصول (يختارها الوالدان).
+  bool highContrast = false;
+  bool reduceMotion = false;
+  double textScale = 1.0; // 1.0 عادي، 1.15 كبير، 1.3 أكبر
+
   Timer? _ticker;
   bool _childActive = false;
 
@@ -279,6 +284,9 @@ class AppState extends ChangeNotifier {
         consentGiven = (j['consentGiven'] as bool?) ?? false;
         voiceOn = (j['voiceOn'] as bool?) ?? true;
         ownedCircles = ((j['ownedCircles'] as List?) ?? const []).map((e) => e.toString()).toList();
+        highContrast = (j['highContrast'] as bool?) ?? false;
+        reduceMotion = (j['reduceMotion'] as bool?) ?? false;
+        textScale = ((j['textScale'] as num?) ?? 1.0).toDouble();
         children = ((j['children'] as List?) ?? const [])
             .map((e) => ChildProfile.fromJson(Map<String, dynamic>.from(e as Map)))
             .toList();
@@ -323,6 +331,9 @@ class AppState extends ChangeNotifier {
         if (!secured) 'consentGiven': consentGiven,
         'voiceOn': voiceOn,
         'ownedCircles': ownedCircles,
+        'highContrast': highContrast,
+        'reduceMotion': reduceMotion,
+        'textScale': textScale,
         'children': [
           for (final c in children)
             if (secured) (c.toJson()..removeWhere((k, _) => _parentalChildKeys.contains(k))) else c.toJson(),
@@ -334,6 +345,13 @@ class AppState extends ChangeNotifier {
   void _changed() {
     notifyListeners();
     save();
+  }
+
+  void setAccessibility({bool? highContrast, bool? reduceMotion, double? textScale}) {
+    if (highContrast != null) this.highContrast = highContrast;
+    if (reduceMotion != null) this.reduceMotion = reduceMotion;
+    if (textScale != null) this.textScale = textScale.clamp(1.0, 1.3).toDouble();
+    _changed();
   }
 
   void addOwnedCircle(String code, String name) {

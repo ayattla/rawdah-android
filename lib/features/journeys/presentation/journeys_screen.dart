@@ -5,7 +5,7 @@ import 'package:rawdah/features/journeys/data/journeys_data.dart';
 import 'package:rawdah/core/content/quran_data.dart';
 import 'package:rawdah/core/services/voice.dart';
 import 'package:rawdah/core/state/app_state.dart';
-import 'package:rawdah/core/design_system/widgets.dart';
+import 'package:rawdah/core/design_system/design_system.dart';
 import 'package:rawdah/features/games/presentation/games_hub_screen.dart';
 import 'package:rawdah/features/games/presentation/more_games_screen.dart';
 import 'package:rawdah/features/quizzes/presentation/quizzes_screen.dart';
@@ -66,7 +66,7 @@ class JourneysScreen extends StatelessWidget {
                         Expanded(child: Text(j.title, style: RT.display(21))),
                         Text('$done من ${st.length}', style: RT.display(15, color: j.color, weight: FontWeight.w700)),
                       ]),
-                      Text(j.subtitle, style: RT.body(15, color: RC.ink.withValues(alpha: 0.7))),
+                      Text(j.subtitle, style: RT.body(15, color: RC.inkSoft)),
                       const SizedBox(height: 8),
                       ClipRRect(
                         borderRadius: BorderRadius.circular(8),
@@ -157,7 +157,7 @@ class JourneyMap extends StatelessWidget {
                         )
                       : Center(
                           child: Text('أكمل المحطات لتنال شهادة الرحلة',
-                              style: TextStyle(fontSize: 16, color: RC.ink.withValues(alpha: 0.7))),
+                              style: TextStyle(fontSize: 16, color: RC.inkSoft)),
                         ),
                 );
               }
@@ -214,7 +214,7 @@ class JourneyMap extends StatelessWidget {
                           child: Text(s.title,
                               textAlign: TextAlign.center,
                               style: RT.display(16,
-                                  weight: FontWeight.w700, color: open ? RC.ink : RC.ink.withValues(alpha: 0.6))),
+                                  weight: FontWeight.w700, color: open ? RC.ink : RC.inkSoft)),
                         ),
                         if (current)
                           Text('ابدأ من هنا', style: RT.body(14, color: journey.color, weight: FontWeight.w500)),

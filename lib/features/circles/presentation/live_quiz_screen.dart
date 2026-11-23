@@ -5,7 +5,7 @@ import 'package:rawdah/core/content/content.dart';
 import 'package:rawdah/features/competition/data/online_service.dart';
 import 'package:rawdah/core/services/voice.dart';
 import 'package:rawdah/core/state/app_state.dart';
-import 'package:rawdah/core/design_system/widgets.dart';
+import 'package:rawdah/core/design_system/design_system.dart';
 
 const _bandNames = ['4 إلى 6', '7 إلى 9', '10 إلى 12'];
 

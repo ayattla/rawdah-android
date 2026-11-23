@@ -27,7 +27,7 @@ import 'package:rawdah/features/school/presentation/school_screen.dart';
 import 'package:rawdah/features/stories/presentation/stories_screen.dart';
 import 'package:rawdah/core/services/voice.dart';
 import 'package:rawdah/core/state/app_state.dart';
-import 'package:rawdah/core/design_system/widgets.dart';
+import 'package:rawdah/core/design_system/design_system.dart';
 
 Future<void> _loadFonts() async {
   Future<void> family(String name, List<String> assets) async {
@@ -84,6 +84,12 @@ Future<void> _shot(WidgetTester tester, String name, AppState st, Widget home,
         GlobalWidgetsLocalizations.delegate,
         GlobalCupertinoLocalizations.delegate,
       ],
+      builder: (context, child) => A11yScope(
+        appTextScale: st.textScale,
+        highContrast: st.highContrast,
+        reduceMotion: st.reduceMotion,
+        child: child!,
+      ),
       home: home,
     ),
   )));
@@ -205,4 +211,64 @@ void main() {
     st.leaveChild();
     await _shot(t, '16_parents', st, const ParentDashboard(), height: 1800);
   });
+
+  testWidgets('17 الرئيسية بتباين عالٍ', (t) async {
+    final st = await _state();
+    st.setAccessibility(highContrast: true);
+    st.pauseClock();
+    await _shot(t, '17_home_high_contrast', st, const HomeMapScreen(), height: 1900);
+  });
+
+  testWidgets('18 الرئيسية بخط أكبر', (t) async {
+    final st = await _state();
+    st.setAccessibility(textScale: 1.3);
+    st.pauseClock();
+    await _shot(t, '18_home_large_text', st, const HomeMapScreen(), height: 2300);
+  });
+
+  testWidgets('19 المسابقة بخط أكبر', (t) async {
+    final st = await _state();
+    st.setAccessibility(textScale: 1.3);
+    st.pauseClock();
+    await _shot(t, '19_quiz_large_text', st, QuizRunner(title: 'تحدي اليوم', questions: questionsFor(1).take(5).toList()));
+  });
+
+  // فحوص إرشادات الوصول المضمّنة في Flutter: حجم أهداف اللمس، وجود وصف لكل زر، وتباين النص.
+  for (final entry in <String, Widget Function()>{
+    'الرئيسية': () => const HomeMapScreen(),
+    'المسابقة': () => QuizRunner(title: 'تحدي', questions: questionsFor(1).take(3).toList()),
+    'المسابقات': () => const QuizHubScreen(),
+  }.entries) {
+    testWidgets('إرشادات الوصول: ${entry.key}', (t) async {
+      final st = await _state();
+      t.view.physicalSize = const Size(412 * 2, 1900 * 2);
+      t.view.devicePixelRatio = 2;
+      addTearDown(t.view.reset);
+      final handle = t.ensureSemantics();
+      await t.pumpWidget(ProviderScope(
+        overrides: [appStateProvider.overrideWithValue(st)],
+        child: AppScope(
+          state: st,
+          child: MaterialApp(
+            theme: rawdahTheme(),
+            locale: const Locale('ar'),
+            supportedLocales: const [Locale('ar')],
+            localizationsDelegates: const [
+              GlobalMaterialLocalizations.delegate,
+              GlobalWidgetsLocalizations.delegate,
+              GlobalCupertinoLocalizations.delegate,
+            ],
+            home: entry.value(),
+          ),
+        ),
+      ));
+      await t.pump(const Duration(milliseconds: 500));
+      await expectLater(t, meetsGuideline(androidTapTargetGuideline));
+      await expectLater(t, meetsGuideline(labeledTapTargetGuideline));
+      await expectLater(t, meetsGuideline(textContrastGuideline));
+      handle.dispose();
+      st.pauseClock();
+      await t.pumpWidget(const SizedBox());
+    });
+  }
 }

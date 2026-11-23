@@ -6,7 +6,7 @@ import 'package:flutter/services.dart';
 import 'package:rawdah/core/content/content.dart';
 import 'package:rawdah/core/services/voice.dart';
 import 'package:rawdah/core/state/app_state.dart';
-import 'package:rawdah/core/design_system/widgets.dart';
+import 'package:rawdah/core/design_system/design_system.dart';
 
 // ------------------------------------------------------------------ بطاقات الذاكرة
 
