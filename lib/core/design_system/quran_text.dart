@@ -1,3 +1,4 @@
+import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 
 import 'package:rawdah/core/content/quran_data.dart';
@@ -30,25 +31,68 @@ ResolvedAyat resolvePassage(String key) {
 }
 
 /// عرض آيات بخط المصحف مع أرقام الآيات. لا يُقرأ بالصوت الآلي.
-class QuranText extends StatelessWidget {
+/// [onAyahTap] اختياري: لمس آية يعيد رقمها في السورة (للبدء منها في التلاوة).
+class QuranText extends StatefulWidget {
   final List<String> ayat;
   final int firstNumber;
   final double fontSize;
   final int? highlight;
-  const QuranText({super.key, required this.ayat, this.firstNumber = 1, this.fontSize = 26, this.highlight});
+  final ValueChanged<int>? onAyahTap;
+  const QuranText({
+    super.key,
+    required this.ayat,
+    this.firstNumber = 1,
+    this.fontSize = 26,
+    this.highlight,
+    this.onAyahTap,
+  });
+
+  @override
+  State<QuranText> createState() => _QuranTextState();
+}
+
+class _QuranTextState extends State<QuranText> {
+  final List<TapGestureRecognizer> _taps = [];
+
+  void _syncRecognizers() {
+    final cb = widget.onAyahTap;
+    final need = cb == null ? 0 : widget.ayat.length;
+    while (_taps.length > need) {
+      _taps.removeLast().dispose();
+    }
+    while (_taps.length < need) {
+      _taps.add(TapGestureRecognizer());
+    }
+    for (var i = 0; i < _taps.length; i++) {
+      final n = widget.firstNumber + i;
+      _taps[i].onTap = () => cb?.call(n);
+    }
+  }
+
+  @override
+  void dispose() {
+    for (final t in _taps) {
+      t.dispose();
+    }
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
+    _syncRecognizers();
     final spans = <InlineSpan>[];
-    for (var i = 0; i < ayat.length; i++) {
+    for (var i = 0; i < widget.ayat.length; i++) {
+      final lit = widget.highlight == i;
       spans.add(TextSpan(
-        text: ayat[i],
+        text: widget.ayat[i],
+        recognizer: i < _taps.length ? _taps[i] : null,
         style: TextStyle(
-          backgroundColor: highlight == i ? const Color(0x33F2B544) : null,
+          backgroundColor: lit ? const Color(0x55F2B544) : null,
+          color: lit ? const Color(0xFF0A4F47) : null,
         ),
       ));
       spans.add(TextSpan(
-        text: ' ﴿${arabicNumber(firstNumber + i)}﴾ ',
+        text: ' ﴿${arabicNumber(widget.firstNumber + i)}﴾ ',
         style: const TextStyle(color: Color(0xFF2E7D5B)),
       ));
     }
@@ -62,7 +106,8 @@ class QuranText extends StatelessWidget {
       child: Text.rich(
         TextSpan(children: spans),
         textAlign: TextAlign.center,
-        style: TextStyle(fontFamily: 'AmiriQuran', fontSize: fontSize, height: 2.1, color: const Color(0xFF1B1B1B)),
+        style: TextStyle(
+            fontFamily: 'AmiriQuran', fontSize: widget.fontSize, height: 2.1, color: const Color(0xFF1B1B1B)),
       ),
     );
   }

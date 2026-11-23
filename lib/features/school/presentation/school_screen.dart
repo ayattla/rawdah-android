@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:rawdah/core/content/content.dart';
 import 'package:rawdah/core/content/quran_data.dart';
@@ -6,6 +7,8 @@ import 'package:rawdah/core/services/voice.dart';
 import 'package:rawdah/core/state/app_state.dart';
 import 'package:rawdah/core/design_system/quran_text.dart';
 import 'package:rawdah/core/design_system/design_system.dart';
+import 'package:rawdah/features/recitation/presentation/recitation_controller.dart';
+import 'package:rawdah/features/recitation/presentation/recitation_panel.dart';
 
 class SchoolScreen extends StatelessWidget {
   const SchoolScreen({super.key});
@@ -74,16 +77,16 @@ class _Section extends StatelessWidget {
       );
 }
 
-/// صفحة السورة: قراءة كاملة، أو وضع «أختبر حفظي» الذي يُخفي الآيات ويكشفها واحدة واحدة.
-class SurahScreen extends StatefulWidget {
+/// صفحة السورة: قراءة كاملة مع تلاوة الشيخ، أو وضع «أختبر حفظي» الذي يُخفي الآيات ويكشفها واحدة واحدة.
+class SurahScreen extends ConsumerStatefulWidget {
   final Surah surah;
   const SurahScreen({super.key, required this.surah});
 
   @override
-  State<SurahScreen> createState() => _SurahScreenState();
+  ConsumerState<SurahScreen> createState() => _SurahScreenState();
 }
 
-class _SurahScreenState extends State<SurahScreen> {
+class _SurahScreenState extends ConsumerState<SurahScreen> {
   bool _memorize = false;
   int _shown = 0;
 
@@ -91,6 +94,10 @@ class _SurahScreenState extends State<SurahScreen> {
   Widget build(BuildContext context) {
     final s = widget.surah;
     final visible = _memorize ? s.ayat.take(_shown).toList() : s.ayat;
+    final args = (surah: s.number, ayahCount: s.ayat.length);
+    final rec = ref.watch(recitationControllerProvider(args));
+    final basmalaLit = rec.status == RecitationStatus.playing && rec.highlight == null;
+    final lit = rec.highlight == null ? null : rec.highlight! - 1;
     return ChildShell(
       child: Column(children: [
         KidBar(title: 'سورة ${s.name}'),
@@ -114,9 +121,20 @@ class _SurahScreenState extends State<SurahScreen> {
               Padding(
                 padding: const EdgeInsets.only(bottom: 8),
                 child: Text(kSurahs.first.ayat.first,
-                    textAlign: TextAlign.center, style: const TextStyle(fontFamily: 'AmiriQuran', fontSize: 24)),
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                      fontFamily: 'AmiriQuran',
+                      fontSize: 24,
+                      backgroundColor: basmalaLit ? const Color(0x55F2B544) : null,
+                    )),
               ),
-            if (visible.isNotEmpty) QuranText(ayat: visible, fontSize: 28),
+            if (visible.isNotEmpty)
+              QuranText(
+                ayat: visible,
+                fontSize: 28,
+                highlight: lit != null && lit < visible.length ? lit : null,
+                onAyahTap: (n) => ref.read(recitationControllerProvider(args).notifier).playFrom(n),
+              ),
             if (_memorize && _shown < s.ayat.length)
               Padding(
                 padding: const EdgeInsets.only(top: 16),
@@ -133,8 +151,7 @@ class _SurahScreenState extends State<SurahScreen> {
                 ]),
               ),
             const SizedBox(height: 14),
-            const Text('التلاوة بصوت قارئ مرخّص تُضاف في التحديث القادم بإذن الله.',
-                textAlign: TextAlign.center, style: TextStyle(fontSize: 14, color: Colors.black54)),
+            RecitationPanel(args: args),
             const SizedBox(height: 14),
             if (!_memorize || _shown >= s.ayat.length)
               PrimaryButton(

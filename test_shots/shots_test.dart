@@ -1,15 +1,20 @@
 // لقطات الشاشات: ترسم شاشات روضة الحقيقية صورًا PNG للمراجعة البصرية.
 // تعمل في GitHub Actions فقط: flutter test test_shots --update-goldens
+import 'dart:async';
 import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_riverpod/misc.dart' show Override;
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'package:rawdah/core/content/content.dart';
+import 'package:rawdah/core/content/quran_data.dart';
+import 'package:rawdah/features/recitation/presentation/recitation_controller.dart';
+import '../test/features/recitation/recitation_fakes.dart';
 import 'package:rawdah/core/di/providers.dart';
 import 'package:rawdah/core/storage/local_store.dart';
 import 'package:rawdah/core/storage/parental_store.dart';
@@ -66,13 +71,19 @@ Future<AppState> _state({bool withKids = true}) async {
   return st;
 }
 
+/// تلاوة وهمية في اللقطات: لا شبكة ولا صوت، والآية تبقى «قيد التلاوة» لنرى التظليل.
+List<Override> _recitation() => [
+      ayahCacheProvider.overrideWithValue(FakeCache()),
+      ayahPlayerFactoryProvider.overrideWithValue(() => FakePlayer(auto: false)),
+    ];
+
 Future<void> _shot(WidgetTester tester, String name, AppState st, Widget home,
     {double height = 915, Future<void> Function()? act}) async {
   tester.view.physicalSize = Size(412 * 2, height * 2);
   tester.view.devicePixelRatio = 2;
   addTearDown(tester.view.reset);
   await tester.pumpWidget(ProviderScope(
-    overrides: [appStateProvider.overrideWithValue(st)],
+    overrides: [appStateProvider.overrideWithValue(st), ..._recitation()],
     child: AppScope(
     state: st,
     child: MaterialApp(
@@ -234,11 +245,30 @@ void main() {
     await _shot(t, '19_quiz_large_text', st, QuizRunner(title: 'تحدي اليوم', questions: questionsFor(1).take(5).toList()));
   });
 
+  testWidgets('20 السورة مع التلاوة', (t) async {
+    final st = await _state();
+    await _shot(t, '20_surah', st, SurahScreen(surah: kSurahs.firstWhere((x) => x.number == 105)), height: 1500);
+  });
+
+  testWidgets('21 أثناء التلاوة', (t) async {
+    final st = await _state();
+    final surah = kSurahs.firstWhere((x) => x.number == 105);
+    await _shot(t, '21_surah_playing', st, SurahScreen(surah: surah), height: 1500, act: () async {
+      final box = ProviderScope.containerOf(t.element(find.byType(SurahScreen)));
+      final args = (surah: 105, ayahCount: surah.ayat.length);
+      final c = box.read(recitationControllerProvider(args).notifier);
+      await c.setOptions(repeatEach: 3, echo: true);
+      unawaited(c.playFrom(2));
+      await t.pump(const Duration(milliseconds: 50));
+    });
+  });
+
   // فحوص إرشادات الوصول المضمّنة في Flutter: حجم أهداف اللمس، وجود وصف لكل زر، وتباين النص.
   for (final entry in <String, Widget Function()>{
     'الرئيسية': () => const HomeMapScreen(),
     'المسابقة': () => QuizRunner(title: 'تحدي', questions: questionsFor(1).take(3).toList()),
     'المسابقات': () => const QuizHubScreen(),
+    'السورة': () => SurahScreen(surah: kSurahs.firstWhere((x) => x.number == 105)),
   }.entries) {
     testWidgets('إرشادات الوصول: ${entry.key}', (t) async {
       final st = await _state();
@@ -247,7 +277,7 @@ void main() {
       addTearDown(t.view.reset);
       final handle = t.ensureSemantics();
       await t.pumpWidget(ProviderScope(
-        overrides: [appStateProvider.overrideWithValue(st)],
+        overrides: [appStateProvider.overrideWithValue(st), ..._recitation()],
         child: AppScope(
           state: st,
           child: MaterialApp(

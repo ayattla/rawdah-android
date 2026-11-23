@@ -16,9 +16,11 @@ LOGIC = [
     r"^lib/features/quizzes/data/",
     r"^lib/features/competition/data/cached_competition_repository\.dart$",
     r"^lib/features/quizzes/presentation/quiz_controller\.dart$",
+    r"^lib/features/recitation/data/ayah_cache(_io)?\.dart$",
+    r"^lib/features/recitation/presentation/recitation_controller\.dart$",
 ]
 # مغلّفات لمكتبات النظام لا تعمل خارج الجهاز (تُختبر بالتجربة الفعلية)
-EXCLUDE = [r"HiveLocalStore"]
+EXCLUDE = [r"HiveLocalStore", r"JustAudioAyahPlayer"]
 
 files = {}
 cur = None
