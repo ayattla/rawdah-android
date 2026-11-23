@@ -92,7 +92,7 @@ class _QuranTextState extends State<QuranText> {
         ),
       ));
       spans.add(TextSpan(
-        text: ' ﴿${arabicNumber(widget.firstNumber + i)}﴾ ',
+        text: '\u00A0﴿${arabicNumber(widget.firstNumber + i)}﴾ ',
         style: const TextStyle(color: Color(0xFF2E7D5B)),
       ));
     }
