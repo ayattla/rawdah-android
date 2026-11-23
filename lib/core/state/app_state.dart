@@ -4,6 +4,9 @@ import 'dart:convert';
 import 'package:flutter/widgets.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import 'package:rawdah/core/content/names.dart';
+import 'package:rawdah/core/parental/parent_pin.dart';
+import 'package:rawdah/core/parental/time_lock.dart';
 import 'package:rawdah/core/storage/local_store.dart';
 import 'package:rawdah/core/storage/parental_store.dart';
 
@@ -59,6 +62,14 @@ class ChildProfile {
   String circleName;
   int circlePoints;
   int bestRace;
+  // اللقب المركّب من القوائم المعتمدة (-1 = لم يُختر بعد)
+  int nickA;
+  int nickB;
+  // الساعات المسموحة (من == إلى يعني بلا قيد)
+  int allowedFrom;
+  int allowedTo;
+  // دقائق إضافية يمنحها الوالدان برمزهم: {يوم: ثوانٍ}
+  Map<String, int> bonusSeconds;
   Set<String> completed;
   Set<String> wrongQuestions;
   List<PendingHabit> pendingHabits;
@@ -95,6 +106,11 @@ class ChildProfile {
     this.circleName = '',
     this.circlePoints = 0,
     this.bestRace = 0,
+    this.nickA = -1,
+    this.nickB = -1,
+    this.allowedFrom = 0,
+    this.allowedTo = 0,
+    Map<String, int>? bonusSeconds,
     Set<String>? completed,
     Set<String>? wrongQuestions,
     List<PendingHabit>? pendingHabits,
@@ -106,9 +122,13 @@ class ChildProfile {
         wrongQuestions = wrongQuestions ?? <String>{},
         pendingHabits = pendingHabits ?? <PendingHabit>[],
         usageSeconds = usageSeconds ?? <String, int>{},
+        bonusSeconds = bonusSeconds ?? <String, int>{},
         activeDays = activeDays ?? <String>[];
 
   int get todaySeconds => usageSeconds[todayKey()] ?? 0;
+  int get todayBonus => bonusSeconds[todayKey()] ?? 0;
+  bool get nickReady => validNickParts(nickA, nickB);
+  TimePolicy get timePolicy => TimePolicy(dailyLimitMinutes: dailyLimitMinutes, fromHour: allowedFrom, toHour: allowedTo);
 
   /// الرصيد المتاح للشراء من متجر الحديقة.
   int get balance => stars - spentStars;
@@ -273,10 +293,76 @@ class AppState extends ChangeNotifier {
     return null;
   }
 
-  bool get overLimit {
+  // ---------- القفل الزمني ورمز الوالدين ----------
+  ParentPin? pin;
+  final PinAttempts pinAttempts = PinAttempts();
+  bool kioskWanted = false;
+
+  /// آخر وقت رآه التطبيق: إن رجعت ساعة الجهاز قبله يُقفل حتى يأذن الوالدان.
+  DateTime? lastSeen;
+
+  LockReason get lockReason {
     final c = current;
-    if (c == null || c.dailyLimitMinutes <= 0) return false;
-    return c.todaySeconds >= c.dailyLimitMinutes * 60;
+    if (c == null) return LockReason.none;
+    return TimeLock.evaluate(
+      policy: c.timePolicy,
+      usedSeconds: c.todaySeconds,
+      bonusSeconds: c.todayBonus,
+      now: DateTime.now(),
+      lastSeen: lastSeen,
+    );
+  }
+
+  bool get overLimit => lockReason != LockReason.none;
+
+  /// يمنحه الوالدان بعد إدخال الرمز.
+  void addBonusMinutes(int minutes) {
+    final c = current;
+    if (c == null) return;
+    final k = todayKey();
+    c.bonusSeconds
+      ..removeWhere((day, _) => day != k)
+      ..[k] = (c.bonusSeconds[k] ?? 0) + minutes * 60;
+    _changed();
+  }
+
+  /// بعد تأكد الوالدين من وقت الجهاز.
+  void acknowledgeClock() {
+    lastSeen = DateTime.now();
+    _changed();
+  }
+
+  void setPin(String code) {
+    pin = ParentPin.create(code);
+    pinAttempts.reset();
+    _changed();
+  }
+
+  void clearPin() {
+    pin = null;
+    _changed();
+  }
+
+  /// يعيد null عند النجاح، أو رسالة الخطأ.
+  String? verifyPin(String code) {
+    final p = pin;
+    if (p == null) return null;
+    final now = DateTime.now();
+    if (pinAttempts.isLocked(now)) {
+      final s = pinAttempts.lockedUntil!.difference(now).inSeconds + 1;
+      return 'محاولات كثيرة. انتظر $s ثانية';
+    }
+    if (p.verify(code)) {
+      pinAttempts.reset();
+      return null;
+    }
+    pinAttempts.recordFailure(now);
+    return 'الرمز غير صحيح';
+  }
+
+  void setKioskWanted(bool v) {
+    kioskWanted = v;
+    _changed();
   }
 
   Future<void> load() async {
@@ -299,6 +385,7 @@ class AppState extends ChangeNotifier {
         highContrast = (j['highContrast'] as bool?) ?? false;
         reduceMotion = (j['reduceMotion'] as bool?) ?? false;
         textScale = ((j['textScale'] as num?) ?? 1.0).toDouble();
+        lastSeen = DateTime.tryParse((j['lastSeen'] as String?) ?? '');
         children = ((j['children'] as List?) ?? const [])
             .map((e) => ChildProfile.fromJson(Map<String, dynamic>.from(e as Map)))
             .toList();
@@ -311,6 +398,8 @@ class AppState extends ChangeNotifier {
     final sec = await parental.read();
     if (sec != null) {
       consentGiven = (sec['consent'] as bool?) ?? consentGiven;
+      pin = ParentPin.fromJson(sec['pin']);
+      kioskWanted = (sec['kiosk'] as bool?) ?? false;
       final kids = Map<String, dynamic>.from((sec['kids'] as Map?) ?? const {});
       for (final c in children) {
         final k = kids[c.id];
@@ -318,6 +407,12 @@ class AppState extends ChangeNotifier {
           c.dailyLimitMinutes = (k['limit'] as num?)?.toInt() ?? c.dailyLimitMinutes;
           c.onlineEnabled = (k['online'] as bool?) ?? c.onlineEnabled;
           c.nick = (k['nick'] as String?) ?? c.nick;
+          c.nickA = (k['na'] as num?)?.toInt() ?? c.nickA;
+          c.nickB = (k['nb'] as num?)?.toInt() ?? c.nickB;
+          c.allowedFrom = (k['from'] as num?)?.toInt() ?? c.allowedFrom;
+          c.allowedTo = (k['to'] as num?)?.toInt() ?? c.allowedTo;
+          c.bonusSeconds = Map<String, dynamic>.from((k['bonus'] as Map?) ?? const {})
+              .map((day, v) => MapEntry(day, (v as num).toInt()));
         }
       }
     }
@@ -329,8 +424,20 @@ class AppState extends ChangeNotifier {
         'v': 1,
         'consent': consentGiven,
         'kids': {
-          for (final c in children) c.id: {'limit': c.dailyLimitMinutes, 'online': c.onlineEnabled, 'nick': c.nick},
+          for (final c in children)
+            c.id: {
+              'limit': c.dailyLimitMinutes,
+              'online': c.onlineEnabled,
+              'nick': c.nick,
+              'na': c.nickA,
+              'nb': c.nickB,
+              'from': c.allowedFrom,
+              'to': c.allowedTo,
+              'bonus': c.bonusSeconds,
+            },
         },
+        if (pin != null) 'pin': pin!.toJson(),
+        'kiosk': kioskWanted,
       };
 
   Future<void> save() async {
@@ -345,6 +452,7 @@ class AppState extends ChangeNotifier {
         'highContrast': highContrast,
         'reduceMotion': reduceMotion,
         'textScale': textScale,
+        if (lastSeen != null) 'lastSeen': lastSeen!.toIso8601String(),
         'children': [
           for (final c in children)
             if (secured) (c.toJson()..removeWhere((k, _) => _parentalChildKeys.contains(k))) else c.toJson(),
@@ -438,6 +546,9 @@ class AppState extends ChangeNotifier {
     _ticker = Timer.periodic(const Duration(seconds: 15), (_) {
       final c = current;
       if (c == null) return;
+      final now = DateTime.now();
+      if (lockReason == LockReason.clockChanged) return; // لا نعدّ ولا نحدّث حتى يأذن الوالدان
+      if (lastSeen == null || now.isAfter(lastSeen!)) lastSeen = now;
       final k = todayKey();
       c.usageSeconds[k] = (c.usageSeconds[k] ?? 0) + 15;
       if (c.usageSeconds.length > 40) {

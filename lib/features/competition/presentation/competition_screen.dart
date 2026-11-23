@@ -99,6 +99,7 @@ class _CompetitionScreenState extends State<CompetitionScreen> {
                               child: RankBoard(
                                   key: ValueKey('circle_${c.circleCode}'),
                                   loader: () => competitionRepo(context).circleBoard(c.circleCode),
+                                  live: competitionRepo(context).watchCircle(c.circleCode),
                                   meId: _meId(c)),
                             ),
                           ])
@@ -165,11 +166,14 @@ class _MyCardState extends State<_MyCard> {
 
 class RankBoard extends StatefulWidget {
   final Future<List<RankRow>> Function() loader;
+
+  /// مصدر لحظي اختياري (Real-time Listener): إن وُجد تتحدّث اللوحة فور أي تغيير.
+  final Stream<List<RankRow>>? live;
   final String meId;
 
   /// للمعلم فقط: إخراج عضو من الحلقة بدل الإبلاغ.
   final Future<bool> Function(RankRow r)? onRemove;
-  const RankBoard({super.key, required this.loader, required this.meId, this.onRemove});
+  const RankBoard({super.key, required this.loader, required this.meId, this.onRemove, this.live});
 
   @override
   State<RankBoard> createState() => _RankBoardState();
@@ -177,11 +181,30 @@ class RankBoard extends StatefulWidget {
 
 class _RankBoardState extends State<RankBoard> {
   late Future<List<RankRow>> _f;
+  late Stream<List<RankRow>> _stream;
 
   @override
   void initState() {
     super.initState();
+    _reload();
+  }
+
+  /// يُنشأ المصدر مرة واحدة (لا مع كل إعادة بناء) حتى لا يُعاد الاشتراك ويومض.
+  void _reload() {
     _f = widget.loader();
+    final live = widget.live;
+    _stream = live == null ? _f.asStream() : _withFallback(live);
+  }
+
+  /// إن انقطع المصدر اللحظي نعرض آخر نسخة من الطلب العادي (وهو بدوره يعود للمخزّن).
+  Stream<List<RankRow>> _withFallback(Stream<List<RankRow>> live) async* {
+    try {
+      await for (final rows in live) {
+        yield rows;
+      }
+    } catch (_) {
+      yield await widget.loader();
+    }
   }
 
   Future<void> _remove(RankRow r) async {
@@ -197,7 +220,7 @@ class _RankBoardState extends State<RankBoard> {
       ),
     );
     if (ok == true && await widget.onRemove!(r) && mounted) {
-      setState(() => _f = widget.loader());
+      setState(_reload);
     }
   }
 
@@ -225,13 +248,14 @@ class _RankBoardState extends State<RankBoard> {
   Widget build(BuildContext context) {
     return RefreshIndicator(
       onRefresh: () async {
-        setState(() => _f = widget.loader());
+        setState(_reload);
         await _f;
       },
-      child: FutureBuilder<List<RankRow>>(
-        future: _f,
+      child: StreamBuilder<List<RankRow>>(
+        // المصدر اللحظي إن وُجد، وإلا الطلب لمرة واحدة؛ وعند خطأ اللحظي نعود للطلب المخزّن
+        stream: _stream,
         builder: (context, snap) {
-          if (snap.connectionState != ConnectionState.done) {
+          if (!snap.hasData && !snap.hasError && snap.connectionState != ConnectionState.done) {
             return const Center(child: CircularProgressIndicator());
           }
           final rows = snap.data ?? const [];

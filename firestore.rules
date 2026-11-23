@@ -2,7 +2,7 @@ rules_version = '2';
 // قواعد روضة — نموذج «انعدام الثقة» (Zero-Trust):
 // 1) كل شيء ممنوع ما لم يُسمح به صراحةً هنا.
 // 2) لا يُوثق بأي قيمة من التطبيق: الأشكال والحدود والأوقات يتحقق منها الخادم.
-// 3) لا نص حر: الألقاب وأسماء الحلقات حروف عربية فقط بطول محدود، ولا يوجد أي حقل رسائل.
+// 3) لا نص حر إطلاقًا: الألقاب وأسماء الحلقات تُركّب من قوائم معتمدة ويطابقها الخادم حرفيًا، ولا يوجد أي حقل رسائل.
 // 4) حد السرعة لكل مستخدم: أقصى 60 نقطة كل 8 ثوانٍ، مهما كان عدد الأطفال على الجهاز.
 service cloud.firestore {
   match /databases/{database}/documents {
@@ -14,10 +14,16 @@ service cloud.firestore {
     function owns(pid) { return signedIn() && pid.matches(request.auth.uid + '_[A-Za-z0-9]{1,40}'); }
     function data() { return request.resource.data; }
     function stamped(field) { return data()[field] == request.time; }
-    // لقب الطفل: حروف عربية ومسافات فقط، من 2 إلى 16
-    function okNickValue(v) { return v is string && v.size() >= 2 && v.size() <= 16 && v.matches('[ء-ي ]+'); }
+    // لا نص حر: اللقب يجب أن يطابق حرفيًا تركيب جزأين من القائمتين المعتمدتين
+    // (القوائم نفسها في lib/core/content/names.dart، ويتحقق اختبار آلي من تطابقها)
+    function nickFirst() { return ['نجم', 'بدر', 'قمر', 'نور', 'سراج', 'لؤلؤ', 'ياقوت', 'غيث', 'نسيم', 'ريحان', 'زهر', 'فجر', 'ضياء', 'سنا', 'أمل', 'شهاب']; }
+    function nickSecond() { return ['الهدى', 'الإيمان', 'الخير', 'السلام', 'الفجر', 'الروضة', 'العلم', 'الصباح', 'الأمل', 'الوفاء', 'الصدق', 'البر', 'الرحمة', 'الحكمة', 'المعرفة', 'النقاء']; }
+    function okNickParts(nick, a, b) {
+      return a is int && b is int && a >= 0 && a < nickFirst().size() && b >= 0 && b < nickSecond().size()
+        && nick == nickFirst()[a] + ' ' + nickSecond()[b];
+    }
     function okSymbolValue(v) { return v in ['star', 'moon', 'sun', 'tree', 'book', 'gem']; }
-    function okIdentity() { return okNickValue(data().nick) && okSymbolValue(data().symbol); }
+    function okIdentity() { return okNickParts(data().nick, data().na, data().nb) && okSymbolValue(data().symbol); }
     function okCode(code) { return code.matches('[A-Z0-9]{6}'); }
 
     // ------------------------------------------------------------ حد السرعة لكل مستخدم
@@ -47,17 +53,17 @@ service cloud.firestore {
         && data()[field] <= resource.data[field] + 60
         && throttled(pid);
     }
-    function entryShape() { return data().keys().hasOnly(['nick', 'symbol', 'points', 'updatedAt']) && okIdentity() && stamped('updatedAt'); }
+    function entryShape() { return data().keys().hasOnly(['nick', 'na', 'nb', 'symbol', 'points', 'updatedAt']) && okIdentity() && stamped('updatedAt'); }
 
     // ------------------------------------------------------------ لوحات الترتيب
     match /players/{pid} {
       allow read: if signedIn();
       allow create: if owns(pid)
-        && data().keys().hasOnly(['nick', 'symbol', 'band', 'total', 'updatedAt'])
+        && data().keys().hasOnly(['nick', 'na', 'nb', 'symbol', 'band', 'total', 'updatedAt'])
         && okIdentity() && data().band in [0, 1, 2] && stamped('updatedAt')
         && pointsCreate(pid, 'total');
       allow update: if owns(pid)
-        && data().keys().hasOnly(['nick', 'symbol', 'band', 'total', 'updatedAt'])
+        && data().keys().hasOnly(['nick', 'na', 'nb', 'symbol', 'band', 'total', 'updatedAt'])
         && okIdentity() && data().band in [0, 1, 2] && stamped('updatedAt')
         && pointsUpdate(pid, 'total');
       allow delete: if owns(pid);
@@ -84,9 +90,10 @@ service cloud.firestore {
       allow get: if signedIn();
       allow list: if false;
       allow create: if signedIn() && okCode(code)
-        && data().keys().hasOnly(['name', 'owner', 'createdAt'])
-        && data().name is string && data().name.size() >= 2 && data().name.size() <= 30
-        && data().name.matches('[ء-ي0-9٠-٩ ]+')
+        // اسم الحلقة: رقم من قائمة الأسماء المعتمدة (12 اسمًا) ورقم الحلقة، بلا نص
+        && data().keys().hasOnly(['nameKey', 'num', 'owner', 'createdAt'])
+        && data().nameKey is int && data().nameKey >= 0 && data().nameKey < 12
+        && data().num is int && data().num >= 1 && data().num <= 99
         && data().owner == request.auth.uid && stamped('createdAt');
       allow update: if false;
       allow delete: if signedIn() && resource.data.owner == request.auth.uid;
@@ -122,7 +129,7 @@ service cloud.firestore {
       match /players/{pid} {
         allow read: if signedIn();
         allow create: if owns(pid) && exists(/databases/$(database)/documents/rooms/$(code))
-          && data().keys().hasOnly(['nick', 'symbol', 'score', 'answered', 'updatedAt'])
+          && data().keys().hasOnly(['nick', 'na', 'nb', 'symbol', 'score', 'answered', 'updatedAt'])
           && okIdentity() && data().score == 0 && data().answered == -1 && stamped('updatedAt');
         // إجابة واحدة لكل سؤال، أثناء عرضه فقط، ونقطة واحدة كحد أقصى
         allow update: if owns(pid)
@@ -141,16 +148,16 @@ service cloud.firestore {
       allow get: if signedIn();
       allow list: if false;
       allow create: if signedIn() && okCode(code)
-        && data().keys().hasOnly(['band', 'qids', 'aNick', 'aSymbol', 'aScore', 'createdAt'])
+        && data().keys().hasOnly(['band', 'qids', 'aNick', 'aNa', 'aNb', 'aSymbol', 'aScore', 'createdAt'])
         && data().band in [0, 1, 2]
         && data().qids is list && data().qids.size() == 5
-        && okNickValue(data().aNick) && okSymbolValue(data().aSymbol)
+        && okNickParts(data().aNick, data().aNa, data().aNb) && okSymbolValue(data().aSymbol)
         && data().aScore is int && data().aScore >= 0 && data().aScore <= 5
         && stamped('createdAt');
       // الصديق يضيف نتيجته مرة واحدة فقط
       allow update: if signedIn() && !('bScore' in resource.data)
-        && data().diff(resource.data).affectedKeys().hasOnly(['bNick', 'bSymbol', 'bScore', 'bAt'])
-        && okNickValue(data().bNick) && okSymbolValue(data().bSymbol)
+        && data().diff(resource.data).affectedKeys().hasOnly(['bNick', 'bNa', 'bNb', 'bSymbol', 'bScore', 'bAt'])
+        && okNickParts(data().bNick, data().bNa, data().bNb) && okSymbolValue(data().bSymbol)
         && data().bScore is int && data().bScore >= 0 && data().bScore <= 5
         && stamped('bAt');
       allow delete: if false;

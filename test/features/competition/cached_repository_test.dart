@@ -25,6 +25,8 @@ class FakeRemote implements CompetitionRepository {
   @override
   Future<List<RankRow>> circleBoard(String code) => _get();
   @override
+  Stream<List<RankRow>> watchCircle(String code) => Stream.value(rows);
+  @override
   Future<int?> myWeekRank(ChildProfile c) async => null;
   @override
   Future<List<int>> pyramidCounts() async => const [];

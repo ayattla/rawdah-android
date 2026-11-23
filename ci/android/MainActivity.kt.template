@@ -1,0 +1,35 @@
+package __PACKAGE__
+
+import android.app.ActivityManager
+import android.content.Context
+import io.flutter.embedding.android.FlutterActivity
+import io.flutter.embedding.engine.FlutterEngine
+import io.flutter.plugin.common.MethodChannel
+
+// قناة تثبيت الشاشة لروضة: startLockTask يثبّت التطبيق فلا يخرج الطفل منه.
+class MainActivity : FlutterActivity() {
+    override fun configureFlutterEngine(flutterEngine: FlutterEngine) {
+        super.configureFlutterEngine(flutterEngine)
+        MethodChannel(flutterEngine.dartExecutor.binaryMessenger, "rawdah/kiosk").setMethodCallHandler { call, result ->
+            when (call.method) {
+                "start" -> try {
+                    startLockTask()
+                    result.success(true)
+                } catch (e: Exception) {
+                    result.success(false)
+                }
+                "stop" -> try {
+                    stopLockTask()
+                    result.success(true)
+                } catch (e: Exception) {
+                    result.success(false)
+                }
+                "isPinned" -> {
+                    val am = getSystemService(Context.ACTIVITY_SERVICE) as ActivityManager
+                    result.success(am.lockTaskModeState != ActivityManager.LOCK_TASK_MODE_NONE)
+                }
+                else -> result.notImplemented()
+            }
+        }
+    }
+}

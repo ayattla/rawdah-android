@@ -5,6 +5,7 @@ import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
 
+import 'package:rawdah/core/content/names.dart';
 import 'package:rawdah/core/state/app_state.dart';
 
 /// المنافسة أون لاين: ترتيب بالألقاب والنقاط فقط.
@@ -121,6 +122,8 @@ class Online {
         c.onlineTotal = (snap.data()?['total'] as num?)?.toInt() ?? 0;
         await ref.update({
           'nick': c.nick,
+          'na': c.nickA,
+          'nb': c.nickB,
           'symbol': c.symbol,
           'band': c.ageBand,
           'total': c.onlineTotal,
@@ -129,6 +132,8 @@ class Online {
       } else {
         await ref.set({
           'nick': c.nick,
+          'na': c.nickA,
+          'nb': c.nickB,
           'symbol': c.symbol,
           'band': c.ageBand,
           'total': 0,
@@ -193,7 +198,8 @@ class Online {
 
   Future<void> flush(AppState st) async {
     if (_flushing) return;
-    final pending = st.children.where((c) => c.onlineEnabled && c.pendingPoints > 0).toList();
+    // لا يُرسل لطفل لم يُختر له لقب من القوائم المعتمدة
+    final pending = st.children.where((c) => c.onlineEnabled && c.nickReady && c.pendingPoints > 0).toList();
     if (pending.isEmpty) {
       _flushTimer?.cancel();
       _flushTimer = null;
@@ -216,6 +222,8 @@ class Online {
         batch.set(_db.collection('limits').doc(uid!), {'at': FieldValue.serverTimestamp(), 'pid': pid});
         batch.set(_db.collection('players').doc(pid), {
           'nick': c.nick,
+          'na': c.nickA,
+          'nb': c.nickB,
           'symbol': c.symbol,
           'band': c.ageBand,
           'total': c.onlineTotal + chunk,
@@ -223,6 +231,8 @@ class Online {
         });
         batch.set(_db.collection('leagues').doc(c.weekKey).collection('entries').doc(pid), {
           'nick': c.nick,
+          'na': c.nickA,
+          'nb': c.nickB,
           'symbol': c.symbol,
           'points': c.weekPoints + chunk,
           'updatedAt': FieldValue.serverTimestamp(),
@@ -236,6 +246,8 @@ class Online {
           }
           batch.set(_db.collection('cups').doc(cup).collection('entries').doc(pid), {
             'nick': c.nick,
+            'na': c.nickA,
+            'nb': c.nickB,
             'symbol': c.symbol,
             'points': c.cupPoints + chunk,
             'updatedAt': FieldValue.serverTimestamp(),
@@ -246,6 +258,8 @@ class Online {
           // update وليس set: إن أخرج المعلم الطفل لا يُعاد إنشاؤه بنقاطه.
           batch.update(_db.collection('circles').doc(circle).collection('members').doc(pid), {
             'nick': c.nick,
+            'na': c.nickA,
+            'nb': c.nickB,
             'symbol': c.symbol,
             'points': c.circlePoints + chunk,
             'updatedAt': FieldValue.serverTimestamp(),
@@ -369,6 +383,8 @@ class Online {
         'band': c.ageBand,
         'qids': qids,
         'aNick': c.nick,
+        'aNa': c.nickA,
+        'aNb': c.nickB,
         'aSymbol': c.symbol,
         'aScore': score,
         'createdAt': FieldValue.serverTimestamp(),
@@ -394,6 +410,8 @@ class Online {
     try {
       await _db.collection('challenges').doc(code).update({
         'bNick': c.nick,
+        'bNa': c.nickA,
+        'bNb': c.nickB,
         'bSymbol': c.symbol,
         'bScore': score,
         'bAt': FieldValue.serverTimestamp(),
@@ -426,14 +444,15 @@ class Online {
   }
 
   /// ينشئ حلقة جديدة (للمعلم أو الوالد) ويعيد رمزها.
-  Future<String?> createCircle(String name) async {
+  /// ينشئ حلقة باسم من القائمة المعتمدة ورقم، ويعيد رمزها. لا نص حر.
+  Future<String?> createCircle(int nameKey, int number) async {
     if (!await ensure()) return null;
     for (var attempt = 0; attempt < 3; attempt++) {
       final code = _newCode();
       try {
         final ref = _db.collection('circles').doc(code);
         if ((await ref.get()).exists) continue;
-        await ref.set({'name': name, 'owner': uid, 'createdAt': FieldValue.serverTimestamp()});
+        await ref.set({'nameKey': nameKey, 'num': number, 'owner': uid, 'createdAt': FieldValue.serverTimestamp()});
         return code;
       } catch (_) {}
     }
@@ -444,17 +463,31 @@ class Online {
     if (!await ensure()) return null;
     try {
       final d = await _db.collection('circles').doc(code.trim().toUpperCase()).get();
-      return d.exists ? (d.data()?['name'] ?? '').toString() : null;
+      if (!d.exists) return null;
+      final j = d.data()!;
+      return circleDisplayName((j['nameKey'] as num?)?.toInt() ?? 0, (j['num'] as num?)?.toInt() ?? 1);
     } catch (_) {
       return null;
     }
   }
+
+  /// ترتيب الحلقة لحظيًا (Real-time Listener): يتحدّث فور تغيّر أي نقطة.
+  Stream<List<RankRow>> watchCircle(String code) => _db
+      .collection('circles')
+      .doc(code)
+      .collection('members')
+      .orderBy('points', descending: true)
+      .limit(100)
+      .snapshots()
+      .map((q) => q.docs.map((d) => RankRow.from(d.id, d.data(), 'points')).toList());
+
 
   /// انضمام الطفل إلى حلقة برمزها. يعيد رسالة خطأ أو null عند النجاح.
   Future<String?> joinCircle(AppState st, ChildProfile c, String rawCode) async {
     final code = rawCode.trim().toUpperCase();
     if (!RegExp(r'^[A-Z0-9]{6}$').hasMatch(code)) return 'الرمز من 6 خانات';
     if (!c.onlineEnabled) return 'فعّل المنافسة أون لاين أولًا';
+    if (!c.nickReady) return 'اختر لقب الطفل من القائمة أولًا';
     final name = await circleName(code);
     if (name == null) return 'لم نجد حلقة بهذا الرمز';
     try {
@@ -465,6 +498,8 @@ class Online {
       } else {
         await ref.set({
           'nick': c.nick,
+          'na': c.nickA,
+          'nb': c.nickB,
           'symbol': c.symbol,
           'points': 0,
           'updatedAt': FieldValue.serverTimestamp(),
@@ -585,7 +620,7 @@ class Online {
   Future<(String?, int, int)> joinRoom(ChildProfile c, String rawCode) async {
     final code = rawCode.trim().toUpperCase();
     if (!RegExp(r'^[A-Z0-9]{6}$').hasMatch(code)) return ('الرمز من 6 خانات', 0, -1);
-    if (!c.onlineEnabled) return ('اطلب من والديك تفعيل المنافسة أولًا', 0, -1);
+    if (!c.onlineEnabled || !c.nickReady) return ('اطلب من والديك تفعيل المنافسة واختيار لقبك', 0, -1);
     if (!await ensure()) return ('تعذّر الاتصال بالإنترنت', 0, -1);
     try {
       final room = await _db.collection('rooms').doc(code).get();
@@ -599,6 +634,8 @@ class Online {
       }
       await ref.set({
         'nick': c.nick,
+        'na': c.nickA,
+        'nb': c.nickB,
         'symbol': c.symbol,
         'score': 0,
         'answered': -1,

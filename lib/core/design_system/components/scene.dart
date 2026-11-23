@@ -7,6 +7,7 @@ import 'package:rawdah/core/design_system/components/kid_widgets.dart';
 import 'package:rawdah/core/design_system/components/lantern.dart';
 import 'package:rawdah/core/design_system/tokens/colors.dart';
 import 'package:rawdah/core/design_system/tokens/typography.dart';
+import 'package:rawdah/core/parental/time_lock.dart';
 import 'package:rawdah/core/state/app_state.dart';
 import 'package:rawdah/core/design_system/geometry/zellij.dart';
 
@@ -61,6 +62,9 @@ class NightScope extends InheritedWidget {
 
 /// يغلّف شاشات الطفل: عند انتهاء الوقت اليومي تظهر شاشة الاستراحة.
 class ChildShell extends StatelessWidget {
+  /// شاشة القفل تُسجَّل من ميزة الوالدين في main (حتى لا يعتمد نظام التصميم على الميزات).
+  static Widget Function(BuildContext context, LockReason reason)? lockScreenBuilder;
+
   final Widget child;
   final bool night;
   const ChildShell({super.key, required this.child, this.night = false});
@@ -68,7 +72,9 @@ class ChildShell extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final st = AppScope.of(context);
-    if (st.overLimit) {
+    final reason = st.lockReason;
+    if (reason != LockReason.none && lockScreenBuilder != null) return lockScreenBuilder!(context, reason);
+    if (reason != LockReason.none) {
       return Scaffold(
         body: SceneBackground(
           night: true,

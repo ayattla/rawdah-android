@@ -4,7 +4,11 @@ import 'package:rawdah/core/content/content.dart';
 import 'package:rawdah/features/competition/data/online_service.dart';
 import 'package:rawdah/core/services/voice.dart';
 import 'package:rawdah/core/state/app_state.dart';
+import 'package:rawdah/core/content/names.dart';
 import 'package:rawdah/core/design_system/design_system.dart';
+import 'package:rawdah/features/parents/presentation/parent_gate.dart';
+import 'package:rawdah/core/platform/kiosk.dart';
+import 'package:rawdah/core/parental/parent_pin.dart';
 import 'package:rawdah/features/profiles/presentation/add_child_screen.dart';
 import 'package:rawdah/features/circles/presentation/circles_screen.dart';
 import 'package:rawdah/features/garden/presentation/garden_screen.dart';
@@ -42,6 +46,7 @@ class ParentDashboard extends StatelessWidget {
           onPressed: () => Navigator.of(context).push(MaterialPageRoute(builder: (_) => const CirclesScreen())),
         ),
         const SizedBox(height: 18),
+        const _ProtectionPanel(),
         _Panel(title: 'الإعدادات', children: [
           SwitchListTile(
             value: st.voiceOn,
@@ -220,6 +225,23 @@ class _ChildCard extends StatelessWidget {
                 },
               ),
           ]),
+          const SizedBox(height: 14),
+          const Text('أوقات الاستخدام المسموحة', style: TextStyle(fontWeight: FontWeight.w700)),
+          const SizedBox(height: 6),
+          Wrap(spacing: 8, runSpacing: 6, children: [
+            for (final w in const [(0, 0, 'طوال اليوم'), (7, 20, '7 ص إلى 8 م'), (8, 19, '8 ص إلى 7 م'), (15, 20, 'بعد المدرسة: 3 م إلى 8 م')])
+              ChoiceChip(
+                label: Text(w.$3),
+                selected: c.allowedFrom == w.$1 && c.allowedTo == w.$2,
+                onSelected: (_) {
+                  c.allowedFrom = w.$1;
+                  c.allowedTo = w.$2;
+                  st.updateChild(c);
+                },
+              ),
+          ]),
+          const Text('خارج هذه الأوقات يُقفل التطبيق للطفل ولا يُفتح إلا برمز الوالدين.',
+              style: TextStyle(fontSize: 13, color: RC.inkSoft)),
           if (c.pendingHabits.isNotEmpty) ...[
             const SizedBox(height: 14),
             const Text('عادات بانتظار اعتمادك', style: TextStyle(fontWeight: FontWeight.w700)),
@@ -340,19 +362,7 @@ class _VoiceStatus extends StatelessWidget {
   }
 }
 
-const _nickA = ['نجم', 'قمر', 'فانوس', 'كوكب', 'شهاب', 'غيمة', 'نخلة', 'وردة'];
-const _nickB = ['الصباح', 'الأمل', 'المعرفة', 'الهدى', 'السماء', 'الخير', 'العلم', 'النور'];
-const _blocked = ['غبي', 'حمار', 'كلب', 'زق', 'تفو', 'وسخ', 'حقير', 'لعن'];
 
-String? validateNick(String v) {
-  final t = v.trim();
-  if (t.length < 2 || t.length > 16) return 'اللقب من 2 إلى 16 حرفًا';
-  if (!RegExp(r'^[\u0621-\u064A ]+$').hasMatch(t)) return 'حروف عربية فقط، بلا أرقام أو رموز';
-  for (final b in _blocked) {
-    if (t.contains(b)) return 'اختر لقبًا لائقًا';
-  }
-  return null;
-}
 
 class _OnlineCard extends StatefulWidget {
   final ChildProfile child;
@@ -363,7 +373,8 @@ class _OnlineCard extends StatefulWidget {
 }
 
 class _OnlineCardState extends State<_OnlineCard> {
-  late final TextEditingController _nick;
+  late int _na;
+  late int _nb;
   final _circle = TextEditingController();
   String? _circleError;
   String? _error;
@@ -373,12 +384,13 @@ class _OnlineCardState extends State<_OnlineCard> {
   void initState() {
     super.initState();
     final c = widget.child;
-    _nick = TextEditingController(text: c.nick.isNotEmpty ? c.nick : '${_nickA[c.id.hashCode.abs() % 8]} ${_nickB[(c.id.hashCode.abs() ~/ 8) % 8]}');
+    // اقتراح ثابت لكل طفل إن لم يُختر لقب بعد
+    _na = c.nickReady ? c.nickA : c.id.hashCode.abs() % kNickFirst.length;
+    _nb = c.nickReady ? c.nickB : (c.id.hashCode.abs() ~/ 16) % kNickSecond.length;
   }
 
   @override
   void dispose() {
-    _nick.dispose();
     _circle.dispose();
     super.dispose();
   }
@@ -400,16 +412,13 @@ class _OnlineCardState extends State<_OnlineCard> {
     final st = AppScope.read(context);
     final c = widget.child;
     if (on) {
-      final err = validateNick(_nick.text);
-      if (err != null) {
-        setState(() => _error = err);
-        return;
-      }
       setState(() {
         _busy = true;
         _error = null;
       });
-      c.nick = _nick.text.trim();
+      c.nickA = _na;
+      c.nickB = _nb;
+      c.nick = composeNick(_na, _nb);
       final res = await Online.instance.join(st, c);
       if (mounted) setState(() {
         _busy = false;
@@ -446,18 +455,29 @@ class _OnlineCardState extends State<_OnlineCard> {
         const Text('يظهر طفلك في الترتيب باللقب والرمز والنقاط فقط. لا محادثة ولا رسائل ولا أي بيانات شخصية.',
             style: TextStyle(fontSize: 13, color: Colors.black54)),
         const SizedBox(height: 8),
-        TextField(
-          controller: _nick,
-          enabled: !c.onlineEnabled && !_busy,
-          maxLength: 16,
-          decoration: InputDecoration(
-            labelText: 'لقب الطفل في المنافسة',
-            helperText: 'لا تكتب الاسم الحقيقي الكامل',
-            errorText: _error,
-            border: const OutlineInputBorder(),
-            isDense: true,
+        // اللقب من قائمتين معتمدتين: لا يُكتب أي نص حر
+        Text('لقب الطفل: ${composeNick(_na, _nb)}', style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 17)),
+        if (_error != null) Text(_error!, style: const TextStyle(color: RC.coral)),
+        if (!c.onlineEnabled) ...[
+          const SizedBox(height: 6),
+          _NickPicker(
+            options: kNickFirst,
+            selected: _na,
+            enabled: !_busy,
+            onSelected: (i) => setState(() => _na = i),
           ),
-        ),
+          const SizedBox(height: 6),
+          _NickPicker(
+            options: kNickSecond,
+            selected: _nb,
+            enabled: !_busy,
+            onSelected: (i) => setState(() => _nb = i),
+          ),
+        ],
+        if (c.onlineEnabled && !c.nickReady)
+          const Text('حدّث اللقب: أوقف المنافسة ثم اختر اللقب من القائمتين وفعّلها من جديد.',
+              style: TextStyle(color: RC.coral)),
+        const SizedBox(height: 6),
         if (c.onlineEnabled)
           Text('النقاط الكلية: ${c.onlineTotal}  ·  نقاط الأسبوع: ${c.weekPoints}  ·  المنزلة: ${Online.tiers[Online.tierIndex(c.onlineTotal)].$1}',
               style: const TextStyle(fontSize: 13)),
@@ -503,5 +523,100 @@ class _OnlineCardState extends State<_OnlineCard> {
         ],
       ]),
     );
+  }
+}
+
+class _NickPicker extends StatelessWidget {
+  final List<String> options;
+  final int selected;
+  final bool enabled;
+  final ValueChanged<int> onSelected;
+  const _NickPicker({required this.options, required this.selected, required this.enabled, required this.onSelected});
+
+  @override
+  Widget build(BuildContext context) => Wrap(spacing: 6, runSpacing: 6, children: [
+        for (var i = 0; i < options.length; i++)
+          ChoiceChip(
+            label: Text(options[i]),
+            selected: i == selected,
+            onSelected: enabled ? (_) => onSelected(i) : null,
+          ),
+      ]);
+}
+
+/// الحماية: رمز الوالدين وتثبيت التطبيق على الشاشة.
+class _ProtectionPanel extends StatefulWidget {
+  const _ProtectionPanel();
+
+  @override
+  State<_ProtectionPanel> createState() => _ProtectionPanelState();
+}
+
+class _ProtectionPanelState extends State<_ProtectionPanel> {
+  bool _pinned = false;
+
+  @override
+  void initState() {
+    super.initState();
+    Kiosk.isPinned().then((v) {
+      if (mounted) setState(() => _pinned = v);
+    });
+  }
+
+  Future<void> _setPin() async {
+    final st = AppScope.read(context);
+    final code = await PinPadScreen.askNewPin(context);
+    if (code != null && ParentPin.validFormat(code)) {
+      st.setPin(code);
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('حُفظ رمز الوالدين')));
+      }
+    }
+  }
+
+  Future<void> _togglePin(bool on) async {
+    final st = AppScope.read(context);
+    if (on) return _setPin();
+    // الإلغاء يتطلب الرمز الحالي
+    if (await passParentGate(context)) st.clearPin();
+  }
+
+  Future<void> _toggleKiosk(bool on) async {
+    final st = AppScope.read(context);
+    st.setKioskWanted(on);
+    final ok = on ? await Kiosk.start() : await Kiosk.stop();
+    final pinned = await Kiosk.isPinned();
+    if (!mounted) return;
+    setState(() => _pinned = pinned);
+    if (on && !ok) {
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('لم يقبل الجهاز التثبيت')));
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final st = AppScope.of(context);
+    return _Panel(title: 'الحماية', children: [
+      SwitchListTile(
+        value: st.pin != null,
+        onChanged: _togglePin,
+        title: const Text('رمز الوالدين'),
+        subtitle: const Text('رمز من 4 أرقام لفتح هذه اللوحة وتمديد الوقت. يُحفظ مشفّرًا، '
+            'وبعد 5 محاولات خاطئة يُقفل الإدخال مؤقتًا.'),
+      ),
+      if (st.pin != null)
+        ListTile(
+          leading: const Icon(Icons.password_rounded),
+          title: const Text('تغيير الرمز'),
+          onTap: _setPin,
+        ),
+      SwitchListTile(
+        value: _pinned,
+        onChanged: _toggleKiosk,
+        title: const Text('تثبيت التطبيق على الشاشة'),
+        subtitle: const Text('لا يستطيع الطفل الخروج إلى تطبيقات أخرى أو إلى الإعدادات. '
+            'للأمان الكامل فعّل في إعدادات الجهاز: الأمان ← تثبيت التطبيق ← طلب رمز القفل قبل إلغاء التثبيت.'),
+      ),
+    ]);
   }
 }

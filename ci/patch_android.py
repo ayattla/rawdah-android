@@ -75,3 +75,12 @@ for d in src.iterdir():
     for f in d.glob("ic_launcher.*"):
         shutil.copy(f, dst / f.name)
 print("icons copied")
+
+# 5) قناة تثبيت الشاشة: نستبدل MainActivity بالنسخة التي تحمل القناة، بالحزمة نفسها
+import re as _re
+for f in (app / "src" / "main").rglob("MainActivity.kt"):
+    pkg = _re.search(r"^package\s+([\w.]+)", f.read_text(encoding="utf-8"), _re.M).group(1)
+    tpl = (root / "ci" / "android" / "MainActivity.kt.template").read_text(encoding="utf-8")
+    f.write_text(tpl.replace("__PACKAGE__", pkg), encoding="utf-8")
+    print("MainActivity patched:", pkg)
+

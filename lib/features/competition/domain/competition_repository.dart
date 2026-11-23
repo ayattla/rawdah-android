@@ -8,6 +8,7 @@ abstract interface class CompetitionRepository {
   Future<List<RankRow>> cupBoard(int band);
   Future<List<RankRow>> allTimeBoard();
   Future<List<RankRow>> circleBoard(String code);
+  Stream<List<RankRow>> watchCircle(String code);
   Future<int?> myWeekRank(ChildProfile c);
   Future<List<int>> pyramidCounts();
   Stream<LiveRoom?> roomStream(String code);
@@ -27,6 +28,8 @@ class FirestoreCompetitionRepository implements CompetitionRepository {
   Future<List<RankRow>> allTimeBoard() => _online.allTimeBoard();
   @override
   Future<List<RankRow>> circleBoard(String code) => _online.circleBoard(code);
+  @override
+  Stream<List<RankRow>> watchCircle(String code) => _online.watchCircle(code);
   @override
   Future<int?> myWeekRank(ChildProfile c) => _online.myWeekRank(c);
   @override

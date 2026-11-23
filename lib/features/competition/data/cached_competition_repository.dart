@@ -65,6 +65,18 @@ class CachedCompetitionRepository implements CompetitionRepository {
   @override
   Future<List<RankRow>> circleBoard(String code) => _cached('circle_$code', () => remote.circleBoard(code));
 
+  /// اللحظي يمر كما هو، مع تحديث النسخة المخزّنة عند كل تغيير.
+  @override
+  Stream<List<RankRow>> watchCircle(String code) => remote.watchCircle(code).map((rows) {
+        unawaited(store.write(
+            'board:circle_$code',
+            jsonEncode({
+              'at': DateTime.now().toIso8601String(),
+              'rows': [for (final r in rows) {'id': r.id, 'nick': r.nick, 'symbol': r.symbol, 'points': r.points}],
+            })));
+        return BoardRows(rows, fetchedAt: DateTime.now());
+      });
+
   // هذه لحظية بطبيعتها فلا تُخزَّن
   @override
   Future<int?> myWeekRank(ChildProfile c) => remote.myWeekRank(c);

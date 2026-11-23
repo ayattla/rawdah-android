@@ -8,6 +8,7 @@ import 'package:rawdah/features/profiles/presentation/child_picker_screen.dart';
 import 'package:rawdah/features/onboarding/presentation/onboarding_screen.dart';
 import 'package:rawdah/features/competition/data/online_service.dart';
 import 'package:rawdah/core/di/providers.dart';
+import 'package:rawdah/features/parents/presentation/lock_screen.dart';
 import 'package:rawdah/core/services/voice.dart';
 import 'package:rawdah/core/state/app_state.dart';
 import 'package:rawdah/core/design_system/design_system.dart';
@@ -15,6 +16,7 @@ import 'package:rawdah/core/design_system/design_system.dart';
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
   SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp]);
+  ChildShell.lockScreenBuilder = (context, reason) => LockScreen(reason: reason);
   final state = AppState();
   state.onPoints = () => Online.instance.scheduleFlush(state);
   state.load().then((_) {

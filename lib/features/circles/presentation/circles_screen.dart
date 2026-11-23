@@ -2,19 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
 import 'package:rawdah/features/competition/data/online_service.dart';
+import 'package:rawdah/core/content/names.dart';
 import 'package:rawdah/core/state/app_state.dart';
 import 'package:rawdah/core/design_system/design_system.dart';
 import 'package:rawdah/core/di/providers.dart';
 import 'package:rawdah/features/competition/presentation/competition_screen.dart';
 import 'package:rawdah/features/circles/presentation/live_quiz_screen.dart';
-
-/// اسم الحلقة: حروف عربية وأرقام ومسافات فقط.
-String? validateCircleName(String v) {
-  final t = v.trim();
-  if (t.length < 2 || t.length > 30) return 'الاسم من 2 إلى 30 حرفًا';
-  if (!RegExp(r'^[ء-ي0-9٠-٩ ]+$').hasMatch(t)) return 'حروف عربية وأرقام فقط';
-  return null;
-}
 
 /// حلقاتي: للمعلم أو الوالد. ينشئ حلقة برمز يعطيه للأطفال، ويرى ترتيبهم ويخرج من يشاء.
 /// لا محادثة ولا رسائل، فقط الألقاب والنقاط.
@@ -26,37 +19,26 @@ class CirclesScreen extends StatefulWidget {
 }
 
 class _CirclesScreenState extends State<CirclesScreen> {
-  final _name = TextEditingController();
+  int _nameKey = 0;
+  int _number = 1;
   String? _error;
   bool _busy = false;
 
-  @override
-  void dispose() {
-    _name.dispose();
-    super.dispose();
-  }
-
+  /// الاسم من القائمة المعتمدة ورقم: لا يُكتب أي نص حر.
   Future<void> _create() async {
-    final err = validateCircleName(_name.text);
-    if (err != null) {
-      setState(() => _error = err);
-      return;
-    }
     setState(() {
       _busy = true;
       _error = null;
     });
     final st = AppScope.read(context);
-    final name = _name.text.trim();
-    final code = await Online.instance.createCircle(name);
+    final code = await Online.instance.createCircle(_nameKey, _number);
     if (!mounted) return;
     setState(() => _busy = false);
     if (code == null) {
       setState(() => _error = 'تعذّر الإنشاء، تأكد من الإنترنت');
       return;
     }
-    st.addOwnedCircle(code, name);
-    _name.clear();
+    st.addOwnedCircle(code, circleDisplayName(_nameKey, _number));
   }
 
   @override
@@ -80,31 +62,37 @@ class _CirclesScreenState extends State<CirclesScreen> {
         const SizedBox(height: 18),
         const Text('حلقة دائمة', style: TextStyle(fontSize: 17, fontWeight: FontWeight.w700)),
         const SizedBox(height: 8),
-        Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
-          Expanded(
-            child: TextField(
-              controller: _name,
-              maxLength: 30,
-              decoration: InputDecoration(
-                labelText: 'اسم الحلقة',
-                hintText: 'مثال: حلقة الفجر',
-                errorText: _error,
-                border: const OutlineInputBorder(),
-                isDense: true,
-              ),
+        Wrap(spacing: 6, runSpacing: 6, children: [
+          for (var i = 0; i < kCircleNames.length; i++)
+            ChoiceChip(
+              label: Text(kCircleNames[i]),
+              selected: _nameKey == i,
+              onSelected: _busy ? null : (_) => setState(() => _nameKey = i),
             ),
+        ]),
+        const SizedBox(height: 8),
+        Row(children: [
+          const Text('رقم الحلقة', style: TextStyle(fontWeight: FontWeight.w700)),
+          IconButton(
+            tooltip: 'أقل',
+            onPressed: _number > 1 ? () => setState(() => _number--) : null,
+            icon: const Icon(Icons.remove_circle_outline_rounded),
           ),
-          const SizedBox(width: 8),
-          SizedBox(
-            height: 48,
-            child: FilledButton(
-              onPressed: _busy ? null : _create,
-              child: _busy
-                  ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 3))
-                  : const Text('إنشاء'),
-            ),
+          Text('$_number', style: RT.display(20)),
+          IconButton(
+            tooltip: 'أكثر',
+            onPressed: _number < 99 ? () => setState(() => _number++) : null,
+            icon: const Icon(Icons.add_circle_outline_rounded),
+          ),
+          const Spacer(),
+          FilledButton(
+            onPressed: _busy ? null : _create,
+            child: _busy
+                ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 3))
+                : Text('إنشاء «${circleDisplayName(_nameKey, _number)}»'),
           ),
         ]),
+        if (_error != null) Text(_error!, style: const TextStyle(color: RC.coral)),
         const SizedBox(height: 8),
         if (st.ownedCircles.isEmpty)
           const Padding(
@@ -193,6 +181,7 @@ class CircleBoardScreen extends StatelessWidget {
         Expanded(
           child: RankBoard(
             loader: () => competitionRepo(context).circleBoard(code),
+            live: competitionRepo(context).watchCircle(code),
             meId: '',
             onRemove: owner ? (r) => Online.instance.removeMember(code, r.id) : null,
           ),
