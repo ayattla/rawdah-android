@@ -91,12 +91,14 @@ if kts.exists():
     s = kts.read_text(encoding="utf-8")
     if "key.properties" not in s:
         loader = (
-            'val keystoreProperties = java.util.Properties().apply {\n'
-            '    val f = rootProject.file("key.properties")\n'
-            '    if (f.exists()) f.inputStream().use { load(it) }\n'
+            'val keystoreProperties = Properties()\n'
+            'val keystoreFile = rootProject.file("key.properties")\n'
+            'if (keystoreFile.exists()) {\n'
+            '    FileInputStream(keystoreFile).use { stream -> keystoreProperties.load(stream) }\n'
             '}\n\n'
         )
         s = s.replace("android {", loader + "android {", 1)
+        s = "import java.io.FileInputStream\nimport java.util.Properties\n\n" + s
         signing = (
             '    signingConfigs {\n'
             '        create("upload") {\n'
