@@ -89,8 +89,8 @@ service cloud.firestore {
       function circle() { return get(/databases/$(database)/documents/circles/$(code)).data; }
       allow get: if signedIn();
       allow list: if false;
+      // اسم الحلقة: رقم من قائمة الأسماء المعتمدة (12 اسمًا) ورقم الحلقة، بلا نص
       allow create: if signedIn() && okCode(code)
-        // اسم الحلقة: رقم من قائمة الأسماء المعتمدة (12 اسمًا) ورقم الحلقة، بلا نص
         && data().keys().hasOnly(['nameKey', 'num', 'owner', 'createdAt'])
         && data().nameKey is int && data().nameKey >= 0 && data().nameKey < 12
         && data().num is int && data().num >= 1 && data().num <= 99
