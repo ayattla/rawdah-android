@@ -84,3 +84,39 @@ for f in (app / "src" / "main").rglob("MainActivity.kt"):
     f.write_text(tpl.replace("__PACKAGE__", pkg), encoding="utf-8")
     print("MainActivity patched:", pkg)
 
+# 6) توقيع الإصدار: إن وُجد android/key.properties (مفتاح رفع Google Play من الأسرار) يُستخدم،
+#    وإلا يبقى توقيع النسخ التجريبية. لا مفاتيح داخل المستودع.
+kts = app / "build.gradle.kts"
+if kts.exists():
+    s = kts.read_text(encoding="utf-8")
+    if "key.properties" not in s:
+        loader = (
+            'val keystoreProperties = java.util.Properties().apply {\n'
+            '    val f = rootProject.file("key.properties")\n'
+            '    if (f.exists()) f.inputStream().use { load(it) }\n'
+            '}\n\n'
+        )
+        s = s.replace("android {", loader + "android {", 1)
+        signing = (
+            '    signingConfigs {\n'
+            '        create("upload") {\n'
+            '            if (keystoreProperties.getProperty("storeFile") != null) {\n'
+            '                storeFile = file(keystoreProperties.getProperty("storeFile"))\n'
+            '                storePassword = keystoreProperties.getProperty("storePassword")\n'
+            '                keyAlias = keystoreProperties.getProperty("keyAlias")\n'
+            '                keyPassword = keystoreProperties.getProperty("keyPassword")\n'
+            '            }\n'
+            '        }\n'
+            '    }\n\n'
+            '    buildTypes {'
+        )
+        s = s.replace("    buildTypes {", signing, 1)
+        s = s.replace(
+            'signingConfig = signingConfigs.getByName("debug")',
+            'signingConfig = if (keystoreProperties.getProperty("storeFile") != null) '
+            'signingConfigs.getByName("upload") else signingConfigs.getByName("debug")',
+            1,
+        )
+        kts.write_text(s, encoding="utf-8")
+        print("release signing wired (key.properties optional)")
+
