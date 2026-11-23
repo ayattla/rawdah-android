@@ -2,7 +2,6 @@ import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 
-import 'package:rawdah/core/design_system/tokens/colors.dart';
 
 // =====================================================================
 // الهندسة: النجمة الثمانية (خاتم سليمان) ونقش الزليج

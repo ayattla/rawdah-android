@@ -274,7 +274,7 @@ class _RankBoardState extends State<RankBoard> {
           }
           final offline = rows is BoardRows && rows.fromCache;
           return Column(children: [
-            if (offline) _OfflineNote(at: (rows as BoardRows).fetchedAt),
+            if (offline) _OfflineNote(at: rows.fetchedAt),
             Expanded(child: ListView.separated(
             padding: const EdgeInsets.fromLTRB(16, 4, 16, 24),
             itemCount: rows.length,

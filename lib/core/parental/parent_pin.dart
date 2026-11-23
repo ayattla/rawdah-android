@@ -16,7 +16,7 @@ class ParentPin {
   static bool validFormat(String pin) => RegExp(r'^[0-9]{4}$').hasMatch(pin);
 
   static String _digest(String salt, String pin) {
-    var bytes = utf8.encode('$salt:$pin');
+    List<int> bytes = utf8.encode('$salt:$pin');
     for (var i = 0; i < iterations; i++) {
       bytes = sha256.convert(bytes).bytes;
     }
