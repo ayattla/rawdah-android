@@ -5,6 +5,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:rawdah/features/science/data/science_content.dart';
+import 'package:rawdah/features/quizzes/domain/math_questions.dart';
 import 'package:rawdah/core/content/content.dart';
 import 'package:rawdah/core/di/providers.dart';
 import 'package:rawdah/core/services/voice.dart';
@@ -52,6 +53,14 @@ class QuizHubScreen extends ConsumerWidget {
               icon: Icons.science_rounded,
               color: RC.night,
               onTap: () => open('مسابقة العلوم', (scienceQuestionsFor(c.ageBand)..shuffle()).take(6).toList()),
+            ),
+            const SizedBox(height: 12),
+            BigTile(
+              title: 'تحدي الحساب',
+              subtitle: c.ageBand == 0 ? 'جمع وطرح حتى ١٠' : (c.ageBand == 1 ? 'جمع وطرح وجدول الضرب' : 'ضرب وقسمة'),
+              icon: Icons.calculate_rounded,
+              color: RC.sea,
+              onTap: () => open('تحدي الحساب', mathQuestions(c.ageBand)),
             ),
             const SizedBox(height: 12),
             BigTile(
