@@ -1,6 +1,7 @@
 import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
+import 'package:rawdah/core/design_system/quran_text.dart';
 
 import 'package:rawdah/core/content/content.dart';
 import 'package:rawdah/core/services/voice.dart';
@@ -69,6 +70,7 @@ class HomeMapScreen extends StatelessWidget {
           ),
           if (c.onlineEnabled && c.circleCode.isNotEmpty) SliverToBoxAdapter(child: _CircleChip(child: c)),
           const SliverToBoxAdapter(child: _MissionsCard()),
+          if (st.hifzDue().isNotEmpty) SliverToBoxAdapter(child: _ReviewBanner(count: st.hifzDue().length)),
           SliverPadding(
             padding: const EdgeInsets.fromLTRB(16, 4, 16, 8),
             sliver: SliverGrid(
@@ -493,6 +495,40 @@ class _MissionsCard extends StatelessWidget {
             ),
         ]),
       ]),
+    );
+  }
+}
+
+/// تنبيه لطيف بالسور المستحقة للمراجعة، يفتح أول سورة على وضع «أختبر حفظي».
+class _ReviewBanner extends StatelessWidget {
+  final int count;
+  const _ReviewBanner({required this.count});
+
+  @override
+  Widget build(BuildContext context) {
+    final label = count == 1 ? 'عندك سورة وحدة للمراجعة اليوم' : 'عندك $count سور للمراجعة اليوم';
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
+      child: Chunky(
+        color: RC.goldDark,
+        radius: 20,
+        depth: 5,
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+        onTap: () {
+          final due = AppScope.read(context).hifzDue();
+          if (due.isEmpty) return;
+          final s = surahByNumber(due.first.surah);
+          if (s == null) return;
+          Navigator.of(context)
+              .push(MaterialPageRoute(builder: (_) => SurahScreen(surah: s, startInMemorize: true)));
+        },
+        child: Row(children: [
+          const Icon(Icons.autorenew_rounded, color: Colors.white, size: 28),
+          const SizedBox(width: 10),
+          Expanded(child: Text(label, style: RT.display(17, color: Colors.white))),
+          const Icon(Icons.chevron_left_rounded, color: Colors.white),
+        ]),
+      ),
     );
   }
 }
