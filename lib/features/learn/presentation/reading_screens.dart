@@ -42,7 +42,7 @@ class ReadingListScreen extends StatelessWidget {
   }
 }
 
-/// النص على ورقة: كل كلمة تُلمس فتُسمع وتتلون، وكل جملة لها زر استماع.
+/// النص على ورقة: كل كلمة تلمس فتسمع وتتلون، وكل جملة لها زر استماع.
 class ReadingScreen extends StatefulWidget {
   final ReadingPassage passage;
   const ReadingScreen({super.key, required this.passage});

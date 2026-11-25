@@ -44,7 +44,7 @@ class LearnHubScreen extends StatelessWidget {
             _HubCard(
               big: 'بـ يـ ت',
               title: 'كلماتي',
-              line: 'رتّب الحروف وكوّن الكلمة',
+              line: 'رتب الحروف وكون الكلمة',
               color: const Color(0xFF2E6B4F),
               onTap: () => open(WordBuilderScreen(band: c.ageBand)),
             ),
@@ -85,8 +85,8 @@ class LearnHubScreen extends StatelessWidget {
               Expanded(
                 child: _HubCard(
                   big: '١ ٢ ٣',
-                  title: 'عدّ التمر',
-                  line: 'المس كل تمرة وعدّها',
+                  title: 'عد التمر',
+                  line: 'المس كل تمرة وعدها',
                   color: _date,
                   compact: true,
                   onTap: () => open(CountGameScreen(band: c.ageBand)),
@@ -154,7 +154,7 @@ class _HubCard extends StatelessWidget {
   }
 }
 
-/// كوّن الكلمة: الأيقونة تدل على الكلمة، والطفل يضع الحروف بالترتيب ويرى اتصالها.
+/// كون الكلمة: الأيقونة تدل على الكلمة، والطفل يضع الحروف بالترتيب ويرى اتصالها.
 class WordBuilderScreen extends StatefulWidget {
   final int band;
   final int rounds;
@@ -191,7 +191,7 @@ class _WordBuilderScreenState extends State<WordBuilderScreen> {
     if (_i + 1 >= _words.length) {
       final total = (_stars / _words.length).round().clamp(1, 3);
       AppScope.read(context).complete('words_${todayKey()}', stars: total);
-      await showReward(context, stars: total, title: 'كوّنت ${_ar(_words.length)} كلمات!');
+      await showReward(context, stars: total, title: 'كونت ${_ar(_words.length)} كلمات!');
       if (mounted) Navigator.of(context).pop();
       return;
     }
@@ -220,7 +220,7 @@ class _WordBuilderScreenState extends State<WordBuilderScreen> {
               ),
             ),
             const SizedBox(height: 14),
-            // الكلمة كما رُكّبت، تتصل حروفها تلقائيًا
+            // الكلمة كما ركبت، تتصل حروفها تلقائيا
             SizedBox(
               height: 86,
               child: Center(
@@ -371,7 +371,7 @@ class _Date extends StatelessWidget {
   }
 }
 
-/// عدّ التمر: يلمس كل تمرة فيظهر رقمها، ثم يختار العدد.
+/// عد التمر: يلمس كل تمرة فيظهر رقمها، ثم يختار العدد.
 class CountGameScreen extends StatefulWidget {
   final int band;
   final Random? random;
@@ -410,7 +410,7 @@ class _CountGameScreenState extends State<CountGameScreen> {
     if (_i + 1 >= _rounds.length) {
       final stars = _right >= _rounds.length ? 3 : (_right >= _rounds.length - 2 ? 2 : 1);
       AppScope.read(context).complete('count_${todayKey()}', stars: stars);
-      await showReward(context, stars: stars, title: 'عدّيت التمر كله!');
+      await showReward(context, stars: stars, title: 'عديت التمر كله!');
       if (mounted) Navigator.of(context).pop();
       return;
     }
@@ -427,10 +427,10 @@ class _CountGameScreenState extends State<CountGameScreen> {
     final size = _r.count > 20 ? 34.0 : (_r.count > 10 ? 40.0 : 50.0);
     return ChildShell(
       child: Column(children: [
-        KidBar(title: 'عدّ التمر ${_ar(_i + 1)} / ${_ar(_rounds.length)}'),
+        KidBar(title: 'عد التمر ${_ar(_i + 1)} / ${_ar(_rounds.length)}'),
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 20),
-          child: Text('كم تمرة في الصحن؟ المسها وعدّها', textAlign: TextAlign.center, style: RT.display(19)),
+          child: Text('كم تمرة في الصحن؟ المسها وعدها', textAlign: TextAlign.center, style: RT.display(19)),
         ),
         const SizedBox(height: 10),
         Expanded(

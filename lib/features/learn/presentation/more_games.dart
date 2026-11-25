@@ -11,7 +11,7 @@ const _ink = Color(0xFF1F2A44);
 const _paper = Color(0xFFFFFBF0);
 const _wrongBg = Color(0xFFFDE2E0);
 
-/// هيكل مشترك لألعاب الجولات: سؤال، خيارات، خطأ يلوّن الخيار، ونجوم في النهاية.
+/// هيكل مشترك لألعاب الجولات: سؤال، خيارات، خطأ يلون الخيار، ونجوم في النهاية.
 mixin _Rounds<T extends StatefulWidget> on State<T> {
   int i = 0, right = 0;
   Object? wrong;

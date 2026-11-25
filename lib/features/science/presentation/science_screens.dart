@@ -58,7 +58,7 @@ class ScienceHubScreen extends StatelessWidget {
   }
 }
 
-/// بطاقات الموضوع تقلّب بالسحب، وفي آخرها تأمل وزر المسابقة.
+/// بطاقات الموضوع تقلب بالسحب، وفي آخرها تأمل وزر المسابقة.
 class ScienceTopicScreen extends StatefulWidget {
   final ScienceTopic topic;
   const ScienceTopicScreen({super.key, required this.topic});
@@ -198,7 +198,7 @@ class _FinishPage extends StatelessWidget {
     return ListView(padding: const EdgeInsets.all(20), children: [
       Icon(Icons.auto_awesome_rounded, size: 80, color: topic.color),
       const SizedBox(height: 12),
-      Text('تأمّل', textAlign: TextAlign.center, style: RT.display(24)),
+      Text('تأمل', textAlign: TextAlign.center, style: RT.display(24)),
       const SizedBox(height: 8),
       Text(topic.reflection, textAlign: TextAlign.center, style: RT.body(19, weight: FontWeight.w500)),
       const SizedBox(height: 24),

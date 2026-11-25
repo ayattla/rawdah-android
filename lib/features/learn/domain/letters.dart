@@ -1,5 +1,5 @@
 /// الحروف مرتبة في «عائلات» حسب الرسم: حروف العائلة الواحدة لها نفس الشكل وتختلف بالنقاط فقط،
-/// وهكذا يعلّمها معلمو الصفوف الأولى. كل الأمثلة جمادات وأماكن ونبات.
+/// وهكذا يعلمها معلمو الصفوف الأولى. كل الأمثلة جمادات وأماكن ونبات.
 library;
 
 class ArabicLetter {
@@ -33,7 +33,7 @@ class LetterFamily {
   const LetterFamily(this.title, this.letters);
 }
 
-const _t = 'ـ'; // التطويل لعرض شكل الحرف متصلًا
+const _t = 'ـ'; // التطويل لعرض شكل الحرف متصلا
 
 const kLetterFamilies = <LetterFamily>[
   LetterFamily('الألف', [
@@ -101,7 +101,7 @@ ArabicLetter? letterByChar(String c) {
   return null;
 }
 
-/// يقسم الكلمة إلى مقاطع ملوّنة: الحرف المطلوب وحده وما حوله، مع الحفاظ على الاتصال.
+/// يقسم الكلمة إلى مقاطع ملونة: الحرف المطلوب وحده وما حوله، مع الحفاظ على الاتصال.
 /// يعامل الهمزات على الألف (أ إ آ) معاملة الألف.
 List<(String text, bool hit)> splitForHighlight(String word, String letter) {
   bool match(String ch) => ch == letter || (letter == 'ا' && 'أإآ'.contains(ch));

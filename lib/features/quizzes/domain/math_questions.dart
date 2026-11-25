@@ -2,7 +2,7 @@ import 'dart:math';
 
 import 'package:rawdah/core/content/content.dart';
 
-/// أسئلة حساب تتولد تلقائيًا حسب فئة العمر، فلا تنتهي ولا تتكرر غالبًا.
+/// أسئلة حساب تتولد تلقائيا حسب فئة العمر، فلا تنتهي ولا تتكرر غالبا.
 /// البراعم: جمع وطرح حتى ١٠ | المستكشفون: حتى ١٠٠ وجدول ٢-٥ | الفرسان: ضرب وقسمة حتى ١٢.
 List<Question> mathQuestions(int band, {int count = 10, Random? random}) {
   final r = random ?? Random();
@@ -58,7 +58,7 @@ List<Question> mathQuestions(int band, {int count = 10, Random? random}) {
   }
 }
 
-/// ثلاثة خيارات قريبة من الجواب الصحيح ومرتبة عشوائيًا، كلها موجبة ومختلفة.
+/// ثلاثة خيارات قريبة من الجواب الصحيح ومرتبة عشوائيا، كلها موجبة ومختلفة.
 List<int> _options(int answer, Random r) {
   final set = <int>{answer};
   final spread = max(2, answer ~/ 5);

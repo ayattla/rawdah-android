@@ -47,14 +47,14 @@ const kBuildWords = <BuildWord>[
 
 List<BuildWord> wordsForBand(int band) => kBuildWords.where((w) => w.level <= band + 1).toList();
 
-/// حالة لعبة تركيب الكلمة: خانات تُملأ بالترتيب من بلاطات مخلوطة.
+/// حالة لعبة تركيب الكلمة: خانات تملأ بالترتيب من بلاطات مخلوطة.
 class WordBuilder {
   final BuildWord target;
 
   /// البلاطات المعروضة (حروف الكلمة مخلوطة + حروف تمويه للمستويات الأعلى).
   final List<String> tiles;
 
-  /// لكل خانة: رقم البلاطة التي وُضعت فيها، أو null.
+  /// لكل خانة: رقم البلاطة التي وضعت فيها، أو null.
   final List<int?> slots;
   int mistakes = 0;
 
@@ -80,7 +80,7 @@ class WordBuilder {
   int get filled => slots.where((s) => s != null).length;
   bool get isComplete => filled == slots.length;
 
-  /// الكلمة كما رُكبت حتى الآن (تتصل الحروف تلقائيًا في العرض).
+  /// الكلمة كما ركبت حتى الآن (تتصل الحروف تلقائيا في العرض).
   String get typed => [for (final s in slots) if (s != null) tiles[s]].join();
   bool get isCorrect => isComplete && typed == target.word;
 
@@ -110,7 +110,7 @@ class WordBuilder {
   int get stars => mistakes == 0 ? 3 : (mistakes <= 2 ? 2 : 1);
 }
 
-/// جولة عدّ: عدد من حبات التمر وخيارات للجواب.
+/// جولة عد: عدد من حبات التمر وخيارات للجواب.
 class CountRound {
   final int count;
   final List<int> options;
@@ -152,7 +152,7 @@ List<CompareRound> compareRounds(int band, {int rounds = 6, Random? random}) {
   final maxN = band == 0 ? 9 : 20;
   return List.generate(rounds, (i) {
     final a = 1 + r.nextInt(maxN);
-    // جولة متساوية واحدة تقريبًا في كل ست جولات
+    // جولة متساوية واحدة تقريبا في كل ست جولات
     final b = i == 3 ? a : 1 + r.nextInt(maxN);
     return CompareRound(a, b);
   });
@@ -203,7 +203,7 @@ String clockLabel(int h, int m) {
   };
 }
 
-/// البراعم والمستكشفون: ساعات كاملة ونصف. الفرسان: أرباع أيضًا.
+/// البراعم والمستكشفون: ساعات كاملة ونصف. الفرسان: أرباع أيضا.
 List<ClockRound> clockRounds(int band, {int rounds = 6, Random? random}) {
   final r = random ?? Random();
   final mins = band >= 2 ? const [0, 15, 30, 45] : const [0, 30];

@@ -416,7 +416,7 @@ class _WordsStep extends StatelessWidget {
   }
 }
 
-/// لوح الرسم: الحرف باهت في الخلفية، والطفل يمرّ عليه بإصبعه.
+/// لوح الرسم: الحرف باهت في الخلفية، والطفل يمر عليه بإصبعه.
 class _TraceStep extends StatefulWidget {
   final ArabicLetter letter;
   final VoidCallback onDone;
@@ -440,7 +440,7 @@ class _TraceStepState extends State<_TraceStep> {
     return total;
   }
 
-  /// يكفي أن يرسم طولًا معقولًا يغطي مساحة الحرف.
+  /// يكفي أن يرسم طولا معقولا يغطي مساحة الحرف.
   bool get _enough {
     if (_size == Size.zero || _strokes.isEmpty) return false;
     final pts = _strokes.expand((s) => s).toList();
@@ -454,7 +454,7 @@ class _TraceStepState extends State<_TraceStep> {
     return Padding(
       padding: const EdgeInsets.all(20),
       child: Column(children: [
-        Text('مرّ بإصبعك على الحرف', style: RT.display(20)),
+        Text('مر بإصبعك على الحرف', style: RT.display(20)),
         const SizedBox(height: 12),
         Expanded(
           child: LayoutBuilder(builder: (context, box) {

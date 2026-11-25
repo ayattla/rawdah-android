@@ -6,7 +6,7 @@ import 'package:rawdah/core/design_system/quran_text.dart';
 import 'package:rawdah/features/recitation/domain/recitation_plan.dart';
 import 'package:rawdah/features/recitation/presentation/recitation_controller.dart';
 
-/// لوحة التلاوة أسفل صفحة السورة: تشغيل بصوت الشيخ، تكرار، «ردّد بعدي»، نطاق آيات، وتنزيل.
+/// لوحة التلاوة أسفل صفحة السورة: تشغيل بصوت الشيخ، تكرار، «ردد بعدي»، نطاق آيات، وتنزيل.
 class RecitationPanel extends ConsumerWidget {
   final RecitationArgs args;
   const RecitationPanel({super.key, required this.args});
@@ -51,7 +51,7 @@ class RecitationPanel extends ConsumerWidget {
             selected: o.echo,
             showCheckmark: false,
             avatar: Icon(Icons.record_voice_over_rounded, size: 20, color: o.echo ? RC.paper : RC.green),
-            label: const Text('ردّد بعدي'),
+            label: const Text('ردد بعدي'),
             selectedColor: RC.green,
             labelStyle: TextStyle(color: o.echo ? RC.paper : RC.ink, fontWeight: FontWeight.w700),
             onSelected: (v) => c.setOptions(echo: v),
@@ -170,9 +170,9 @@ class _StatusText extends StatelessWidget {
     final rep = state.options.repeatEach;
     final count = rep > 1 ? 'المرة ${arabicNumber(state.repeatIndex + 1)} من ${arabicNumber(rep)}' : null;
     final (String title, String? sub) = switch (state.status) {
-      RecitationStatus.preparing => ('نجهّز التلاوة…', null),
+      RecitationStatus.preparing => ('نجهز التلاوة…', null),
       RecitationStatus.playing => (a == null ? 'بسم الله الرحمن الرحيم' : 'الشيخ يقرأ الآية ${arabicNumber(a)}', count),
-      RecitationStatus.echo => ('دورك! ردّد الآية ${arabicNumber(a ?? 1)}', 'اقرأها بصوتك كما سمعتها'),
+      RecitationStatus.echo => ('دورك! ردد الآية ${arabicNumber(a ?? 1)}', 'اقرأها بصوتك كما سمعتها'),
       RecitationStatus.paused => ('التلاوة متوقفة', 'اضغط للمتابعة'),
       RecitationStatus.error => ('لم تعمل التلاوة', null),
       RecitationStatus.idle => (
@@ -233,7 +233,7 @@ class _OfflineRow extends StatelessWidget {
     final p = state.downloadProgress;
     if (p != null) {
       return Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-        Text('ننزّل التلاوة… ${arabicNumber((p * 100).round())}٪',
+        Text('ننزل التلاوة… ${arabicNumber((p * 100).round())}٪',
             style: const TextStyle(fontSize: 15, color: RC.inkSoft)),
         const SizedBox(height: RS.xs),
         ClipRRect(

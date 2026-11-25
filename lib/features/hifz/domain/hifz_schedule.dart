@@ -1,5 +1,5 @@
 /// جدول مراجعة المحفوظ بالتكرار المتباعد: كل مراجعة ناجحة تبعد الموعد التالي،
-/// والتعثّر يعيد السورة لمراجعة الغد. منطق صافٍ بلا واجهة ولا تخزين.
+/// والتعثر يعيد السورة لمراجعة الغد. منطق صاف بلا واجهة ولا تخزين.
 library;
 
 /// الفواصل بالأيام لكل مستوى.
@@ -16,7 +16,7 @@ class HifzEntry {
   final int reviews;
   const HifzEntry(this.surah, {this.level = 0, required this.due, this.reviews = 0});
 
-  /// حفظ جديد: أول مراجعة غدًا.
+  /// حفظ جديد: أول مراجعة غدا.
   factory HifzEntry.memorized(int surah, int today) => HifzEntry(surah, due: today + kHifzIntervals[0]);
 
   bool isDue(int today) => due <= today;
@@ -50,7 +50,7 @@ class HifzEntry {
   int get hashCode => Object.hash(surah, level, due, reviews);
 }
 
-/// السور المستحقة اليوم، الأقدم تأخرًا أولًا ثم الأضعف حفظًا.
+/// السور المستحقة اليوم، الأقدم تأخرا أولا ثم الأضعف حفظا.
 List<HifzEntry> dueToday(Iterable<HifzEntry> all, int today) {
   final d = all.where((e) => e.isDue(today)).toList()
     ..sort((a, b) {
