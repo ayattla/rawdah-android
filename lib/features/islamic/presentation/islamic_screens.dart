@@ -48,7 +48,7 @@ class IslamicHubScreen extends StatelessWidget {
             ),
             Padding(
               padding: const EdgeInsets.fromLTRB(4, 20, 4, 8),
-              child: Text('رتّب', style: RT.display(19, color: RC.inkSoft)),
+              child: Text('رتب', style: RT.display(19, color: RC.inkSoft)),
             ),
             Wrap(spacing: 10, runSpacing: 10, children: [
               for (final s in sets)
@@ -93,7 +93,7 @@ class _OrderChip extends StatelessWidget {
   }
 }
 
-/// رتّب: سلّم من خانات مرقمة يمتلئ من الأعلى، والبطاقات المخلوطة تحته.
+/// رتب: سلم من خانات مرقمة يمتلئ من الأعلى، والبطاقات المخلوطة تحته.
 class OrderGameScreen extends StatefulWidget {
   final OrderSet set;
   final Random? random;
