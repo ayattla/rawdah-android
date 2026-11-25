@@ -21,6 +21,8 @@ import 'package:rawdah/features/learn/domain/letters.dart';
 import 'package:rawdah/features/learn/presentation/letters_screens.dart';
 import 'package:rawdah/features/learn/presentation/words_numbers_screens.dart';
 import 'package:rawdah/features/learn/presentation/more_games.dart';
+import 'package:rawdah/features/learn/presentation/reading_screens.dart';
+import 'package:rawdah/features/learn/data/reading.dart';
 import '../test/features/recitation/recitation_fakes.dart';
 import 'package:rawdah/core/di/providers.dart';
 import 'package:rawdah/core/storage/local_store.dart';
@@ -338,6 +340,14 @@ void main() {
   testWidgets('31 أول حرف', (t) async {
     final st = await _state();
     await _shot(t, '31_first_letter', st, FirstLetterScreen(band: 1, random: Random(6)));
+  });
+
+  testWidgets('32 أقرأ وأفهم', (t) async {
+    final st = await _state();
+    await _shot(t, '32_reading', st, ReadingScreen(passage: kReadingPassages[3]), act: () async {
+      await t.tap(find.text('نخلة'));
+      await t.pump(const Duration(milliseconds: 300));
+    });
   });
 
   // فحوص إرشادات الوصول المضمّنة في Flutter: حجم أهداف اللمس، وجود وصف لكل زر، وتباين النص.

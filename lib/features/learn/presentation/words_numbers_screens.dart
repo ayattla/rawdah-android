@@ -9,6 +9,7 @@ import 'package:rawdah/features/learn/domain/letters.dart';
 import 'package:rawdah/features/learn/domain/word_builder.dart';
 import 'package:rawdah/features/learn/presentation/letters_screens.dart';
 import 'package:rawdah/features/learn/presentation/more_games.dart';
+import 'package:rawdah/features/learn/presentation/reading_screens.dart';
 
 const _ink = Color(0xFF1F2A44);
 const _gold = Color(0xFFC98A12);
@@ -46,6 +47,14 @@ class LearnHubScreen extends StatelessWidget {
               line: 'رتّب الحروف وكوّن الكلمة',
               color: const Color(0xFF2E6B4F),
               onTap: () => open(WordBuilderScreen(band: c.ageBand)),
+            ),
+            const SizedBox(height: 14),
+            _HubCard(
+              big: 'أقرأ',
+              title: 'أقرأ وأفهم',
+              line: 'نصوص قصيرة، المس الكلمة لتسمعها',
+              color: const Color(0xFF8A5A12),
+              onTap: () => open(const ReadingListScreen()),
             ),
             const SizedBox(height: 14),
             Row(children: [

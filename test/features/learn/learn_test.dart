@@ -2,6 +2,7 @@ import 'dart:math';
 
 import 'package:flutter_test/flutter_test.dart';
 
+import 'package:rawdah/features/learn/data/reading.dart';
 import 'package:rawdah/features/learn/domain/letters.dart';
 import 'package:rawdah/features/learn/domain/word_builder.dart';
 
@@ -144,5 +145,20 @@ void main() {
         expect(r.hour, inInclusiveRange(1, 12));
       }
     });
+  });
+
+  test('نصوص القراءة سليمة وكل جواب مذكور فيها', () {
+    final ids = <String>{};
+    for (final p in kReadingPassages) {
+      expect(ids.add(p.id), true);
+      expect(p.sentences.length, greaterThanOrEqualTo(4));
+      expect(p.questions.length, greaterThanOrEqualTo(2));
+      expect(p.completionId, 'read_${p.id}');
+      for (final q in p.questions) {
+        expect(q.answer, inInclusiveRange(0, q.options.length - 1));
+      }
+    }
+    expect(passagesForBand(0).every((p) => p.level == 1), true);
+    expect(passagesForBand(2).length, kReadingPassages.length);
   });
 }
