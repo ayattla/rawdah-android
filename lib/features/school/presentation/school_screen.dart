@@ -9,13 +9,15 @@ import 'package:rawdah/core/design_system/quran_text.dart';
 import 'package:rawdah/core/design_system/design_system.dart';
 import 'package:rawdah/features/recitation/presentation/recitation_controller.dart';
 import 'package:rawdah/features/recitation/presentation/recitation_panel.dart';
+import 'package:rawdah/features/hifz/domain/hifz_schedule.dart';
 
 class SchoolScreen extends StatelessWidget {
   const SchoolScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
-    final c = AppScope.of(context).current;
+    final st = AppScope.of(context);
+    final c = st.current;
     if (c == null) return const SizedBox.shrink();
     final lessons = kLessons.where((l) => l.minBand <= c.ageBand).toList();
     return ChildShell(
@@ -23,13 +25,30 @@ class SchoolScreen extends StatelessWidget {
         const KidBar(title: 'المدرسة'),
         Expanded(
           child: ListView(padding: const EdgeInsets.all(16), children: [
+            if (st.hifzDue().isNotEmpty) ...[
+              const _Section('مراجعة اليوم'),
+              for (final e in st.hifzDue())
+                if (surahByNumber(e.surah) case final s?)
+                  Padding(
+                    padding: const EdgeInsets.only(bottom: 10),
+                    child: BigTile(
+                      title: 'راجع سورة ${s.name}',
+                      subtitle: 'اختبر حفظك وثبّته',
+                      icon: Icons.autorenew_rounded,
+                      badge: '${s.number}',
+                      color: RC.goldDark,
+                      onTap: () => Navigator.of(context)
+                          .push(MaterialPageRoute(builder: (_) => SurahScreen(surah: s, startInMemorize: true))),
+                    ),
+                  ),
+            ],
             const _Section('القرآن الكريم'),
             for (final s in kSurahs)
               Padding(
                 padding: const EdgeInsets.only(bottom: 10),
                 child: BigTile(
                   title: 'سورة ${s.name}',
-                  subtitle: '${s.ayat.length} آيات',
+                  subtitle: _surahSubtitle(s, c.hifz[s.number]),
                   icon: Icons.menu_book_rounded,
                   badge: '${s.number}',
                   color: RC.green,
@@ -66,6 +85,13 @@ class SchoolScreen extends StatelessWidget {
   }
 }
 
+String _surahSubtitle(Surah s, HifzEntry? e) {
+  final n = '${s.ayat.length} آيات';
+  if (e == null) return n;
+  if (e.mastered) return '$n • متقنة';
+  return '$n • محفوظة، ${nextReviewLabel(e, dayNumber(DateTime.now()))}';
+}
+
 class _Section extends StatelessWidget {
   final String text;
   const _Section(this.text);
@@ -80,14 +106,15 @@ class _Section extends StatelessWidget {
 /// صفحة السورة: قراءة كاملة مع تلاوة الشيخ، أو وضع «أختبر حفظي» الذي يُخفي الآيات ويكشفها واحدة واحدة.
 class SurahScreen extends ConsumerStatefulWidget {
   final Surah surah;
-  const SurahScreen({super.key, required this.surah});
+  final bool startInMemorize;
+  const SurahScreen({super.key, required this.surah, this.startInMemorize = false});
 
   @override
   ConsumerState<SurahScreen> createState() => _SurahScreenState();
 }
 
 class _SurahScreenState extends ConsumerState<SurahScreen> {
-  bool _memorize = false;
+  late bool _memorize = widget.startInMemorize;
   int _shown = 0;
 
   @override
@@ -153,7 +180,8 @@ class _SurahScreenState extends ConsumerState<SurahScreen> {
             const SizedBox(height: 14),
             RecitationPanel(args: args),
             const SizedBox(height: 14),
-            if (!_memorize || _shown >= s.ayat.length)
+            if (_memorize && _shown >= s.ayat.length) _HifzBox(surah: s),
+            if (!_memorize)
               PrimaryButton(
                 label: 'قرأتها',
                 icon: Icons.check_rounded,
@@ -165,6 +193,96 @@ class _SurahScreenState extends ConsumerState<SurahScreen> {
               ),
           ]),
         ),
+      ]),
+    );
+  }
+}
+
+/// بعد كشف كل الآيات في «أختبر حفظي»: تسجيل الحفظ، أو نتيجة المراجعة.
+class _HifzBox extends StatelessWidget {
+  final Surah surah;
+  const _HifzBox({required this.surah});
+
+  @override
+  Widget build(BuildContext context) {
+    final st = AppScope.of(context);
+    final entry = st.current?.hifz[surah.number];
+    final today = dayNumber(DateTime.now());
+
+    Future<void> close(int stars, String title) async {
+      if (stars > 0) await showReward(context, stars: stars, title: title);
+      if (context.mounted) Navigator.of(context).pop();
+    }
+
+    if (entry == null) {
+      return Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+        const Text('قريتها كلها من حفظك؟',
+            textAlign: TextAlign.center, style: TextStyle(fontSize: 19, fontWeight: FontWeight.w800, color: RC.ink)),
+        const SizedBox(height: RS.sm),
+        PrimaryButton(
+          label: 'حفظتها',
+          icon: Icons.verified_rounded,
+          onTap: () => close(st.markMemorized(surah.number) ? 5 : 0, 'ما شاء الله، حفظت سورة ${surah.name}'),
+        ),
+        const SizedBox(height: RS.sm),
+        TextButton(
+          onPressed: () => Navigator.of(context).pop(),
+          child: const Text('باقي أحتاج أتدرب', style: TextStyle(fontSize: 17)),
+        ),
+      ]);
+    }
+
+    final due = entry.isDue(today);
+    return Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+      _StrengthBar(entry: entry),
+      const SizedBox(height: RS.sm),
+      Text(due ? 'كيف كانت مراجعتك؟' : nextReviewLabel(entry, today),
+          textAlign: TextAlign.center,
+          style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w800, color: RC.ink)),
+      const SizedBox(height: RS.sm),
+      PrimaryButton(
+        label: 'قريتها صح',
+        icon: Icons.check_rounded,
+        onTap: () {
+          st.reviewSurah(surah.number, ok: true);
+          close(due ? 2 : 0, 'أحسنت، حفظك ثابت');
+        },
+      ),
+      const SizedBox(height: RS.sm),
+      PrimaryButton(
+        label: 'تلخبطت شوي',
+        icon: Icons.replay_rounded,
+        color: RC.sea,
+        onTap: () {
+          st.reviewSurah(surah.number, ok: false);
+          close(0, '');
+        },
+      ),
+    ]);
+  }
+}
+
+/// شريط قوة الحفظ بخمس خانات.
+class _StrengthBar extends StatelessWidget {
+  final HifzEntry entry;
+  const _StrengthBar({required this.entry});
+
+  @override
+  Widget build(BuildContext context) {
+    return Semantics(
+      label: 'قوة الحفظ ${entry.level} من $kHifzMaxLevel',
+      excludeSemantics: true,
+      child: Row(mainAxisAlignment: MainAxisAlignment.center, children: [
+        for (var i = 0; i < kHifzMaxLevel; i++)
+          Container(
+            width: 34,
+            height: 12,
+            margin: const EdgeInsets.symmetric(horizontal: 3),
+            decoration: BoxDecoration(
+              color: i < entry.level ? RC.garden : RC.sandDark,
+              borderRadius: BorderRadius.circular(6),
+            ),
+          ),
       ]),
     );
   }

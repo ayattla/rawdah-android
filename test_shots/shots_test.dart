@@ -263,6 +263,15 @@ void main() {
     });
   });
 
+  testWidgets('22 مراجعة اليوم', (t) async {
+    final st = await _state();
+    final past = DateTime.now().subtract(const Duration(days: 3));
+    st.markMemorized(112, now: past);
+    st.markMemorized(108, now: past);
+    st.markMemorized(1, now: DateTime.now());
+    await _shot(t, '22_school_review', st, const SchoolScreen(), height: 1100);
+  });
+
   // فحوص إرشادات الوصول المضمّنة في Flutter: حجم أهداف اللمس، وجود وصف لكل زر، وتباين النص.
   for (final entry in <String, Widget Function()>{
     'الرئيسية': () => const HomeMapScreen(),

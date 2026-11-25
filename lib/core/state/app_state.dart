@@ -9,6 +9,7 @@ import 'package:rawdah/core/parental/parent_pin.dart';
 import 'package:rawdah/core/parental/time_lock.dart';
 import 'package:rawdah/core/storage/local_store.dart';
 import 'package:rawdah/core/storage/parental_store.dart';
+import 'package:rawdah/features/hifz/domain/hifz_schedule.dart';
 
 /// الفئات العمرية: 0 = 4-6، 1 = 7-9، 2 = 10-12
 const List<String> kAgeBandNames = ['البراعم 4-6', 'المستكشفون 7-9', 'الفرسان 10-12'];
@@ -76,6 +77,9 @@ class ChildProfile {
   Map<String, int> usageSeconds;
   List<String> activeDays;
 
+  /// جدول مراجعة المحفوظ: رقم السورة ← مستوى الحفظ وموعد المراجعة.
+  Map<int, HifzEntry> hifz;
+
   ChildProfile({
     required this.id,
     required this.name,
@@ -116,7 +120,9 @@ class ChildProfile {
     List<PendingHabit>? pendingHabits,
     Map<String, int>? usageSeconds,
     List<String>? activeDays,
-  })  : owned = owned ?? <String>{},
+    Map<int, HifzEntry>? hifz,
+  })  : hifz = hifz ?? <int, HifzEntry>{},
+         owned = owned ?? <String>{},
         myChallenges = myChallenges ?? <String>[],
         completed = completed ?? <String>{},
         wrongQuestions = wrongQuestions ?? <String>{},
@@ -201,6 +207,7 @@ class ChildProfile {
         'pendingHabits': pendingHabits.map((e) => e.toJson()).toList(),
         'usageSeconds': usageSeconds,
         'activeDays': activeDays,
+        'hifz': {for (final e in hifz.values) '${e.surah}': e.toJson()},
       };
 
   static ChildProfile fromJson(Map<String, dynamic> j) => ChildProfile(
@@ -241,6 +248,10 @@ class ChildProfile {
         usageSeconds: Map<String, dynamic>.from((j['usageSeconds'] as Map?) ?? const {})
             .map((k, v) => MapEntry(k, (v as num).toInt())),
         activeDays: ((j['activeDays'] as List?) ?? const []).map((e) => e.toString()).toList(),
+        hifz: {
+          for (final kv in ((j['hifz'] as Map?) ?? const {}).entries)
+            if (HifzEntry.fromJson(kv.key.toString(), kv.value) case final e?) e.surah: e,
+        },
       );
 }
 
@@ -588,6 +599,41 @@ class AppState extends ChangeNotifier {
       return true;
     }
     return false;
+  }
+
+  /// يسجّل حفظ سورة جديدة (بعد اختبار الحفظ كاملًا). يعيد true أول مرة.
+  bool markMemorized(int surah, {DateTime? now}) {
+    final c = current;
+    if (c == null || c.hifz.containsKey(surah)) return false;
+    c.hifz[surah] = HifzEntry.memorized(surah, dayNumber(now ?? DateTime.now()));
+    c.stars += 5;
+    _earn(10);
+    _changed();
+    return true;
+  }
+
+  /// نتيجة مراجعة سورة محفوظة. المراجعة الناجحة في موعدها تعطي نجمتين.
+  HifzEntry? reviewSurah(int surah, {required bool ok, DateTime? now}) {
+    final c = current;
+    final e = c?.hifz[surah];
+    if (c == null || e == null) return null;
+    final today = dayNumber(now ?? DateTime.now());
+    final wasDue = e.isDue(today);
+    final next = e.review(ok: ok, today: today);
+    c.hifz[surah] = next;
+    if (ok && wasDue) {
+      c.stars += 2;
+      _earn(4);
+    }
+    _changed();
+    return next;
+  }
+
+  /// السور المستحقة للمراجعة اليوم للطفل الحالي.
+  List<HifzEntry> hifzDue({DateTime? now}) {
+    final c = current;
+    if (c == null) return const [];
+    return dueToday(c.hifz.values, dayNumber(now ?? DateTime.now()));
   }
 
   void recordAnswer(String questionId, bool correct) {
