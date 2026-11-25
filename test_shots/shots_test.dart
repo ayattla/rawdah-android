@@ -370,7 +370,6 @@ void main() {
     final st = await _state();
     await _shot(t, '35_memory', st, MemoryGameScreen(band: 1, random: Random(3)), act: () async {
       await t.tap(find.byKey(const ValueKey('mem_0')));
-      await t.tap(find.byKey(const ValueKey('mem_1')));
       await t.pump(const Duration(milliseconds: 300));
     });
   });
