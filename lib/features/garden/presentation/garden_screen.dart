@@ -51,6 +51,9 @@ final List<_Badge> _badges = [
   _Badge('عشر إجابات', Icons.emoji_events_rounded, (c) => c.quizCorrect >= 10),
   _Badge('ثلاثة أيام', Icons.local_fire_department_rounded, (c) => c.streak >= 3),
   _Badge('فاعل الخير', Icons.favorite_rounded, (c) => c.approvedHabits >= 5),
+  _Badge('حفظ خمس سور', Icons.verified_rounded, (c) => c.hifz.length >= 5),
+  _Badge('حفظ متقن', Icons.workspace_premium_rounded, (c) => c.hifz.values.any((e) => e.mastered)),
+  _Badge('حافظ جزء عمّ', Icons.military_tech_rounded, (c) => c.hifz.length >= 38),
 ];
 
 class GardenScreen extends StatelessWidget {
