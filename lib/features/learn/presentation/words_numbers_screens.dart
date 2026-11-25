@@ -8,6 +8,7 @@ import 'package:rawdah/core/state/app_state.dart';
 import 'package:rawdah/features/learn/domain/letters.dart';
 import 'package:rawdah/features/learn/domain/word_builder.dart';
 import 'package:rawdah/features/learn/presentation/letters_screens.dart';
+import 'package:rawdah/features/learn/presentation/more_games.dart';
 
 const _ink = Color(0xFF1F2A44);
 const _gold = Color(0xFFC98A12);
@@ -46,6 +47,30 @@ class LearnHubScreen extends StatelessWidget {
               color: const Color(0xFF2E6B4F),
               onTap: () => open(WordBuilderScreen(band: c.ageBand)),
             ),
+            const SizedBox(height: 14),
+            Row(children: [
+              Expanded(
+                child: _HubCard(
+                  big: 'ـ؟ـ',
+                  title: 'أول حرف',
+                  line: 'اسمع واختر الحرف',
+                  color: const Color(0xFF3D5A80),
+                  compact: true,
+                  onTap: () => open(FirstLetterScreen(band: c.ageBand)),
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: _HubCard(
+                  big: '٣:٣٠',
+                  title: 'اقرأ الساعة',
+                  line: 'العقارب والأوقات',
+                  color: const Color(0xFF5B4B8A),
+                  compact: true,
+                  onTap: () => open(ClockGameScreen(band: c.ageBand)),
+                ),
+              ),
+            ]),
             const SizedBox(height: 14),
             Row(children: [
               Expanded(

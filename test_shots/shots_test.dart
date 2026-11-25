@@ -20,6 +20,7 @@ import 'dart:math' show Random;
 import 'package:rawdah/features/learn/domain/letters.dart';
 import 'package:rawdah/features/learn/presentation/letters_screens.dart';
 import 'package:rawdah/features/learn/presentation/words_numbers_screens.dart';
+import 'package:rawdah/features/learn/presentation/more_games.dart';
 import '../test/features/recitation/recitation_fakes.dart';
 import 'package:rawdah/core/di/providers.dart';
 import 'package:rawdah/core/storage/local_store.dart';
@@ -327,6 +328,16 @@ void main() {
       await t.tap(find.byKey(const ValueKey('date_0_1')));
       await t.pump(const Duration(milliseconds: 300));
     });
+  });
+
+  testWidgets('30 اقرأ الساعة', (t) async {
+    final st = await _state();
+    await _shot(t, '30_clock', st, ClockGameScreen(band: 2, random: Random(3)));
+  });
+
+  testWidgets('31 أول حرف', (t) async {
+    final st = await _state();
+    await _shot(t, '31_first_letter', st, FirstLetterScreen(band: 1, random: Random(6)));
   });
 
   // فحوص إرشادات الوصول المضمّنة في Flutter: حجم أهداف اللمس، وجود وصف لكل زر، وتباين النص.

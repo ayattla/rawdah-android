@@ -207,6 +207,12 @@ class _ChildCard extends StatelessWidget {
             _Stat('عادات معتمدة', '${c.approvedHabits}'),
             _Stat('مرحلة النخلة', '${palmStage(c.stars) + 1} من 6'),
           ]),
+          const SizedBox(height: 10),
+          Text(
+            'الحروف: ${c.completed.where((x) => x.startsWith('letter_')).length} من ٢٨ • '
+            'العلوم: ${c.completed.where((x) => x.startsWith('science_')).length} مواضيع',
+            style: const TextStyle(fontSize: 15, color: RC.inkSoft, fontWeight: FontWeight.w700),
+          ),
           if (c.hifz.isNotEmpty) ...[
             const SizedBox(height: 14),
             _HifzReport(child: c),

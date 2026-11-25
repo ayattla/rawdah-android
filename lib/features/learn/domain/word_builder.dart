@@ -157,3 +157,66 @@ List<CompareRound> compareRounds(int band, {int rounds = 6, Random? random}) {
     return CompareRound(a, b);
   });
 }
+
+/// جولة «أول حرف»: كلمة بأيقونتها وخيارات حروف.
+class FirstLetterRound {
+  final BuildWord word;
+  final List<String> options;
+  const FirstLetterRound(this.word, this.options);
+  String get answer => word.letters.first;
+}
+
+List<FirstLetterRound> firstLetterRounds(int band, {int rounds = 6, Random? random}) {
+  final r = random ?? Random();
+  final words = wordsForBand(band)..shuffle(r);
+  const pool = 'ابتثجحخدذرزسشصضطظعغفقكلمنهوي';
+  return [
+    for (final w in words.take(rounds))
+      () {
+        final opts = <String>{w.letters.first};
+        while (opts.length < (band == 0 ? 3 : 4)) {
+          opts.add(pool[r.nextInt(pool.length)]);
+        }
+        return FirstLetterRound(w, opts.toList()..shuffle(r));
+      }(),
+  ];
+}
+
+/// جولة قراءة الساعة: الساعة والدقائق وخيارات نصية.
+class ClockRound {
+  final int hour;
+  final int minute;
+  final List<(int, int)> options;
+  const ClockRound(this.hour, this.minute, this.options);
+}
+
+/// نص الوقت بالعربية البسيطة: «الساعة ٣ والنصف».
+String clockLabel(int h, int m) {
+  const names = ['', 'الواحدة', 'الثانية', 'الثالثة', 'الرابعة', 'الخامسة', 'السادسة', 'السابعة', 'الثامنة', 'التاسعة', 'العاشرة', 'الحادية عشرة', 'الثانية عشرة'];
+  final hh = names[h];
+  return switch (m) {
+    0 => 'الساعة $hh',
+    15 => 'الساعة $hh والربع',
+    30 => 'الساعة $hh والنصف',
+    45 => 'الساعة ${names[h == 12 ? 1 : h + 1]} إلا ربع',
+    _ => 'الساعة $hh و$m دقيقة',
+  };
+}
+
+/// البراعم والمستكشفون: ساعات كاملة ونصف. الفرسان: أرباع أيضًا.
+List<ClockRound> clockRounds(int band, {int rounds = 6, Random? random}) {
+  final r = random ?? Random();
+  final mins = band >= 2 ? const [0, 15, 30, 45] : const [0, 30];
+  final out = <ClockRound>[];
+  final seen = <(int, int)>{};
+  while (out.length < rounds) {
+    final t = (1 + r.nextInt(12), mins[r.nextInt(mins.length)]);
+    if (!seen.add(t)) continue;
+    final opts = <(int, int)>{t};
+    while (opts.length < 3) {
+      opts.add((1 + r.nextInt(12), mins[r.nextInt(mins.length)]));
+    }
+    out.add(ClockRound(t.$1, t.$2, opts.toList()..shuffle(r)));
+  }
+  return out;
+}

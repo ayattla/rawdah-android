@@ -110,4 +110,39 @@ void main() {
       expect(rs.every((r) => r.a <= 9 && r.b <= 9), true);
     });
   });
+
+  group('أول حرف والساعة', () {
+    test('جولات أول حرف', () {
+      for (final band in [0, 2]) {
+        final rs = firstLetterRounds(band, random: Random(band));
+        expect(rs.length, 6);
+        for (final r in rs) {
+          expect(r.options, contains(r.answer));
+          expect(r.options.toSet().length, band == 0 ? 3 : 4);
+          expect(r.answer, r.word.word.substring(0, 1));
+        }
+      }
+    });
+
+    test('نص الوقت', () {
+      expect(clockLabel(3, 0), 'الساعة الثالثة');
+      expect(clockLabel(3, 30), 'الساعة الثالثة والنصف');
+      expect(clockLabel(3, 15), 'الساعة الثالثة والربع');
+      expect(clockLabel(3, 45), 'الساعة الرابعة إلا ربع');
+      expect(clockLabel(12, 45), 'الساعة الواحدة إلا ربع');
+      expect(clockLabel(5, 10), 'الساعة الخامسة و10 دقيقة');
+    });
+
+    test('جولات الساعة', () {
+      final small = clockRounds(0, random: Random(5));
+      expect(small.length, 6);
+      expect(small.every((r) => r.minute == 0 || r.minute == 30), true);
+      expect(small.map((r) => (r.hour, r.minute)).toSet().length, 6);
+      for (final r in clockRounds(2, random: Random(7))) {
+        expect(r.options, contains((r.hour, r.minute)));
+        expect(r.options.toSet().length, 3);
+        expect(r.hour, inInclusiveRange(1, 12));
+      }
+    });
+  });
 }
