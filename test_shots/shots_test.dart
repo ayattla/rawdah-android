@@ -23,6 +23,8 @@ import 'package:rawdah/features/learn/presentation/words_numbers_screens.dart';
 import 'package:rawdah/features/learn/presentation/more_games.dart';
 import 'package:rawdah/features/learn/presentation/reading_screens.dart';
 import 'package:rawdah/features/learn/data/reading.dart';
+import 'package:rawdah/features/islamic/data/islamic_content.dart';
+import 'package:rawdah/features/islamic/presentation/islamic_screens.dart';
 import '../test/features/recitation/recitation_fakes.dart';
 import 'package:rawdah/core/di/providers.dart';
 import 'package:rawdah/core/storage/local_store.dart';
@@ -348,6 +350,34 @@ void main() {
       await t.tap(find.text('نخلة'));
       await t.pump(const Duration(milliseconds: 300));
     });
+  });
+
+  testWidgets('33 ركن المسلم الصغير', (t) async {
+    final st = await _state();
+    await _shot(t, '33_islamic_hub', st, const IslamicHubScreen());
+  });
+
+  testWidgets('34 رتب', (t) async {
+    final st = await _state();
+    await _shot(t, '34_order', st, OrderGameScreen(set: kOrderSets[2], random: Random(1)), height: 1200, act: () async {
+      await t.tap(find.text('النية والتسمية'));
+      await t.tap(find.text('غسل الكفين'));
+      await t.pump(const Duration(milliseconds: 300));
+    });
+  });
+
+  testWidgets('35 ذاكرة الأذكار', (t) async {
+    final st = await _state();
+    await _shot(t, '35_memory', st, MemoryGameScreen(band: 1, random: Random(3)), act: () async {
+      await t.tap(find.byKey(const ValueKey('mem_0')));
+      await t.tap(find.byKey(const ValueKey('mem_1')));
+      await t.pump(const Duration(milliseconds: 300));
+    });
+  });
+
+  testWidgets('36 السيرة', (t) async {
+    final st = await _state();
+    await _shot(t, '36_seerah', st, const SeerahScreen(), height: 1400);
   });
 
   // فحوص إرشادات الوصول المضمّنة في Flutter: حجم أهداف اللمس، وجود وصف لكل زر، وتباين النص.
