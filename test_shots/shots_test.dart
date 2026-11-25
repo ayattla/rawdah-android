@@ -16,6 +16,10 @@ import 'package:rawdah/core/content/quran_data.dart';
 import 'package:rawdah/features/recitation/presentation/recitation_controller.dart';
 import 'package:rawdah/features/science/data/science_content.dart';
 import 'package:rawdah/features/science/presentation/science_screens.dart';
+import 'dart:math' show Random;
+import 'package:rawdah/features/learn/domain/letters.dart';
+import 'package:rawdah/features/learn/presentation/letters_screens.dart';
+import 'package:rawdah/features/learn/presentation/words_numbers_screens.dart';
 import '../test/features/recitation/recitation_fakes.dart';
 import 'package:rawdah/core/di/providers.dart';
 import 'package:rawdah/core/storage/local_store.dart';
@@ -287,6 +291,42 @@ void main() {
   testWidgets('24 بطاقة علمية', (t) async {
     final st = await _state();
     await _shot(t, '24_science_card', st, ScienceTopicScreen(topic: kScienceTopics.first));
+  });
+
+  testWidgets('25 حروفي وأرقامي', (t) async {
+    final st = await _state();
+    st.complete('letter_ا');
+    st.complete('letter_ب');
+    await _shot(t, '25_learn_hub', st, const LearnHubScreen());
+  });
+
+  testWidgets('26 مسار الحروف', (t) async {
+    final st = await _state();
+    st.complete('letter_ا');
+    await _shot(t, '26_letters_path', st, const LettersPathScreen(), height: 2000);
+  });
+
+  testWidgets('27 درس حرف', (t) async {
+    final st = await _state();
+    final f = kLetterFamilies[1];
+    await _shot(t, '27_letter_lesson', st, LetterLessonScreen(letter: f.letters[1], family: f));
+  });
+
+  testWidgets('28 كوّن الكلمة', (t) async {
+    final st = await _state();
+    await _shot(t, '28_word_builder', st, WordBuilderScreen(band: 1, random: Random(4)), act: () async {
+      await t.tap(find.text('ساعدني'));
+      await t.pump(const Duration(milliseconds: 500));
+    });
+  });
+
+  testWidgets('29 عدّ التمر', (t) async {
+    final st = await _state();
+    await _shot(t, '29_count', st, CountGameScreen(band: 0, random: Random(2)), act: () async {
+      await t.tap(find.byKey(const ValueKey('date_0_0')));
+      await t.tap(find.byKey(const ValueKey('date_0_1')));
+      await t.pump(const Duration(milliseconds: 300));
+    });
   });
 
   // فحوص إرشادات الوصول المضمّنة في Flutter: حجم أهداف اللمس، وجود وصف لكل زر، وتباين النص.
