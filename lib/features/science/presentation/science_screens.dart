@@ -131,7 +131,7 @@ class _ScienceTopicScreenState extends State<ScienceTopicScreen> {
             if (_page < total - 1)
               Expanded(
                 flex: 2,
-                child: PrimaryButton(label: 'التالي', icon: Icons.arrow_back_rounded, color: t.color, onTap: () => _go(_page + 1)),
+                child: PrimaryButton(label: 'التالي', icon: Icons.arrow_forward_rounded, color: t.color, onTap: () => _go(_page + 1)),
               ),
           ]),
         ),
