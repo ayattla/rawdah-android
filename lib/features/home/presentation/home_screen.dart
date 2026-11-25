@@ -15,6 +15,7 @@ import 'package:rawdah/features/journeys/presentation/journeys_screen.dart';
 import 'package:rawdah/features/quizzes/presentation/quizzes_screen.dart';
 import 'package:rawdah/features/ramadan/presentation/ramadan_screen.dart';
 import 'package:rawdah/features/school/presentation/school_screen.dart';
+import 'package:rawdah/features/science/presentation/science_screens.dart';
 import 'package:rawdah/features/stories/presentation/stories_screen.dart';
 
 class _Place {
@@ -38,6 +39,7 @@ class HomeMapScreen extends StatelessWidget {
     _Place('بيت القصص', 'قصص نتعلم منها', Icons.auto_stories_rounded, RC.coral, (_) => const StoriesScreen()),
     _Place('المدرسة', 'قرآن وأذكار ودروس', Icons.school_rounded, RC.sea, (_) => const SchoolScreen()),
     _Place('المسابقات', 'أجب واجمع النجوم', Icons.emoji_events_rounded, RC.goldDark, (_) => const QuizHubScreen()),
+    _Place('عالم العلوم', 'الفضاء والماء والنبات', Icons.science_rounded, RC.night, (_) => const ScienceHubScreen()),
     _Place('ساحة الألعاب', 'نلعب ونتعلم', Icons.extension_rounded, RC.plum, (_) => const GamesHubScreen()),
     _Place('ميدان المنافسة', 'نافس واصعد الهرم', Icons.leaderboard_rounded, RC.green, (_) => const CompetitionScreen()),
     _Place('حديقتي', 'نخلتي وعادات الخير', Icons.park_rounded, RC.garden, (_) => const GardenScreen()),

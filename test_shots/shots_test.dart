@@ -14,6 +14,8 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:rawdah/core/content/content.dart';
 import 'package:rawdah/core/content/quran_data.dart';
 import 'package:rawdah/features/recitation/presentation/recitation_controller.dart';
+import 'package:rawdah/features/science/data/science_content.dart';
+import 'package:rawdah/features/science/presentation/science_screens.dart';
 import '../test/features/recitation/recitation_fakes.dart';
 import 'package:rawdah/core/di/providers.dart';
 import 'package:rawdah/core/storage/local_store.dart';
@@ -277,11 +279,22 @@ void main() {
     await _shot(t, '22_school_review', st, const SchoolScreen(), height: 1100);
   });
 
+  testWidgets('23 عالم العلوم', (t) async {
+    final st = await _state();
+    await _shot(t, '23_science_hub', st, const ScienceHubScreen(), height: 1500);
+  });
+
+  testWidgets('24 بطاقة علمية', (t) async {
+    final st = await _state();
+    await _shot(t, '24_science_card', st, ScienceTopicScreen(topic: kScienceTopics.first));
+  });
+
   // فحوص إرشادات الوصول المضمّنة في Flutter: حجم أهداف اللمس، وجود وصف لكل زر، وتباين النص.
   for (final entry in <String, Widget Function()>{
     'الرئيسية': () => const HomeMapScreen(),
     'المسابقة': () => QuizRunner(title: 'تحدي', questions: questionsFor(1).take(3).toList()),
     'المسابقات': () => const QuizHubScreen(),
+    'العلوم': () => ScienceTopicScreen(topic: kScienceTopics[1]),
     'السورة': () => SurahScreen(surah: kSurahs.firstWhere((x) => x.number == 105)),
   }.entries) {
     testWidgets('إرشادات الوصول: ${entry.key}', (t) async {

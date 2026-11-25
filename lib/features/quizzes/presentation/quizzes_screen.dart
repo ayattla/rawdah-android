@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import 'package:rawdah/features/science/data/science_content.dart';
 import 'package:rawdah/core/content/content.dart';
 import 'package:rawdah/core/di/providers.dart';
 import 'package:rawdah/core/services/voice.dart';
@@ -43,6 +44,14 @@ class QuizHubScreen extends ConsumerWidget {
               icon: Icons.bolt_rounded,
               color: RC.gold,
               onTap: () => open('مسابقة سريعة', repo.quickQuiz(c.ageBand)),
+            ),
+            const SizedBox(height: 12),
+            BigTile(
+              title: 'مسابقة العلوم',
+              subtitle: 'الفضاء والماء والنبات وجسمي',
+              icon: Icons.science_rounded,
+              color: RC.night,
+              onTap: () => open('مسابقة العلوم', (scienceQuestionsFor(c.ageBand)..shuffle()).take(6).toList()),
             ),
             const SizedBox(height: 12),
             BigTile(
