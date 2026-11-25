@@ -69,3 +69,23 @@ String nextReviewLabel(HifzEntry e, int today) {
   if (n <= 10) return 'مراجعتها بعد $n أيام';
   return 'مراجعتها بعد $n يوم';
 }
+
+/// ملخص حفظ الطفل لتقرير الوالدين.
+class HifzSummary {
+  final int memorized;
+  final int mastered;
+  final int due;
+  final int reviews;
+  const HifzSummary(this.memorized, this.mastered, this.due, this.reviews);
+}
+
+HifzSummary summarize(Iterable<HifzEntry> all, int today) {
+  var mastered = 0, due = 0, reviews = 0, n = 0;
+  for (final e in all) {
+    n++;
+    if (e.mastered) mastered++;
+    if (e.isDue(today)) due++;
+    reviews += e.reviews;
+  }
+  return HifzSummary(n, mastered, due, reviews);
+}

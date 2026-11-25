@@ -220,8 +220,13 @@ void main() {
 
   testWidgets('16 لوحة الوالدين', (t) async {
     final st = await _state();
+    final past = DateTime.now().subtract(const Duration(days: 2));
+    st.markMemorized(1, now: past);
+    st.markMemorized(112, now: past);
+    st.reviewSurah(112, ok: true, now: past.add(const Duration(days: 1)));
+    st.markMemorized(108);
     st.leaveChild();
-    await _shot(t, '16_parents', st, const ParentDashboard(), height: 1800);
+    await _shot(t, '16_parents', st, const ParentDashboard(), height: 2200);
   });
 
   testWidgets('17 الرئيسية بتباين عالٍ', (t) async {

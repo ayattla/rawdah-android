@@ -49,6 +49,14 @@ void main() {
       expect(e.hashCode, const HifzEntry(112, level: 2, due: 300, reviews: 4).hashCode);
     });
 
+    test('ملخص التقرير', () {
+      final m = summarize(const [
+        HifzEntry(1, level: kHifzMaxLevel, due: 200, reviews: 6),
+        HifzEntry(2, level: 1, due: 90, reviews: 1),
+      ], 100);
+      expect([m.memorized, m.mastered, m.due, m.reviews], [2, 1, 1, 7]);
+    });
+
     test('نص الموعد', () {
       String l(int due) => nextReviewLabel(HifzEntry(1, due: due), 10);
       expect(l(9), 'راجعها اليوم');

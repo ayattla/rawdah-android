@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 
 import 'package:rawdah/core/content/content.dart';
+import 'package:rawdah/core/design_system/quran_text.dart';
+import 'package:rawdah/features/hifz/domain/hifz_schedule.dart';
 import 'package:rawdah/features/competition/data/online_service.dart';
 import 'package:rawdah/core/services/voice.dart';
 import 'package:rawdah/core/state/app_state.dart';
@@ -205,6 +207,10 @@ class _ChildCard extends StatelessWidget {
             _Stat('عادات معتمدة', '${c.approvedHabits}'),
             _Stat('مرحلة النخلة', '${palmStage(c.stars) + 1} من 6'),
           ]),
+          if (c.hifz.isNotEmpty) ...[
+            const SizedBox(height: 14),
+            _HifzReport(child: c),
+          ],
           const SizedBox(height: 14),
           _OnlineCard(child: c),
           const SizedBox(height: 14),
@@ -267,6 +273,56 @@ class _ChildCard extends StatelessWidget {
           ],
         ]),
       ),
+    );
+  }
+}
+
+/// تقرير الحفظ: كم سورة، والمتقن، والمستحق للمراجعة، وقوة كل سورة.
+class _HifzReport extends StatelessWidget {
+  final ChildProfile child;
+  const _HifzReport({required this.child});
+
+  @override
+  Widget build(BuildContext context) {
+    final today = dayNumber(DateTime.now());
+    final sum = summarize(child.hifz.values, today);
+    final list = child.hifz.values.toList()..sort((a, b) => a.due.compareTo(b.due));
+    return Container(
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(color: RC.sand, borderRadius: BorderRadius.circular(18)),
+      child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+        const Text('الحفظ والمراجعة', style: TextStyle(fontSize: 17, fontWeight: FontWeight.w800, color: RC.ink)),
+        const SizedBox(height: 4),
+        Text('محفوظة ${sum.memorized} • متقنة ${sum.mastered} • مستحقة اليوم ${sum.due} • مراجعات ${sum.reviews}',
+            style: const TextStyle(fontSize: 14, color: RC.inkSoft)),
+        const SizedBox(height: 8),
+        for (final e in list)
+          if (surahByNumber(e.surah) case final s?)
+            Padding(
+              padding: const EdgeInsets.symmetric(vertical: 3),
+              child: Row(children: [
+                Expanded(child: Text('سورة ${s.name}', style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w700))),
+                SizedBox(
+                  width: 90,
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.circular(6),
+                    child: LinearProgressIndicator(
+                      value: e.strength.clamp(0.05, 1.0),
+                      minHeight: 8,
+                      color: RC.garden,
+                      backgroundColor: RC.sandDark,
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 8),
+                SizedBox(
+                  width: 120,
+                  child: Text(nextReviewLabel(e, today),
+                      style: TextStyle(fontSize: 13, color: e.isDue(today) ? RC.coral : RC.inkSoft)),
+                ),
+              ]),
+            ),
+      ]),
     );
   }
 }
