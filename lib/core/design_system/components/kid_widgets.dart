@@ -24,24 +24,38 @@ class KidBar extends StatelessWidget {
     final c = AppScope.of(context).current;
     return Padding(
       padding: const EdgeInsets.fromLTRB(14, 10, 14, 6),
+      // العنوان في منتصف الشريط تماما: عمودان جانبيان بعرض واحد يوازنان الرجوع والنجوم
       child: Row(
         children: [
-          if (showBack)
-            RoundIcon(
-              icon: Icons.arrow_back_rounded,
-              color: NightScope.of(context) ? RC.green : RC.ink,
-              size: 50,
-              tooltip: 'رجوع',
-              onTap: () => Navigator.of(context).maybePop(),
+          SizedBox(
+            width: 104,
+            child: Align(
+              alignment: AlignmentDirectional.centerStart,
+              child: showBack
+                  ? RoundIcon(
+                      icon: Icons.arrow_back_rounded,
+                      color: NightScope.of(context) ? RC.green : RC.ink,
+                      size: 50,
+                      tooltip: 'رجوع',
+                      onTap: () => Navigator.of(context).maybePop(),
+                    )
+                  : const SizedBox.shrink(),
             ),
-          const SizedBox(width: 12),
+          ),
           Expanded(
             child: Text(title,
-                style: RT.display(25, color: NightScope.of(context) ? Colors.white : RC.ink),
+                textAlign: TextAlign.center,
+                maxLines: 1,
+                style: RT.display(23, color: NightScope.of(context) ? Colors.white : RC.ink),
                 overflow: TextOverflow.ellipsis),
           ),
-          if (trailing != null) trailing!,
-          if (c != null) StarCount(stars: c.stars),
+          ConstrainedBox(
+            constraints: const BoxConstraints(minWidth: 104),
+            child: Row(mainAxisSize: MainAxisSize.min, mainAxisAlignment: MainAxisAlignment.end, children: [
+              if (trailing != null) trailing!,
+              if (c != null) StarCount(stars: c.stars),
+            ]),
+          ),
         ],
       ),
     );
@@ -128,19 +142,30 @@ class BigTile extends StatelessWidget {
         Voice.instance.say(title);
         onTap();
       },
+      // النص في منتصف البطاقة: الشارة وعلامة الإنجاز في عمودين بعرض واحد
       child: Row(children: [
         KhatamBadge(icon: icon, color: color, size: 62, label: badge),
-        const SizedBox(width: 14),
+        const SizedBox(width: 10),
         Expanded(
-          child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-            Text(title, style: RT.display(21)),
-            if (subtitle != null) Text(subtitle!, style: RT.body(15, color: hc ? RC.ink : RC.inkSoft)),
+          child: Column(crossAxisAlignment: CrossAxisAlignment.center, children: [
+            Text(title, textAlign: TextAlign.center, style: RT.display(21)),
+            if (subtitle != null)
+              Padding(
+                padding: const EdgeInsets.only(top: 2),
+                child: Text(subtitle!, textAlign: TextAlign.center, style: RT.body(15, color: hc ? RC.ink : RC.inkSoft)),
+              ),
           ]),
         ),
-        if (done)
-          const KhatamBadge(icon: Icons.check_rounded, color: RC.gold, size: 36, iconColor: RC.ink)
-        else
-          Icon(Icons.chevron_left_rounded, color: color, size: 30),
+        const SizedBox(width: 10),
+        SizedBox(
+          width: 62,
+          child: Align(
+            alignment: AlignmentDirectional.centerEnd,
+            child: done
+                ? const KhatamBadge(icon: Icons.check_rounded, color: RC.gold, size: 36, iconColor: RC.ink)
+                : Icon(Icons.chevron_left_rounded, color: color, size: 30),
+          ),
+        ),
       ]),
     );
   }

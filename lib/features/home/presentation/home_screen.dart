@@ -353,6 +353,34 @@ class _HeroTile extends StatelessWidget {
       );
 }
 
+/// خط فاصل يتلاشى نحو الطرف، وينتهي بمعين صغير عند العنوان.
+class _Rule extends StatelessWidget {
+  final AlignmentDirectional fadeTo;
+  const _Rule({required this.fadeTo});
+
+  @override
+  Widget build(BuildContext context) {
+    final toStart = fadeTo == AlignmentDirectional.centerStart;
+    final line = Expanded(
+      child: Container(
+        height: 2,
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            begin: toStart ? AlignmentDirectional.centerEnd : AlignmentDirectional.centerStart,
+            end: fadeTo,
+            colors: [RC.sandDark, RC.sandDark.withValues(alpha: 0)],
+          ),
+        ),
+      ),
+    );
+    final diamond = Transform.rotate(
+      angle: math.pi / 4,
+      child: Container(width: 7, height: 7, color: RC.gold),
+    );
+    return Row(children: toStart ? [line, diamond] : [diamond, line]);
+  }
+}
+
 class _WingTitle extends StatelessWidget {
   final String text;
   const _WingTitle(this.text);
@@ -361,9 +389,12 @@ class _WingTitle extends StatelessWidget {
   Widget build(BuildContext context) => Padding(
         padding: const EdgeInsets.fromLTRB(20, 18, 20, 10),
         child: Row(children: [
-          Text(text, style: RT.display(19, color: RC.ink)),
-          const SizedBox(width: 10),
-          Expanded(child: Container(height: 2, color: RC.sandDark)),
+          Expanded(child: _Rule(fadeTo: AlignmentDirectional.centerStart)),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 12),
+            child: Text(text, style: RT.display(19, color: RC.ink)),
+          ),
+          Expanded(child: _Rule(fadeTo: AlignmentDirectional.centerEnd)),
         ]),
       );
 }
@@ -396,14 +427,13 @@ class _WideTile extends StatelessWidget {
                 padding: const EdgeInsets.symmetric(horizontal: 16),
                 child: Row(children: [
                   KhatamBadge(icon: place.icon, color: Colors.white, size: 62, iconColor: place.color),
-                  const SizedBox(width: 14),
                   Expanded(
-                    child: Column(mainAxisAlignment: MainAxisAlignment.center, crossAxisAlignment: CrossAxisAlignment.start, children: [
-                      Text(place.title, style: RT.display(24, color: Colors.white), maxLines: 1, overflow: TextOverflow.ellipsis),
-                      Text(place.hint, style: RT.body(14.5, color: Colors.white), maxLines: 1, overflow: TextOverflow.ellipsis),
+                    child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
+                      Text(place.title, textAlign: TextAlign.center, style: RT.display(24, color: Colors.white), maxLines: 1, overflow: TextOverflow.ellipsis),
+                      Text(place.hint, textAlign: TextAlign.center, style: RT.body(14.5, color: Colors.white), maxLines: 1, overflow: TextOverflow.ellipsis),
                     ]),
                   ),
-                  const Icon(Icons.chevron_left_rounded, color: Colors.white, size: 30),
+                  const SizedBox(width: 62, child: Icon(Icons.chevron_left_rounded, color: Colors.white, size: 30)),
                 ]),
               ),
             ]),
@@ -428,11 +458,11 @@ class _PlaceTile extends StatelessWidget {
         semanticLabel: '${place.title}، ${place.hint}',
         child: Padding(
           padding: const EdgeInsets.all(12),
-          child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+          child: Column(children: [
             KhatamBadge(icon: place.icon, color: place.color, size: 46),
             const Spacer(),
-            Text(place.title, style: RT.display(18, color: RC.ink), maxLines: 1, overflow: TextOverflow.ellipsis),
-            Text(place.hint, style: RT.body(13, color: RC.inkSoft), maxLines: 1, overflow: TextOverflow.ellipsis),
+            Text(place.title, textAlign: TextAlign.center, style: RT.display(18, color: RC.ink), maxLines: 1, overflow: TextOverflow.ellipsis),
+            Text(place.hint, textAlign: TextAlign.center, style: RT.body(13, color: RC.inkSoft), maxLines: 1, overflow: TextOverflow.ellipsis),
           ]),
         ),
       );
@@ -614,16 +644,14 @@ class _FactCard extends StatelessWidget {
         depth: 4,
         padding: const EdgeInsets.all(14),
         onTap: () => Voice.instance.say('هل تعلم؟ ${f.fact}'),
-        child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
-          const Icon(Icons.lightbulb_rounded, color: Color(0xFFC98A12), size: 28),
-          const SizedBox(width: 10),
-          Expanded(
-            child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-              Text('هل تعلم؟', style: RT.display(17, color: const Color(0xFF7A5200))),
-              const SizedBox(height: 2),
-              Text(f.fact, style: RT.body(15)),
-            ]),
-          ),
+        child: Column(children: [
+          Row(mainAxisAlignment: MainAxisAlignment.center, children: [
+            const Icon(Icons.lightbulb_rounded, color: Color(0xFFC98A12), size: 24),
+            const SizedBox(width: 6),
+            Text('هل تعلم؟', style: RT.display(17, color: const Color(0xFF7A5200))),
+          ]),
+          const SizedBox(height: 4),
+          Text(f.fact, textAlign: TextAlign.center, style: RT.body(15.5)),
         ]),
       ),
     );
@@ -640,18 +668,15 @@ class _HadithCard extends StatelessWidget {
     final h = kDailyHadith[day % kDailyHadith.length];
     return Container(
       margin: const EdgeInsets.fromLTRB(16, 8, 16, 0),
-      padding: const EdgeInsets.fromLTRB(16, 14, 8, 14),
+      padding: const EdgeInsets.fromLTRB(16, 14, 16, 6),
       decoration: BoxDecoration(color: RC.ink, borderRadius: BorderRadius.circular(24)),
-      child: Row(children: [
-        Expanded(
-          child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-            Text('حديث اليوم', style: RT.display(15, color: RC.gold, weight: FontWeight.w700)),
-            const SizedBox(height: 4),
-            Text('قال رسول الله ﷺ: ${h.$1}', style: RT.display(19, color: Colors.white, weight: FontWeight.w700)),
-            const SizedBox(height: 2),
-            Text(h.$2, style: RT.body(13, color: Colors.white70)),
-          ]),
-        ),
+      child: Column(children: [
+        Text('حديث اليوم', style: RT.display(15, color: RC.gold, weight: FontWeight.w700)),
+        const SizedBox(height: 6),
+        Text('قال رسول الله ﷺ: ${h.$1}',
+            textAlign: TextAlign.center, style: RT.display(19, color: Colors.white, weight: FontWeight.w700)),
+        const SizedBox(height: 4),
+        Text(h.$2, textAlign: TextAlign.center, style: RT.body(13, color: Colors.white70)),
         IconButton(
           tooltip: 'استمع',
           icon: const Icon(Icons.volume_up_rounded, color: RC.gold, size: 30),
