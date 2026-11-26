@@ -13,6 +13,7 @@ import 'package:rawdah/features/planets/data/planets_content.dart';
 import 'package:rawdah/features/science/data/science_content.dart';
 import 'package:rawdah/features/science/presentation/science_screens.dart';
 import 'package:rawdah/features/stories/presentation/stories_screen.dart';
+import 'package:rawdah/features/workshop/workshop_screens.dart';
 
 /// وجهة كوكب: اسمه ووصفه وأيقونته ولونه والشاشة التي يفتحها.
 class PlanetDest {
@@ -38,6 +39,7 @@ final kPlanets = <PlanetDest>[
   PlanetDest('كوكب معرفة', 'علماء واختراعات', Icons.lightbulb_rounded, const Color(0xFF3B82F6),
       (_) => TopicHubScreen(title: 'كوكب معرفة', topics: kMaarifaTopics, extras: [
             HubExtra('عالم العلوم', 'الفضاء والماء وبلادي', Icons.science_rounded, RC.night, (_) => const ScienceHubScreen()),
+            HubExtra('ورشة المخترع', 'كهرباء وآلات وأفكار', Icons.construction_rounded, const Color(0xFF0F766E), (_) => const WorkshopScreen()),
           ]),
       SceneTheme.science),
   PlanetDest('كوكب زمردة', 'درر المسلمة', Icons.diamond_rounded, const Color(0xFF10B981),

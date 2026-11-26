@@ -30,6 +30,8 @@ import 'package:rawdah/features/planets/data/planets_content.dart';
 import 'package:rawdah/features/tower/presentation/tower_screens.dart';
 import 'package:rawdah/features/tower/domain/puzzles.dart';
 import 'package:rawdah/features/daily/presentation/daily_screen.dart';
+import 'package:rawdah/features/episodes/episodes.dart';
+import 'package:rawdah/features/workshop/workshop_screens.dart';
 import '../test/features/recitation/recitation_fakes.dart';
 import 'package:rawdah/core/di/providers.dart';
 import 'package:rawdah/core/storage/local_store.dart';
@@ -446,6 +448,16 @@ void main() {
   testWidgets('47 إتقاني', (t) async {
     final st = await _state();
     await _shot(t, '47_mastery', st, const MasteryScreen());
+  });
+
+  testWidgets('48 حلقة اليوم', (t) async {
+    final st = await _state();
+    await _shot(t, '48_episode', st, const EpisodeScreen(index: 0, isNew: true));
+  });
+
+  testWidgets('49 مختبر الكهرباء', (t) async {
+    final st = await _state();
+    await _shot(t, '49_circuit', st, CircuitLabScreen(random: Random(9)));
   });
 
   // فحوص إرشادات الوصول المضمّنة في Flutter: حجم أهداف اللمس، وجود وصف لكل زر، وتباين النص.

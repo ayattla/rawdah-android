@@ -22,6 +22,8 @@ import 'package:rawdah/features/islamic/presentation/islamic_screens.dart';
 import 'package:rawdah/features/stories/presentation/stories_screen.dart';
 import 'package:rawdah/features/planets/presentation/planets_screen.dart';
 import 'package:rawdah/features/tower/presentation/tower_screens.dart';
+import 'package:rawdah/features/episodes/episodes.dart';
+import 'package:rawdah/features/workshop/workshop_screens.dart';
 import 'package:rawdah/features/daily/presentation/daily_screen.dart';
 import 'package:rawdah/features/daily/domain/quests.dart';
 import 'package:rawdah/features/quizzes/domain/mastery.dart';
@@ -55,6 +57,8 @@ class HomeMapScreen extends StatelessWidget {
       _Place('بيت القصص', 'قصص نتعلم منها', Icons.auto_stories_rounded, RC.coral, (_) => const StoriesScreen(), SceneTheme.islamic),
     ]),
     ('أتعلم وأكتشف', [
+      _Place('حلقة اليوم', 'حلقة جديدة كل يوم', Icons.live_tv_rounded, const Color(0xFFFF5D8F), (_) => const EpisodesScreen(), SceneTheme.islamic),
+      _Place('ورشة المخترع', 'كهرباء وآلات وأفكار', Icons.construction_rounded, const Color(0xFF0F766E), (_) => const WorkshopScreen(), SceneTheme.science),
       _Place('حروفي وأرقامي', 'حروف وكلمات وعد وقراءة', Icons.abc_rounded, const Color(0xFF1F2A44), (_) => const LearnHubScreen(), SceneTheme.learn),
       _Place('عالم العلوم', 'الفضاء والماء وبلادي', Icons.science_rounded, RC.night, (_) => const ScienceHubScreen(), SceneTheme.science),
       _Place('حديقتي', 'نخلتي وعادات الخير', Icons.park_rounded, RC.garden, (_) => const GardenScreen(), SceneTheme.islamic),
