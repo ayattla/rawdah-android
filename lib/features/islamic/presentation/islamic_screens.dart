@@ -27,7 +27,7 @@ class IslamicHubScreen extends StatelessWidget {
     final sets = kOrderSets.where((s) => s.minBand <= c.ageBand).toList();
     return ChildShell(
       child: Column(children: [
-        const KidBar(title: 'ركن المسلم الصغير'),
+        const KidBar(title: 'ركن المسلم'),
         Expanded(
           child: ListView(padding: const EdgeInsets.all(16), children: [
             BigTile(
