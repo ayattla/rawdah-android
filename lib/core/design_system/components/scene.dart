@@ -9,7 +9,6 @@ import 'package:rawdah/core/design_system/tokens/colors.dart';
 import 'package:rawdah/core/design_system/tokens/typography.dart';
 import 'package:rawdah/core/parental/time_lock.dart';
 import 'package:rawdah/core/state/app_state.dart';
-import 'package:rawdah/core/design_system/geometry/zellij.dart';
 
 /// خلفية الشاشات: «فضاء الحلوى» بروح قنوات الأطفال.
 /// نهارًا: سماء لافندرية تذوب في الأزرق والكريمي، كواكب ملونة بحلقات، قصاصات ملونة،
@@ -38,8 +37,6 @@ class ScenePainter extends CustomPainter {
   final SceneTheme theme;
   ScenePainter({this.night = false, this.plain = false, this.theme = SceneTheme.home});
 
-  static const _candy = [Color(0xFFFF5D8F), Color(0xFFFFC23F), Color(0xFF14B8A6), Color(0xFF8B5CF6), Color(0xFF3B9BFF), Color(0xFFFF7A3D)];
-
   @override
   void paint(Canvas canvas, Size size) {
     final rect = Offset.zero & size;
@@ -47,67 +44,34 @@ class ScenePainter extends CustomPainter {
       canvas.drawRect(rect, Paint()..color = night ? RC.night : RC.sand);
       return;
     }
+    final w = size.width, h = size.height;
+    if (night) {
+      // فضاء بنفسجي صافٍ بنقاط ضوء فقط: الكواكب في الرئيسية هي الزينة
+      canvas.drawRect(
+        rect,
+        Paint()
+          ..shader = const LinearGradient(
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+            colors: [Color(0xFF1E1458), Color(0xFF261A6E), Color(0xFF1A1450)],
+          ).createShader(rect),
+      );
+      final r = math.Random(7);
+      for (var i = 0; i < 70; i++) {
+        canvas.drawCircle(Offset(r.nextDouble() * w, r.nextDouble() * h), r.nextDouble() * 1.5 + 0.4,
+            Paint()..color = Colors.white.withValues(alpha: 0.35 + r.nextDouble() * 0.45));
+      }
+      return;
+    }
+    // صفحات الأقسام: سماء القسم الهادئة، وكوكبه كبيرًا في الزاوية العليا كأننا نقف عنده
     canvas.drawRect(
       rect,
       Paint()
-        ..shader = LinearGradient(
-          begin: Alignment.topCenter,
-          end: Alignment.bottomCenter,
-          colors: night
-              ? const [Color(0xFF1A1145), Color(0xFF2A1A66), Color(0xFF1B2459)]
-              : theme.sky,
-          stops: const [0, 0.55, 1],
-        ).createShader(rect),
+        ..shader = LinearGradient(begin: Alignment.topCenter, end: Alignment.bottomCenter, colors: theme.sky, stops: const [0, 0.55, 1])
+            .createShader(rect),
     );
-    final w = size.width, h = size.height;
-    final a = night ? 0.55 : 0.22;
-
-    // مدار منقط كبير يعبر الشاشة
-    final orbit = Paint()
-      ..color = (night ? Colors.white : const Color(0xFF8B5CF6)).withValues(alpha: night ? 0.12 : 0.10)
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = 2;
-    final oval = Rect.fromCenter(center: Offset(w * 0.55, h * 0.32), width: w * 1.5, height: h * 0.34);
-    for (var t = 0.0; t < 2 * math.pi; t += 0.09) {
-      canvas.drawArc(oval, t, 0.045, false, orbit);
-    }
-
-    _planet(canvas, Offset(w * 0.88, h * 0.10), w * 0.13, theme.planet1.withValues(alpha: a), theme.ring1.withValues(alpha: a + 0.06));
-    _planet(canvas, Offset(w * 0.06, h * 0.62), w * 0.16, theme.planet2.withValues(alpha: a), theme.ring2.withValues(alpha: a + 0.06));
-    canvas.drawCircle(Offset(w * 0.18, h * 0.22), w * 0.045, Paint()..color = const Color(0xFF14B8A6).withValues(alpha: a));
-    canvas.drawCircle(Offset(w * 0.80, h * 0.78), w * 0.06, Paint()..color = const Color(0xFFFF5D8F).withValues(alpha: a * 0.8));
-
-    // قصاصات ملونة: دوائر صغيرة وكبسولات مائلة
-    final r = math.Random(night ? 11 : 5);
-    for (var i = 0; i < 42; i++) {
-      final c = _candy[i % _candy.length].withValues(alpha: night ? 0.55 : 0.30);
-      final p = Offset(r.nextDouble() * w, r.nextDouble() * h);
-      if (i % 3 == 0) {
-        canvas.save();
-        canvas.translate(p.dx, p.dy);
-        canvas.rotate(r.nextDouble() * math.pi);
-        canvas.drawRRect(RRect.fromRectAndRadius(Rect.fromCenter(center: Offset.zero, width: 14, height: 5), const Radius.circular(3)), Paint()..color = c);
-        canvas.restore();
-      } else {
-        canvas.drawCircle(p, r.nextDouble() * 2.6 + 1.6, Paint()..color = c);
-      }
-    }
-
-    if (!night) {
-      // رواق محاريب خافت في الأعلى: توقيع روضة
-      ZellijPainter(color: const Color(0xFF8B5CF6).withValues(alpha: 0.06), fadeTo: 0.3).paint(canvas, size);
-      // سطح كوكب أصفر بفوهات بنفسجية في أسفل الشاشة
-      final ground = Rect.fromCenter(center: Offset(w * 0.5, h + w * 0.95), width: w * 2.4, height: w * 2.2);
-      canvas.drawOval(ground, Paint()..color = const Color(0xFFFFD84D).withValues(alpha: 0.55));
-      canvas.drawOval(ground, Paint()
-        ..color = const Color(0xFFFFB020).withValues(alpha: 0.5)
-        ..style = PaintingStyle.stroke
-        ..strokeWidth = 5);
-      final crater = Paint()..color = const Color(0xFF8B5CF6).withValues(alpha: 0.30);
-      for (final (dx, dy, cw) in [(0.18, 0.045, 0.12), (0.46, 0.03, 0.08), (0.72, 0.05, 0.14), (0.9, 0.075, 0.06)]) {
-        canvas.drawOval(Rect.fromCenter(center: Offset(w * dx, h - w * dy + 4), width: w * cw, height: w * cw * 0.42), crater);
-      }
-    }
+    _planet(canvas, Offset(w * 0.92, h * 0.06), w * 0.22, theme.planet1.withValues(alpha: 0.22), theme.ring1.withValues(alpha: 0.30));
+    canvas.drawCircle(Offset(w * 0.62, h * 0.035), w * 0.03, Paint()..color = theme.planet2.withValues(alpha: 0.25));
   }
 
   void _planet(Canvas canvas, Offset c, double r, Color body, Color ring) {
@@ -199,210 +163,8 @@ class ChildShell extends StatelessWidget {
       );
     }
     final t = theme ?? SceneTheme.active;
-    if (night || A11y.highContrastOf(context)) {
-      return Scaffold(body: SceneBackground(night: night, theme: t, child: NightScope(night: night, child: child)));
-    }
-    return Scaffold(
-      backgroundColor: const Color(0xFF1A1145),
-      body: CandyScreen(theme: t, child: NightScope(night: false, child: child)),
-    );
+    return Scaffold(body: SceneBackground(night: night, theme: t, child: NightScope(night: night, child: child)));
   }
 }
 
 
-/// «شاشة التلفاز» الكرتونية: فضاء بنفسجي في الخارج، وإطار حلوى متموج بحد ملون سميك
-/// وزرين وهوائي، وداخله سماء القسم الفاتحة حيث يُقرأ المحتوى بوضوح.
-class CandyScreen extends StatelessWidget {
-  final SceneTheme theme;
-  final Widget child;
-  const CandyScreen({super.key, required this.theme, required this.child});
-
-  @override
-  Widget build(BuildContext context) {
-    return CustomPaint(
-      painter: _SpacePainter(),
-      child: SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.fromLTRB(8, 10, 8, 12),
-          child: LayoutBuilder(builder: (context, box) {
-            final rect = Offset.zero & Size(box.maxWidth, box.maxHeight);
-            final frame = wobblyFramePath(rect.deflate(5));
-            final inner = wobblyFramePath(rect.deflate(17), radius: 26, amp: 2.4);
-            return Stack(clipBehavior: Clip.none, children: [
-              Positioned.fill(child: RepaintBoundary(child: CustomPaint(painter: _FramePainter(frame, theme)))),
-              Positioned.fill(
-                child: ClipPath(
-                  clipper: _PathClipper(inner),
-                  child: CustomPaint(painter: ScenePainter(theme: theme), child: child),
-                ),
-              ),
-              Positioned.fill(
-                child: IgnorePointer(child: CustomPaint(painter: _OutlinePainter(inner))),
-              ),
-              // هوائي وزران يطفوان: لمسة التلفاز الكرتوني
-              const PositionedDirectional(top: -8, start: 54, child: _Bobber(child: _Knob(color: Color(0xFFFF5D8F), size: 16))),
-              const PositionedDirectional(bottom: -6, end: 34, child: _Bobber(delay: 0.5, child: _Knob(color: Color(0xFFFFC23F), size: 18))),
-              const PositionedDirectional(bottom: -4, end: 58, child: _Bobber(delay: 0.25, child: _Knob(color: Color(0xFF22D3EE), size: 12))),
-            ]);
-          }),
-        ),
-      ),
-    );
-  }
-}
-
-class _PathClipper extends CustomClipper<Path> {
-  final Path path;
-  _PathClipper(this.path);
-  @override
-  Path getClip(Size size) => path;
-  @override
-  bool shouldReclip(covariant _PathClipper old) => old.path != path;
-}
-
-/// الإطار: حد كرتوني غامق، شريط حلوى متدرج الألوان، ولمعة بيضاء.
-class _FramePainter extends CustomPainter {
-  final Path frame;
-  final SceneTheme theme;
-  _FramePainter(this.frame, this.theme);
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    final b = frame.getBounds();
-    canvas.drawPath(frame.shift(const Offset(0, 6)), Paint()..color = const Color(0xFF0E0A2E));
-    // أربعة أجزاء حلوى: أصفر فوق، وردي يمين، سماوي تحت، ليموني يسار، كإطارات شاشات برامج الأطفال
-    const segs = [Color(0xFFFFC23F), Color(0xFFFF5D8F), Color(0xFF22D3EE), Color(0xFF9BE15D)];
-    final cx = b.center.dx, cy = b.center.dy;
-    final quads = [
-      Path()..moveTo(cx, cy)..lineTo(b.left - 20, b.top - 20)..lineTo(b.right + 20, b.top - 20)..close(),
-      Path()..moveTo(cx, cy)..lineTo(b.right + 20, b.top - 20)..lineTo(b.right + 20, b.bottom + 20)..close(),
-      Path()..moveTo(cx, cy)..lineTo(b.right + 20, b.bottom + 20)..lineTo(b.left - 20, b.bottom + 20)..close(),
-      Path()..moveTo(cx, cy)..lineTo(b.left - 20, b.bottom + 20)..lineTo(b.left - 20, b.top - 20)..close(),
-    ];
-    for (var i = 0; i < 4; i++) {
-      canvas.save();
-      canvas.clipPath(quads[i]);
-      canvas.drawPath(frame, Paint()..color = segs[i]);
-      canvas.restore();
-    }
-    // كرات ملونة عند الزوايا تفصل الأجزاء
-    for (final (p, col) in [
-      (Offset(b.left + 18, b.top + 18), const Color(0xFFFF5D8F)),
-      (Offset(b.right - 18, b.top + 18), const Color(0xFF22D3EE)),
-      (Offset(b.right - 18, b.bottom - 18), const Color(0xFF9BE15D)),
-      (Offset(b.left + 18, b.bottom - 18), const Color(0xFFFFC23F)),
-    ]) {
-      canvas.drawCircle(p, 9, Paint()..color = col);
-      canvas.drawCircle(p, 9, Paint()..color = const Color(0xFF2A1A66)..style = PaintingStyle.stroke..strokeWidth = 2.5);
-      canvas.drawCircle(p + const Offset(-3, -3), 2.5, Paint()..color = Colors.white70);
-    }
-    canvas.drawPath(
-      frame,
-      Paint()
-        ..color = const Color(0xFF2A1A66)
-        ..style = PaintingStyle.stroke
-        ..strokeWidth = 3.5,
-    );
-    // لمعة على الحافة العلوية
-    final gloss = Paint()
-      ..color = Colors.white.withValues(alpha: 0.45)
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = 3.5
-      ..strokeCap = StrokeCap.round;
-    canvas.drawLine(Offset(b.left + 46, b.top + 6), Offset(b.left + b.width * 0.42, b.top + 5), gloss);
-  }
-
-  @override
-  bool shouldRepaint(covariant _FramePainter old) => old.frame != frame || old.theme != theme;
-}
-
-class _OutlinePainter extends CustomPainter {
-  final Path path;
-  _OutlinePainter(this.path);
-  @override
-  void paint(Canvas canvas, Size size) => canvas.drawPath(
-      path,
-      Paint()
-        ..color = const Color(0xFF2A1A66)
-        ..style = PaintingStyle.stroke
-        ..strokeWidth = 3);
-  @override
-  bool shouldRepaint(covariant _OutlinePainter old) => old.path != path;
-}
-
-class _SpacePainter extends CustomPainter {
-  @override
-  void paint(Canvas canvas, Size size) {
-    final rect = Offset.zero & size;
-    canvas.drawRect(
-      rect,
-      Paint()
-        ..shader = const LinearGradient(
-          begin: Alignment.topCenter,
-          end: Alignment.bottomCenter,
-          colors: [Color(0xFF241466), Color(0xFF1A1145), Color(0xFF2B1B7A)],
-        ).createShader(rect),
-    );
-    final r = math.Random(3);
-    for (var i = 0; i < 60; i++) {
-      canvas.drawCircle(Offset(r.nextDouble() * size.width, r.nextDouble() * size.height), r.nextDouble() * 1.4 + 0.4,
-          Paint()..color = Colors.white.withValues(alpha: 0.5 + r.nextDouble() * 0.4));
-    }
-  }
-
-  @override
-  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
-}
-
-class _Knob extends StatelessWidget {
-  final Color color;
-  final double size;
-  const _Knob({required this.color, required this.size});
-  @override
-  Widget build(BuildContext context) => Container(
-        width: size,
-        height: size,
-        decoration: BoxDecoration(
-          shape: BoxShape.circle,
-          gradient: RadialGradient(center: const Alignment(-0.4, -0.4), colors: [Colors.white.withValues(alpha: 0.9), color]),
-          border: Border.all(color: const Color(0xFF2A1A66), width: 2),
-        ),
-      );
-}
-
-/// يرفع عنصرًا صغيرًا وينزله برفق بلا توقف (يتوقف مع «تقليل الحركة»).
-class _Bobber extends StatefulWidget {
-  final Widget child;
-  final double delay;
-  const _Bobber({required this.child, this.delay = 0});
-  @override
-  State<_Bobber> createState() => _BobberState();
-}
-
-class _BobberState extends State<_Bobber> with SingleTickerProviderStateMixin {
-  late final AnimationController _c = AnimationController(vsync: this, duration: const Duration(milliseconds: 1800));
-
-  @override
-  void didChangeDependencies() {
-    super.didChangeDependencies();
-    if (A11y.reduceMotionOf(context)) {
-      _c.stop();
-    } else if (!_c.isAnimating) {
-      _c.value = widget.delay;
-      _c.repeat(reverse: true);
-    }
-  }
-
-  @override
-  void dispose() {
-    _c.dispose();
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) => AnimatedBuilder(
-        animation: _c,
-        builder: (_, child) => Transform.translate(offset: Offset(0, -3 * Curves.easeInOut.transform(_c.value)), child: child),
-        child: widget.child,
-      );
-}
