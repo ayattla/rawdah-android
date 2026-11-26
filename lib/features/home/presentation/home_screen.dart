@@ -359,6 +359,12 @@ class _PlanetMapState extends State<_PlanetMap> with SingleTickerProviderStateMi
   late final AnimationController _t = AnimationController(vsync: this, duration: const Duration(seconds: 6));
   static const _rowH = 150.0;
 
+  /// ألوان كواكب زاهية تضيء على الفضاء الداكن (ألوان الأقسام الداكنة تختفي عليه).
+  static const _vivid = [
+    Color(0xFF14B8A6), Color(0xFF22C55E), Color(0xFFFF5D5D), Color(0xFFA855F7), Color(0xFF3B82F6), Color(0xFF84CC16),
+    Color(0xFFFF9F1C), Color(0xFFFF5D8F), Color(0xFF22D3EE), Color(0xFFFFC23F), Color(0xFF8B5CF6),
+  ];
+
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
@@ -393,9 +399,9 @@ class _PlanetMapState extends State<_PlanetMap> with SingleTickerProviderStateMi
           Positioned.fill(child: CustomPaint(painter: _OrbitPathPainter(centers))),
           for (var i = 0; i < n; i++)
             Positioned(
-              left: centers[i].dx - 70,
+              left: centers[i].dx - 80,
               top: centers[i].dy - 56,
-              width: 140,
+              width: 160,
               child: AnimatedBuilder(
                 animation: _t,
                 builder: (_, child) {
@@ -404,6 +410,7 @@ class _PlanetMapState extends State<_PlanetMap> with SingleTickerProviderStateMi
                 },
                 child: _PlanetButton(
                   place: widget.places[i],
+                  color: _vivid[i % _vivid.length],
                   size: i == 0 ? 92 : 80,
                   ringed: i % 2 == 0,
                   spin: _t,
@@ -445,11 +452,12 @@ class _OrbitPathPainter extends CustomPainter {
 /// كوكب القسم: كرة ملونة بحد غامق ولمعة، وحلقة تدور ببطء، والأيقونة في وسطه، والاسم تحته.
 class _PlanetButton extends StatefulWidget {
   final _Place place;
+  final Color color;
   final double size;
   final bool ringed;
   final Animation<double> spin;
   final VoidCallback onTap;
-  const _PlanetButton({required this.place, required this.size, required this.ringed, required this.spin, required this.onTap});
+  const _PlanetButton({required this.place, required this.color, required this.size, required this.ringed, required this.spin, required this.onTap});
 
   @override
   State<_PlanetButton> createState() => _PlanetButtonState();
@@ -485,22 +493,33 @@ class _PlanetButtonState extends State<_PlanetButton> {
               child: AnimatedBuilder(
                 animation: widget.spin,
                 builder: (_, __) => CustomPaint(
-                  painter: _PlanetBodyPainter(p.color, widget.ringed, widget.spin.value),
+                  painter: _PlanetBodyPainter(widget.color, widget.ringed, widget.spin.value),
                   child: Center(child: Icon(p.icon, color: Colors.white, size: s * 0.40)),
                 ),
               ),
             ),
-            const SizedBox(height: 6),
-            Text(p.title,
-                textAlign: TextAlign.center,
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                style: RT.display(17, color: Colors.white)),
-            Text(p.hint,
-                textAlign: TextAlign.center,
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                style: RT.body(12.5, color: const Color(0xFFCFC6FF))),
+            const SizedBox(height: 4),
+            // لافتة الاسم تغطي المدار خلفها فلا يتداخل الخط مع النص
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 3),
+              decoration: BoxDecoration(
+                color: const Color(0xFF221763),
+                borderRadius: BorderRadius.circular(14),
+                border: Border.all(color: widget.color.withValues(alpha: 0.7), width: 2),
+              ),
+              child: Column(mainAxisSize: MainAxisSize.min, children: [
+                Text(p.title,
+                    textAlign: TextAlign.center,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: RT.display(16, color: Colors.white)),
+                Text(p.hint,
+                    textAlign: TextAlign.center,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: RT.body(12, color: const Color(0xFFCFC6FF))),
+              ]),
+            ),
           ]),
         ),
       ),
