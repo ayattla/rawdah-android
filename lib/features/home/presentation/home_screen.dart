@@ -368,7 +368,7 @@ class _Rule extends StatelessWidget {
           gradient: LinearGradient(
             begin: toStart ? AlignmentDirectional.centerEnd : AlignmentDirectional.centerStart,
             end: fadeTo,
-            colors: [RC.sandDark, RC.sandDark.withValues(alpha: 0)],
+            colors: [RC.gold.withValues(alpha: 0.7), RC.gold.withValues(alpha: 0)],
           ),
         ),
       ),
