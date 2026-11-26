@@ -196,6 +196,175 @@ class ChildShell extends StatelessWidget {
         ),
       );
     }
-    return Scaffold(body: SceneBackground(night: night, theme: theme ?? SceneTheme.active, child: NightScope(night: night, child: child)));
+    final t = theme ?? SceneTheme.active;
+    if (night || A11y.highContrastOf(context)) {
+      return Scaffold(body: SceneBackground(night: night, theme: t, child: NightScope(night: night, child: child)));
+    }
+    return Scaffold(
+      backgroundColor: const Color(0xFF1A1145),
+      body: CandyScreen(theme: t, child: NightScope(night: false, child: child)),
+    );
   }
+}
+
+
+/// «شاشة التلفاز» الكرتونية: فضاء بنفسجي في الخارج، وإطار حلوى متموج بحد ملون سميك
+/// وزرين وهوائي، وداخله سماء القسم الفاتحة حيث يُقرأ المحتوى بوضوح.
+class CandyScreen extends StatelessWidget {
+  final SceneTheme theme;
+  final Widget child;
+  const CandyScreen({super.key, required this.theme, required this.child});
+
+  @override
+  Widget build(BuildContext context) {
+    return CustomPaint(
+      painter: _SpacePainter(),
+      child: SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(8, 10, 8, 12),
+          child: LayoutBuilder(builder: (context, box) {
+            final rect = Offset.zero & Size(box.maxWidth, box.maxHeight);
+            final frame = wobblyFramePath(rect.deflate(5));
+            final inner = wobblyFramePath(rect.deflate(14), radius: 26, amp: 2.4);
+            return Stack(clipBehavior: Clip.none, children: [
+              Positioned.fill(child: RepaintBoundary(child: CustomPaint(painter: _FramePainter(frame, theme)))),
+              Positioned.fill(
+                child: ClipPath(
+                  clipper: _PathClipper(inner),
+                  child: CustomPaint(painter: ScenePainter(theme: theme), child: child),
+                ),
+              ),
+              // هوائي وزران يطفوان: لمسة التلفاز الكرتوني
+              const PositionedDirectional(top: -8, start: 54, child: _Bobber(child: _Knob(color: Color(0xFFFF5D8F), size: 16))),
+              const PositionedDirectional(bottom: -6, end: 34, child: _Bobber(delay: 0.5, child: _Knob(color: Color(0xFFFFC23F), size: 18))),
+              const PositionedDirectional(bottom: -4, end: 58, child: _Bobber(delay: 0.25, child: _Knob(color: Color(0xFF22D3EE), size: 12))),
+            ]);
+          }),
+        ),
+      ),
+    );
+  }
+}
+
+class _PathClipper extends CustomClipper<Path> {
+  final Path path;
+  _PathClipper(this.path);
+  @override
+  Path getClip(Size size) => path;
+  @override
+  bool shouldReclip(covariant _PathClipper old) => old.path != path;
+}
+
+/// الإطار: حد كرتوني غامق، شريط حلوى متدرج الألوان، ولمعة بيضاء.
+class _FramePainter extends CustomPainter {
+  final Path frame;
+  final SceneTheme theme;
+  _FramePainter(this.frame, this.theme);
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final b = frame.getBounds();
+    canvas.drawPath(frame.shift(const Offset(0, 6)), Paint()..color = const Color(0xFF0E0A2E));
+    canvas.drawPath(
+      frame,
+      Paint()
+        ..shader = SweepGradient(
+          colors: [theme.ring1, const Color(0xFFFF5D8F), theme.planet1, const Color(0xFF22D3EE), theme.planet2, theme.ring1],
+        ).createShader(b),
+    );
+    canvas.drawPath(
+      frame,
+      Paint()
+        ..color = const Color(0xFF2A1A66)
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = 3,
+    );
+    // لمعة على الحافة العلوية
+    final gloss = Paint()
+      ..color = Colors.white.withValues(alpha: 0.45)
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 3.5
+      ..strokeCap = StrokeCap.round;
+    canvas.drawLine(Offset(b.left + 46, b.top + 6), Offset(b.left + b.width * 0.42, b.top + 5), gloss);
+  }
+
+  @override
+  bool shouldRepaint(covariant _FramePainter old) => old.frame != frame || old.theme != theme;
+}
+
+class _SpacePainter extends CustomPainter {
+  @override
+  void paint(Canvas canvas, Size size) {
+    final rect = Offset.zero & size;
+    canvas.drawRect(
+      rect,
+      Paint()
+        ..shader = const LinearGradient(
+          begin: Alignment.topCenter,
+          end: Alignment.bottomCenter,
+          colors: [Color(0xFF241466), Color(0xFF1A1145), Color(0xFF2B1B7A)],
+        ).createShader(rect),
+    );
+    final r = math.Random(3);
+    for (var i = 0; i < 60; i++) {
+      canvas.drawCircle(Offset(r.nextDouble() * size.width, r.nextDouble() * size.height), r.nextDouble() * 1.4 + 0.4,
+          Paint()..color = Colors.white.withValues(alpha: 0.5 + r.nextDouble() * 0.4));
+    }
+  }
+
+  @override
+  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
+}
+
+class _Knob extends StatelessWidget {
+  final Color color;
+  final double size;
+  const _Knob({required this.color, required this.size});
+  @override
+  Widget build(BuildContext context) => Container(
+        width: size,
+        height: size,
+        decoration: BoxDecoration(
+          shape: BoxShape.circle,
+          gradient: RadialGradient(center: const Alignment(-0.4, -0.4), colors: [Colors.white.withValues(alpha: 0.9), color]),
+          border: Border.all(color: const Color(0xFF2A1A66), width: 2),
+        ),
+      );
+}
+
+/// يرفع عنصرًا صغيرًا وينزله برفق بلا توقف (يتوقف مع «تقليل الحركة»).
+class _Bobber extends StatefulWidget {
+  final Widget child;
+  final double delay;
+  const _Bobber({required this.child, this.delay = 0});
+  @override
+  State<_Bobber> createState() => _BobberState();
+}
+
+class _BobberState extends State<_Bobber> with SingleTickerProviderStateMixin {
+  late final AnimationController _c = AnimationController(vsync: this, duration: const Duration(milliseconds: 1800));
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (A11y.reduceMotionOf(context)) {
+      _c.stop();
+    } else if (!_c.isAnimating) {
+      _c.value = widget.delay;
+      _c.repeat(reverse: true);
+    }
+  }
+
+  @override
+  void dispose() {
+    _c.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) => AnimatedBuilder(
+        animation: _c,
+        builder: (_, child) => Transform.translate(offset: Offset(0, -3 * Curves.easeInOut.transform(_c.value)), child: child),
+        child: widget.child,
+      );
 }

@@ -109,9 +109,8 @@ class KhatamBadge extends StatelessWidget {
         height: size,
         child: CustomPaint(
           painter: _BadgePainter(color, flat),
-          // قمة المحراب ضيقة، فننزل الأيقونة قليلًا لتبدو في المنتصف البصري
           child: Padding(
-            padding: EdgeInsets.only(top: size * 0.16, bottom: size * 0.02),
+            padding: EdgeInsets.only(bottom: size * 0.06),
             child: Center(
               child: label != null
                   ? Text(label!, style: RT.display(size * 0.34, color: iconColor))
@@ -127,7 +126,7 @@ class KhatamBadge extends StatelessWidget {
   }
 }
 
-/// محراب كلعبة بلاستيكية: ظل صلب أسفله، تدرج من فاتح لغامق، ولمعة بيضاء على الحافة.
+/// أيقونة كحلوى منفوخة: حد كرتوني غامق، ظل صلب، تدرج لامع، ولمعة بيضاء مائلة.
 class _BadgePainter extends CustomPainter {
   final Color color;
   final bool flat;
@@ -135,30 +134,39 @@ class _BadgePainter extends CustomPainter {
 
   @override
   void paint(Canvas canvas, Size size) {
-    final r = size.shortestSide / 2 * 0.94;
-    final c = size.center(Offset(0, -size.height * 0.02));
-    final body = khatamPath(c, r);
+    final r = size.shortestSide / 2 * 0.86;
+    final c = size.center(Offset(0, -size.height * 0.03));
+    final body = blobPath(c, r, seed: color.toARGB32());
     if (flat) {
       canvas.drawPath(body, Paint()..color = color);
       return;
     }
     final hsl = HSLColor.fromColor(color);
-    final dark = hsl.withLightness((hsl.lightness - 0.16).clamp(0.0, 1.0)).toColor();
-    final light = hsl.withLightness((hsl.lightness + 0.12).clamp(0.0, 1.0)).toColor();
-    canvas.drawPath(body.shift(Offset(0, size.height * 0.06)), Paint()..color = dark);
+    final dark = hsl.withLightness((hsl.lightness - 0.22).clamp(0.0, 1.0)).toColor();
+    final light = hsl.withLightness((hsl.lightness + 0.16).clamp(0.0, 1.0)).toColor();
+    canvas.drawPath(body.shift(Offset(0, size.height * 0.07)), Paint()..color = dark);
     canvas.drawPath(
       body,
       Paint()
-        ..shader = LinearGradient(begin: Alignment.topCenter, end: Alignment.bottomCenter, colors: [light, color])
+        ..shader = RadialGradient(center: const Alignment(-0.35, -0.45), radius: 1.1, colors: [light, color, color])
             .createShader(body.getBounds()),
     );
     canvas.drawPath(
-      khatamPath(c, r * 0.82),
+      body,
       Paint()
-        ..color = Colors.white.withValues(alpha: 0.28)
+        ..color = dark
         ..style = PaintingStyle.stroke
-        ..strokeWidth = size.width * 0.035,
+        ..strokeWidth = size.width * 0.045,
     );
+    // لمعة مائلة أعلى الشكل
+    canvas.save();
+    canvas.translate(c.dx - r * 0.38, c.dy - r * 0.5);
+    canvas.rotate(-0.55);
+    canvas.drawRRect(
+      RRect.fromRectAndRadius(Rect.fromCenter(center: Offset.zero, width: r * 0.62, height: r * 0.2), Radius.circular(r)),
+      Paint()..color = Colors.white.withValues(alpha: 0.55),
+    );
+    canvas.restore();
   }
 
   @override

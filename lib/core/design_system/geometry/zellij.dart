@@ -86,3 +86,51 @@ class ZellijPainter extends CustomPainter {
   @override
   bool shouldRepaint(covariant ZellijPainter old) => old.color != color || old.cell != cell || old.fadeTo != fadeTo;
 }
+
+
+/// شكل حلوى منفوخ غير منتظم (كأيقونات برامج الأطفال الكرتونية): دائرة متموجة بفصوص ناعمة.
+/// [seed] يغيّر الفصوص فلكل أيقونة شكلها الخاص.
+Path blobPath(Offset c, double r, {int seed = 0}) {
+  final p1 = (seed % 97) / 97 * 2 * math.pi;
+  final p2 = (seed % 53) / 53 * 2 * math.pi;
+  const n = 60;
+  final pts = <Offset>[];
+  for (var i = 0; i < n; i++) {
+    final t = i / n * 2 * math.pi;
+    final k = 1 + 0.055 * math.sin(3 * t + p1) + 0.035 * math.sin(5 * t + p2);
+    // مربع مستدير قليلًا بدل الدائرة الكاملة
+    final sq = 1 + 0.07 * math.pow(math.sin(2 * t), 2);
+    pts.add(c + Offset(math.cos(t), math.sin(t)) * (r * k * sq / 1.07));
+  }
+  final path = Path();
+  Offset mid(Offset a, Offset b) => Offset((a.dx + b.dx) / 2, (a.dy + b.dy) / 2);
+  path.moveTo(mid(pts.last, pts.first).dx, mid(pts.last, pts.first).dy);
+  for (var i = 0; i < n; i++) {
+    final a = pts[i], b = pts[(i + 1) % n];
+    final m = mid(a, b);
+    path.quadraticBezierTo(a.dx, a.dy, m.dx, m.dy);
+  }
+  return path..close();
+}
+
+/// إطار الشاشة الكرتوني: مستطيل بزوايا كبيرة وحواف متموجة قليلًا.
+Path wobblyFramePath(Rect rect, {double radius = 34, double amp = 3.2, double wave = 110}) {
+  final rr = RRect.fromRectAndRadius(rect, Radius.circular(radius));
+  final base = Path()..addRRect(rr);
+  final metric = base.computeMetrics().first;
+  final len = metric.length;
+  final steps = (len / 6).ceil();
+  final out = Path();
+  for (var i = 0; i <= steps; i++) {
+    final d = len * i / steps;
+    final tan = metric.getTangentForOffset(d)!;
+    final normal = Offset(-tan.vector.dy, tan.vector.dx);
+    final o = tan.position + normal * (amp * math.sin(d / wave * 2 * math.pi));
+    if (i == 0) {
+      out.moveTo(o.dx, o.dy);
+    } else {
+      out.lineTo(o.dx, o.dy);
+    }
+  }
+  return out..close();
+}
