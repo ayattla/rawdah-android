@@ -10,6 +10,7 @@ import 'package:rawdah/core/parental/time_lock.dart';
 import 'package:rawdah/core/storage/local_store.dart';
 import 'package:rawdah/core/storage/parental_store.dart';
 import 'package:rawdah/features/hifz/domain/hifz_schedule.dart';
+import 'package:rawdah/features/quizzes/domain/mastery.dart';
 
 /// الفئات العمرية: 0 = 4-6، 1 = 7-9، 2 = 10-12
 const List<String> kAgeBandNames = ['البراعم 4-6', 'المستكشفون 7-9', 'الفرسان 10-12'];
@@ -80,6 +81,12 @@ class ChildProfile {
   /// جدول مراجعة المحفوظ: رقم السورة ← مستوى الحفظ وموعد المراجعة.
   Map<int, HifzEntry> hifz;
 
+  /// إتقان الأسئلة بالتكرار المتباعد: معرف السؤال ← [الصندوق، يوم المراجعة].
+  Map<String, List<int>> mastery;
+
+  /// عدادات عامة: مستويات الألغاز، وتقدم مهام اليوم، والصناديق المستلمة.
+  Map<String, int> counters;
+
   ChildProfile({
     required this.id,
     required this.name,
@@ -121,7 +128,11 @@ class ChildProfile {
     Map<String, int>? usageSeconds,
     List<String>? activeDays,
     Map<int, HifzEntry>? hifz,
+    Map<String, List<int>>? mastery,
+    Map<String, int>? counters,
   })  : hifz = hifz ?? <int, HifzEntry>{},
+        mastery = mastery ?? <String, List<int>>{},
+        counters = counters ?? <String, int>{},
          owned = owned ?? <String>{},
         myChallenges = myChallenges ?? <String>[],
         completed = completed ?? <String>{},
@@ -208,6 +219,8 @@ class ChildProfile {
         'usageSeconds': usageSeconds,
         'activeDays': activeDays,
         'hifz': {for (final e in hifz.values) '${e.surah}': e.toJson()},
+        'mastery': mastery,
+        'counters': counters,
       };
 
   static ChildProfile fromJson(Map<String, dynamic> j) => ChildProfile(
@@ -248,6 +261,15 @@ class ChildProfile {
         usageSeconds: Map<String, dynamic>.from((j['usageSeconds'] as Map?) ?? const {})
             .map((k, v) => MapEntry(k, (v as num).toInt())),
         activeDays: ((j['activeDays'] as List?) ?? const []).map((e) => e.toString()).toList(),
+        mastery: {
+          for (final kv in ((j['mastery'] as Map?) ?? const {}).entries)
+            if (kv.value is List && (kv.value as List).length >= 2)
+              kv.key.toString(): [for (final v in (kv.value as List).take(2)) (v as num).toInt()],
+        },
+        counters: {
+          for (final kv in ((j['counters'] as Map?) ?? const {}).entries)
+            if (kv.value is num) kv.key.toString(): (kv.value as num).toInt(),
+        },
         hifz: {
           for (final kv in ((j['hifz'] as Map?) ?? const {}).entries)
             if (HifzEntry.fromJson(kv.key.toString(), kv.value) case final e?) e.surah: e,
@@ -584,6 +606,7 @@ class AppState extends ChangeNotifier {
     final c = current;
     if (c == null) return false;
     c.rollDay();
+    bump('activity');
     if (activityId.startsWith('game_')) {
       c.gamesToday++;
     } else if (activityId.startsWith('story_') ||
@@ -621,6 +644,7 @@ class AppState extends ChangeNotifier {
     final wasDue = e.isDue(today);
     final next = e.review(ok: ok, today: today);
     c.hifz[surah] = next;
+    bump('review');
     if (ok && wasDue) {
       c.stars += 2;
       _earn(4);
@@ -647,10 +671,49 @@ class AppState extends ChangeNotifier {
       c.stars += 2;
       _earn(5);
       c.wrongQuestions.remove(questionId);
+      bump('correct');
     } else {
       c.wrongQuestions.add(questionId);
     }
+    final today = dayNumber(DateTime.now());
+    c.mastery[questionId] = masteryAfter(c.mastery[questionId], correct, today);
     _changed();
+  }
+
+  /// يزيد عداد مهمة يومية (يُخزن باسم اليوم فيتجدد كل يوم).
+  void bump(String kind, [int by = 1]) {
+    final c = current;
+    if (c == null) return;
+    final k = 'dq_${todayKey()}_$kind';
+    c.counters[k] = (c.counters[k] ?? 0) + by;
+    // تنظيف عدادات الأيام القديمة حتى لا يكبر الملف
+    if (c.counters.length > 400) {
+      c.counters.removeWhere((key, _) => key.startsWith('dq_') && !key.startsWith('dq_${todayKey()}'));
+    }
+  }
+
+  int todayCount(String kind) => current?.counters['dq_${todayKey()}_$kind'] ?? 0;
+
+  int counter(String key) => current?.counters[key] ?? 0;
+
+  void setCounter(String key, int value) {
+    final c = current;
+    if (c == null) return;
+    c.counters[key] = value;
+    _changed();
+  }
+
+  /// صندوق اليوم: يُستلم مرة واحدة عند إتمام كل مهام رحلة اليوم.
+  bool claimDailyChest(int stars) {
+    final c = current;
+    if (c == null) return false;
+    final k = 'chest_${todayKey()}';
+    if ((c.counters[k] ?? 0) > 0) return false;
+    c.counters[k] = 1;
+    c.stars += stars;
+    _earn(stars);
+    _changed();
+    return true;
   }
 
   /// سباق الدقيقة: نجمة لكل إجابة صحيحة، ونقاط منافسة بحد أقصى 20 للجولة.

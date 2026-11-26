@@ -27,6 +27,9 @@ import 'package:rawdah/features/islamic/data/islamic_content.dart';
 import 'package:rawdah/features/islamic/presentation/islamic_screens.dart';
 import 'package:rawdah/features/planets/presentation/planets_screen.dart';
 import 'package:rawdah/features/planets/data/planets_content.dart';
+import 'package:rawdah/features/tower/presentation/tower_screens.dart';
+import 'package:rawdah/features/tower/domain/puzzles.dart';
+import 'package:rawdah/features/daily/presentation/daily_screen.dart';
 import '../test/features/recitation/recitation_fakes.dart';
 import 'package:rawdah/core/di/providers.dart';
 import 'package:rawdah/core/storage/local_store.dart';
@@ -416,6 +419,33 @@ void main() {
   testWidgets('42 بون بون', (t) async {
     final st = await _state();
     await _shot(t, '42_bonbon', st, BonBonScreen(random: Random(2)));
+  });
+
+  testWidgets('43 برج الألغاز', (t) async {
+    final st = await _state();
+    await _shot(t, '43_tower', st, const TowerScreen());
+  });
+
+  testWidgets('44 سودوكو', (t) async {
+    final st = await _state();
+    await _shot(t, '44_sudoku', st, TowerPlayScreen(game: TowerGame.sudoku, random: Random(3)), height: 1500);
+  });
+
+  testWidgets('45 أكمل النمط', (t) async {
+    final st = await _state();
+    await _shot(t, '45_sequence', st, TowerPlayScreen(game: TowerGame.sequence, random: Random(4)));
+  });
+
+  testWidgets('46 رحلة اليوم', (t) async {
+    final st = await _state();
+    st.recordAnswer('q1', true);
+    st.bump('tower', 3);
+    await _shot(t, '46_daily', st, const DailyScreen());
+  });
+
+  testWidgets('47 إتقاني', (t) async {
+    final st = await _state();
+    await _shot(t, '47_mastery', st, const MasteryScreen());
   });
 
   // فحوص إرشادات الوصول المضمّنة في Flutter: حجم أهداف اللمس، وجود وصف لكل زر، وتباين النص.

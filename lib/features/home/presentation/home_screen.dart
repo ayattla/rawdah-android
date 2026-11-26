@@ -21,6 +21,11 @@ import 'package:rawdah/features/learn/presentation/words_numbers_screens.dart';
 import 'package:rawdah/features/islamic/presentation/islamic_screens.dart';
 import 'package:rawdah/features/stories/presentation/stories_screen.dart';
 import 'package:rawdah/features/planets/presentation/planets_screen.dart';
+import 'package:rawdah/features/tower/presentation/tower_screens.dart';
+import 'package:rawdah/features/daily/presentation/daily_screen.dart';
+import 'package:rawdah/features/daily/domain/quests.dart';
+import 'package:rawdah/features/quizzes/domain/mastery.dart';
+import 'package:rawdah/features/hifz/domain/hifz_schedule.dart';
 
 class _Place {
   final String title;
@@ -55,6 +60,8 @@ class HomeMapScreen extends StatelessWidget {
       _Place('حديقتي', 'نخلتي وعادات الخير', Icons.park_rounded, RC.garden, (_) => const GardenScreen(), SceneTheme.islamic),
     ]),
     ('ألعب وأنافس', [
+      _Place('برج الألغاز', 'ألغاز لا تنتهي', Icons.extension_rounded, const Color(0xFF8B5CF6), (_) => const TowerScreen()),
+      _Place('إتقاني', 'أتقن كل الأسئلة', Icons.psychology_rounded, const Color(0xFF10B981), (_) => const MasteryScreen()),
       _Place('المسابقات', 'أجب واجمع النجوم', Icons.emoji_events_rounded, RC.goldDark, (_) => const QuizHubScreen()),
       _Place('ساحة الألعاب', 'نلعب ونتعلم', Icons.extension_rounded, RC.plum, (_) => const GamesHubScreen()),
       _Place('ميدان المنافسة', 'نافس واصعد', Icons.leaderboard_rounded, RC.green, (_) => const CompetitionScreen()),
@@ -663,26 +670,30 @@ class _HomeWidgets extends StatelessWidget {
             color: const Color(0xFFFFC23F),
             icon: done ? Icons.check_circle_rounded : Icons.bolt_rounded,
             title: 'تحدي اليوم',
-            line: done ? 'أنجزته اليوم' : '٣ أسئلة بنجوم مضاعفة',
+            line: done ? 'أنجزته اليوم' : '٥ أسئلة تختار لك ما تحتاجه',
             onTap: () {
-              final day = DateTime.now();
-              final r = math.Random(day.year * 1000 + day.month * 40 + day.day);
-              final pool = kQuestions.where((q) => q.band <= child.ageBand).toList()..shuffle(r);
+              final pool = kQuestions.where((q) => q.band <= child.ageBand).toList();
+              final qs = smartPick(pool, child.mastery, dayNumber(DateTime.now()), count: 5);
               Navigator.of(context).push(MaterialPageRoute(
-                builder: (_) => QuizRunner(title: 'تحدي اليوم', questions: pool.take(3).toList(), completionId: 'daily_${todayKey()}'),
+                builder: (_) => QuizRunner(title: 'تحدي اليوم', questions: qs, completionId: 'daily_${todayKey()}'),
               ));
             },
           ),
         ),
         const SizedBox(width: 12),
         Expanded(
-          child: _CandyWidget(
-            color: const Color(0xFF22D3EE),
-            icon: Icons.local_fire_department_rounded,
-            title: 'سلسلة أيامي',
-            line: '${child.streak} يوم متواصل',
-            onTap: null,
-          ),
+          child: Builder(builder: (context) {
+            final st = AppScope.of(context);
+            final qs = questsFor(DateTime.now(), level: child.level, hasHifz: child.hifz.isNotEmpty);
+            final n = qs.where((q) => st.todayCount(q.kind) >= q.goal).length;
+            return _CandyWidget(
+              color: const Color(0xFF22D3EE),
+              icon: Icons.map_rounded,
+              title: 'رحلة اليوم',
+              line: '$n من ${qs.length} مهام • سلسلة ${child.streak}',
+              onTap: () => Navigator.of(context).push(MaterialPageRoute(builder: (_) => const DailyScreen())),
+            );
+          }),
         ),
       ]),
     );
