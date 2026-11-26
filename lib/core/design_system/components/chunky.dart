@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 
 import 'package:rawdah/core/design_system/components/a11y.dart';
+import 'package:rawdah/core/design_system/components/haptics.dart';
 import 'package:rawdah/core/design_system/geometry/zellij.dart';
 import 'package:rawdah/core/design_system/tokens/colors.dart';
 import 'package:rawdah/core/design_system/tokens/typography.dart';
@@ -67,7 +67,7 @@ class _ChunkyState extends State<Chunky> {
         onTapUp: (_) => _set(false),
         onTap: enabled
             ? () {
-                HapticFeedback.selectionClick();
+                Haptics.tap();
                 widget.onTap!();
               }
             : null,
@@ -101,18 +101,66 @@ class KhatamBadge extends StatelessWidget {
       {super.key, required this.icon, required this.color, this.size = 64, this.iconColor = Colors.white, this.label});
 
   @override
-  Widget build(BuildContext context) => ExcludeSemantics(
-        child: SizedBox(
+  Widget build(BuildContext context) {
+    final flat = A11y.highContrastOf(context);
+    return ExcludeSemantics(
+      child: SizedBox(
         width: size,
         height: size,
-        child: DecoratedBox(
-          decoration: ShapeDecoration(color: color, shape: const KhatamBorder()),
-          child: Center(
-            child: label != null
-                ? Text(label!, style: RT.display(size * 0.36, color: iconColor))
-                : Icon(icon, color: iconColor, size: size * 0.48),
+        child: CustomPaint(
+          painter: _BadgePainter(color, flat),
+          // قمة المحراب ضيقة، فننزل الأيقونة قليلًا لتبدو في المنتصف البصري
+          child: Padding(
+            padding: EdgeInsets.only(top: size * 0.16, bottom: size * 0.02),
+            child: Center(
+              child: label != null
+                  ? Text(label!, style: RT.display(size * 0.34, color: iconColor))
+                  : Icon(icon,
+                      color: iconColor,
+                      size: size * 0.44,
+                      shadows: flat ? null : [Shadow(color: Colors.black.withValues(alpha: 0.18), offset: Offset(0, size * 0.03))]),
+            ),
           ),
         ),
       ),
-      );
+    );
+  }
+}
+
+/// محراب كلعبة بلاستيكية: ظل صلب أسفله، تدرج من فاتح لغامق، ولمعة بيضاء على الحافة.
+class _BadgePainter extends CustomPainter {
+  final Color color;
+  final bool flat;
+  _BadgePainter(this.color, this.flat);
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final r = size.shortestSide / 2 * 0.94;
+    final c = size.center(Offset(0, -size.height * 0.02));
+    final body = khatamPath(c, r);
+    if (flat) {
+      canvas.drawPath(body, Paint()..color = color);
+      return;
+    }
+    final hsl = HSLColor.fromColor(color);
+    final dark = hsl.withLightness((hsl.lightness - 0.16).clamp(0.0, 1.0)).toColor();
+    final light = hsl.withLightness((hsl.lightness + 0.12).clamp(0.0, 1.0)).toColor();
+    canvas.drawPath(body.shift(Offset(0, size.height * 0.06)), Paint()..color = dark);
+    canvas.drawPath(
+      body,
+      Paint()
+        ..shader = LinearGradient(begin: Alignment.topCenter, end: Alignment.bottomCenter, colors: [light, color])
+            .createShader(body.getBounds()),
+    );
+    canvas.drawPath(
+      khatamPath(c, r * 0.82),
+      Paint()
+        ..color = Colors.white.withValues(alpha: 0.28)
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = size.width * 0.035,
+    );
+  }
+
+  @override
+  bool shouldRepaint(covariant _BadgePainter old) => old.color != color || old.flat != flat;
 }

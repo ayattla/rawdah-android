@@ -27,7 +27,8 @@ class _Place {
   final IconData icon;
   final Color color;
   final WidgetBuilder builder;
-  const _Place(this.title, this.hint, this.icon, this.color, this.builder);
+  final SceneTheme theme;
+  const _Place(this.title, this.hint, this.icon, this.color, this.builder, [this.theme = SceneTheme.play]);
 }
 
 /// الصفحة الرئيسية: «صحن الروضة».
@@ -41,14 +42,14 @@ class HomeMapScreen extends StatelessWidget {
   /// الأقسام مجمعة حسب ما يريده الطفل: أول بلاطة في كل جناح عريضة، والباقي صغيرة.
   static final List<(String, List<_Place>)> _wings = [
     ('قرآني وديني', [
-      _Place('المدرسة', 'قرآن وأذكار ودروس', Icons.school_rounded, RC.sea, (_) => const SchoolScreen()),
-      _Place('ركن المسلم', 'السيرة والأذكار ورتب', Icons.mosque_rounded, const Color(0xFF1F5E4A), (_) => const IslamicHubScreen()),
-      _Place('بيت القصص', 'قصص نتعلم منها', Icons.auto_stories_rounded, RC.coral, (_) => const StoriesScreen()),
+      _Place('المدرسة', 'قرآن وأذكار ودروس', Icons.school_rounded, RC.sea, (_) => const SchoolScreen(), SceneTheme.quran),
+      _Place('ركن المسلم', 'السيرة والأذكار ورتب', Icons.mosque_rounded, const Color(0xFF1F5E4A), (_) => const IslamicHubScreen(), SceneTheme.islamic),
+      _Place('بيت القصص', 'قصص نتعلم منها', Icons.auto_stories_rounded, RC.coral, (_) => const StoriesScreen(), SceneTheme.islamic),
     ]),
     ('أتعلم وأكتشف', [
-      _Place('حروفي وأرقامي', 'حروف وكلمات وعد وقراءة', Icons.abc_rounded, const Color(0xFF1F2A44), (_) => const LearnHubScreen()),
-      _Place('عالم العلوم', 'الفضاء والماء وبلادي', Icons.science_rounded, RC.night, (_) => const ScienceHubScreen()),
-      _Place('حديقتي', 'نخلتي وعادات الخير', Icons.park_rounded, RC.garden, (_) => const GardenScreen()),
+      _Place('حروفي وأرقامي', 'حروف وكلمات وعد وقراءة', Icons.abc_rounded, const Color(0xFF1F2A44), (_) => const LearnHubScreen(), SceneTheme.learn),
+      _Place('عالم العلوم', 'الفضاء والماء وبلادي', Icons.science_rounded, RC.night, (_) => const ScienceHubScreen(), SceneTheme.science),
+      _Place('حديقتي', 'نخلتي وعادات الخير', Icons.park_rounded, RC.garden, (_) => const GardenScreen(), SceneTheme.islamic),
     ]),
     ('ألعب وأنافس', [
       _Place('المسابقات', 'أجب واجمع النجوم', Icons.emoji_events_rounded, RC.goldDark, (_) => const QuizHubScreen()),
@@ -60,9 +61,11 @@ class HomeMapScreen extends StatelessWidget {
   ];
 
 
-  void _open(BuildContext context, _Place p) {
+  Future<void> _open(BuildContext context, _Place p) async {
     Voice.instance.say(p.title);
-    Navigator.of(context).push(MaterialPageRoute(builder: p.builder));
+    SceneTheme.active = p.theme;
+    await Navigator.of(context).push(MaterialPageRoute(builder: p.builder));
+    SceneTheme.active = SceneTheme.home;
   }
 
   @override
@@ -76,6 +79,7 @@ class HomeMapScreen extends StatelessWidget {
         if (didPop) st.leaveChild();
       },
       child: ChildShell(
+        theme: SceneTheme.home,
         child: CustomScrollView(slivers: [
           SliverToBoxAdapter(child: _TopBar(child: c)),
           SliverToBoxAdapter(child: _ArchHeader(child: c)),
@@ -97,9 +101,10 @@ class HomeMapScreen extends StatelessWidget {
               sliver: SliverGrid(
                 gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
                   crossAxisCount: 2,
-                  mainAxisSpacing: 12,
-                  crossAxisSpacing: 12,
-                  childAspectRatio: 1.45 / MediaQuery.textScalerOf(context).scale(1).clamp(1.0, 1.6),
+                  mainAxisSpacing: 14,
+                  crossAxisSpacing: 14,
+                  // ارتفاع ثابت يكفي الشارة والعنوان والوصف، ويكبر مع حجم الخط فلا يخرج النص من الكرت
+                  mainAxisExtent: 156 * MediaQuery.textScalerOf(context).scale(1).clamp(1.0, 1.6),
                 ),
                 delegate: SliverChildBuilderDelegate(
                   childCount: places.length - 1,
@@ -619,12 +624,19 @@ class _PlaceTile extends StatelessWidget {
             ),
             PositionedDirectional(top: 12, end: 12, child: _Dot(color: place.color.withValues(alpha: 0.25), size: 8)),
             Padding(
-              padding: const EdgeInsets.all(12),
-              child: Column(children: [
-                KhatamBadge(icon: place.icon, color: place.color, size: 48),
-                const Spacer(),
-                Text(place.title, textAlign: TextAlign.center, style: RT.display(18, color: RC.ink), maxLines: 1, overflow: TextOverflow.ellipsis),
-                Text(place.hint, textAlign: TextAlign.center, style: RT.body(13, color: RC.inkSoft), maxLines: 1, overflow: TextOverflow.ellipsis),
+              padding: const EdgeInsets.fromLTRB(10, 12, 10, 14),
+              child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
+                KhatamBadge(icon: place.icon, color: place.color, size: 54),
+                const SizedBox(height: 8),
+                FittedBox(
+                  fit: BoxFit.scaleDown,
+                  child: Text(place.title, textAlign: TextAlign.center, maxLines: 1, style: RT.display(18, color: RC.ink).copyWith(height: 1.25)),
+                ),
+                const SizedBox(height: 2),
+                FittedBox(
+                  fit: BoxFit.scaleDown,
+                  child: Text(place.hint, textAlign: TextAlign.center, maxLines: 1, style: RT.body(13, color: RC.inkSoft).copyWith(height: 1.3)),
+                ),
               ]),
             ),
           ]),

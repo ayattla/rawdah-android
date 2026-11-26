@@ -126,6 +126,7 @@ class _OrderGameScreenState extends State<OrderGameScreen> {
 
   Future<void> _pick(String item) async {
     final ok = _g.pick(item);
+    ok ? Haptics.tap() : Haptics.error();
     setState(() => _wrong = ok ? null : item);
     if (ok) Voice.instance.say(item);
     if (ok && _g.done) {
@@ -219,6 +220,7 @@ class _MemoryGameScreenState extends State<MemoryGameScreen> {
     if (res == null) return;
     setState(() {});
     if (res == true) {
+      Haptics.success();
       final p = _pairs[_g.cards[i].pair];
       Voice.instance.say(p.dhikr);
       if (_g.done) {
@@ -227,6 +229,7 @@ class _MemoryGameScreenState extends State<MemoryGameScreen> {
         if (mounted) Navigator.of(context).pop();
       }
     } else if (_g.hasWrongPair) {
+      Haptics.error();
       _close = Timer(const Duration(milliseconds: 1100), () {
         if (mounted) setState(_g.closeWrong);
       });
@@ -430,6 +433,7 @@ class _TrueFalseScreenState extends State<TrueFalseScreen> {
     if (_answered != null) return;
     final ok = v == _items[_i].isTrue;
     if (ok) _right++;
+    ok ? Haptics.success() : Haptics.error();
     setState(() => _answered = ok);
     Voice.instance.say(ok ? 'أحسنت' : 'انتبه');
   }

@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import 'package:rawdah/core/design_system/components/haptics.dart';
+
 /// إعدادات الوصول السارية في الشاشة: تجمع اختيار الوالدين في التطبيق
 /// مع إعدادات النظام (التباين العالي، إيقاف الحركة، حجم الخط).
 class A11y extends InheritedWidget {
@@ -43,6 +45,7 @@ class A11yScope extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    Haptics.enabled = !reduceMotion;
     final mq = MediaQuery.of(context);
     final system = mq.textScaler.scale(16) / 16;
     final scale = (system * appTextScale).clamp(1.0, maxScale);

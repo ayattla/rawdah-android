@@ -144,7 +144,7 @@ class _QuizRunnerState extends ConsumerState<QuizRunner> {
     final q = ref.read(quizControllerProvider(_args)).current;
     final ok = _ctrl.answer(k);
     if (ok == null) return;
-    ok ? HapticFeedback.lightImpact() : HapticFeedback.heavyImpact();
+    ok ? Haptics.success() : Haptics.error();
     Voice.instance.say(ok ? 'إجابة صحيحة. ${q.explain}' : 'الإجابة الصحيحة: ${q.options[q.answer]}. ${q.explain}');
   }
 
@@ -350,7 +350,7 @@ class _RaceScreenState extends State<RaceScreen> {
     if (_done || _flash != null) return;
     final q = _qs[_i % _qs.length];
     final ok = k == q.answer;
-    ok ? HapticFeedback.lightImpact() : HapticFeedback.heavyImpact();
+    ok ? Haptics.success() : Haptics.error();
     setState(() {
       _flash = ok ? 1 : 2;
       if (ok) _right++;

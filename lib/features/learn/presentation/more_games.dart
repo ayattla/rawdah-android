@@ -23,6 +23,7 @@ mixin _Rounds<T extends StatefulWidget> on State<T> {
 
   Future<void> answer(Object choice, Object correct, {String? say}) async {
     if (choice != correct) {
+      Haptics.error();
       setState(() {
         wrong = choice;
         missed = true;
@@ -30,6 +31,7 @@ mixin _Rounds<T extends StatefulWidget> on State<T> {
       return;
     }
     if (!missed) right++;
+    Haptics.success();
     Voice.instance.say(say ?? 'صح');
     if (i + 1 >= total) {
       final stars = right >= total ? 3 : (right >= total - 2 ? 2 : 1);

@@ -179,9 +179,11 @@ class _WordBuilderScreenState extends State<WordBuilderScreen> {
   void _tap(int tile) {
     if (_solved) return;
     final ok = _game.place(tile);
+    ok ? Haptics.tap() : Haptics.error();
     setState(() => _shake = ok ? null : tile);
     if (ok && _game.isCorrect) {
       _solved = true;
+      Haptics.success();
       _stars += _game.stars;
       Voice.instance.say(_game.target.word);
     }
@@ -393,12 +395,14 @@ class _CountGameScreenState extends State<CountGameScreen> {
   void _tapDate(int k) {
     if (_counted.containsKey(k)) return;
     final n = _counted.length + 1;
+    Haptics.tap();
     setState(() => _counted[k] = n);
     Voice.instance.say('$n');
   }
 
   Future<void> _answer(int v) async {
     if (v != _r.count) {
+      Haptics.error();
       setState(() {
         _wrong = v;
         _missed = true;
@@ -500,6 +504,7 @@ class _CompareGameScreenState extends State<CompareGameScreen> {
   Future<void> _answer(int v) async {
     final r = _rounds[_i];
     if (v != r.answer) {
+      Haptics.error();
       setState(() {
         _wrong = v;
         _missed = true;

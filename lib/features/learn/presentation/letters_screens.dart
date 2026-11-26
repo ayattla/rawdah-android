@@ -567,6 +567,7 @@ class _PickStepState extends State<_PickStep> {
   Future<void> _tap(ArabicLetter l) async {
     if (l == widget.letter) {
       if (_wrong == null) _right++;
+      Haptics.success();
       Voice.instance.say('صح');
       if (_round + 1 >= _rounds) {
         await widget.onFinish(_right, _rounds);
@@ -578,6 +579,7 @@ class _PickStepState extends State<_PickStep> {
         _options = _make();
       });
     } else {
+      Haptics.error();
       setState(() => _wrong = kLetters.indexOf(l));
     }
   }

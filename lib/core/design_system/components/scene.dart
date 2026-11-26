@@ -15,10 +15,28 @@ import 'package:rawdah/core/design_system/geometry/zellij.dart';
 /// نهارًا: سماء لافندرية تذوب في الأزرق والكريمي، كواكب ملونة بحلقات، قصاصات ملونة،
 /// وغيوم منفوخة في الأسفل، مع رواق محاريب خافت في الأعلى توقيعًا لروضة.
 /// ليلًا: فضاء بنفسجي عميق بكواكب زاهية ونقاط ضوء.
+/// لكل قسم سماؤه وألوان كواكبه، فيشعر الطفل أنه انتقل إلى عالم آخر.
+enum SceneTheme {
+  home([Color(0xFFEFE8FF), Color(0xFFE5F3FF), Color(0xFFFFF4E2)], Color(0xFF8B5CF6), Color(0xFFFFC23F), Color(0xFFFF7A3D), Color(0xFF14B8A6)),
+  quran([Color(0xFFDDF5EE), Color(0xFFE8F4FF), Color(0xFFFFF6E3)], Color(0xFF0F9D8A), Color(0xFFF2B544), Color(0xFF3B9BFF), Color(0xFFF2B544)),
+  islamic([Color(0xFFE3F5E9), Color(0xFFF1FAEC), Color(0xFFFFF5E0)], Color(0xFF1F8A5B), Color(0xFFE0A21B), Color(0xFF14B8A6), Color(0xFFE0A21B)),
+  learn([Color(0xFFF0E6FF), Color(0xFFFFE8F2), Color(0xFFFFF4E2)], Color(0xFFA855F7), Color(0xFFFF5D8F), Color(0xFFFFC23F), Color(0xFF8B5CF6)),
+  science([Color(0xFFDDEEFF), Color(0xFFE2FAFF), Color(0xFFEDE7FF)], Color(0xFF2563EB), Color(0xFF22D3EE), Color(0xFF8B5CF6), Color(0xFF22D3EE)),
+  play([Color(0xFFFFEBD9), Color(0xFFFFF7D1), Color(0xFFE6F6FF)], Color(0xFFFF7A3D), Color(0xFFFFC23F), Color(0xFF3B9BFF), Color(0xFFFF5D8F));
+
+  final List<Color> sky;
+  final Color planet1, ring1, planet2, ring2;
+  const SceneTheme(this.sky, this.planet1, this.ring1, this.planet2, this.ring2);
+
+  /// قسم الشاشات المفتوحة حاليًا: تضبطه الرئيسية عند فتح قسم، فترث شاشاته الداخلية سماءه.
+  static SceneTheme active = SceneTheme.home;
+}
+
 class ScenePainter extends CustomPainter {
   final bool night;
   final bool plain; // تباين عالٍ: لون واحد بلا زخرفة
-  ScenePainter({this.night = false, this.plain = false});
+  final SceneTheme theme;
+  ScenePainter({this.night = false, this.plain = false, this.theme = SceneTheme.home});
 
   static const _candy = [Color(0xFFFF5D8F), Color(0xFFFFC23F), Color(0xFF14B8A6), Color(0xFF8B5CF6), Color(0xFF3B9BFF), Color(0xFFFF7A3D)];
 
@@ -37,7 +55,7 @@ class ScenePainter extends CustomPainter {
           end: Alignment.bottomCenter,
           colors: night
               ? const [Color(0xFF1A1145), Color(0xFF2A1A66), Color(0xFF1B2459)]
-              : const [Color(0xFFEFE8FF), Color(0xFFE5F3FF), Color(0xFFFFF4E2)],
+              : theme.sky,
           stops: const [0, 0.55, 1],
         ).createShader(rect),
     );
@@ -54,8 +72,8 @@ class ScenePainter extends CustomPainter {
       canvas.drawArc(oval, t, 0.045, false, orbit);
     }
 
-    _planet(canvas, Offset(w * 0.88, h * 0.10), w * 0.13, const Color(0xFF8B5CF6).withValues(alpha: a), const Color(0xFFFFC23F).withValues(alpha: a + 0.06));
-    _planet(canvas, Offset(w * 0.06, h * 0.62), w * 0.16, const Color(0xFFFF7A3D).withValues(alpha: a), const Color(0xFF14B8A6).withValues(alpha: a + 0.06));
+    _planet(canvas, Offset(w * 0.88, h * 0.10), w * 0.13, theme.planet1.withValues(alpha: a), theme.ring1.withValues(alpha: a + 0.06));
+    _planet(canvas, Offset(w * 0.06, h * 0.62), w * 0.16, theme.planet2.withValues(alpha: a), theme.ring2.withValues(alpha: a + 0.06));
     canvas.drawCircle(Offset(w * 0.18, h * 0.22), w * 0.045, Paint()..color = const Color(0xFF14B8A6).withValues(alpha: a));
     canvas.drawCircle(Offset(w * 0.80, h * 0.78), w * 0.06, Paint()..color = const Color(0xFFFF5D8F).withValues(alpha: a * 0.8));
 
@@ -108,18 +126,19 @@ class ScenePainter extends CustomPainter {
   }
 
   @override
-  bool shouldRepaint(covariant ScenePainter old) => old.night != night || old.plain != plain;
+  bool shouldRepaint(covariant ScenePainter old) => old.night != night || old.plain != plain || old.theme != theme;
 }
 
 class SceneBackground extends StatelessWidget {
   final Widget child;
   final bool night;
-  const SceneBackground({super.key, required this.child, this.night = false});
+  final SceneTheme? theme;
+  const SceneBackground({super.key, required this.child, this.night = false, this.theme});
 
   @override
   Widget build(BuildContext context) =>
       CustomPaint(
-          painter: ScenePainter(night: night, plain: A11y.highContrastOf(context)), child: SafeArea(child: child));
+          painter: ScenePainter(night: night, plain: A11y.highContrastOf(context), theme: theme ?? SceneTheme.active), child: SafeArea(child: child));
 }
 
 
@@ -139,7 +158,8 @@ class ChildShell extends StatelessWidget {
 
   final Widget child;
   final bool night;
-  const ChildShell({super.key, required this.child, this.night = false});
+  final SceneTheme? theme;
+  const ChildShell({super.key, required this.child, this.night = false, this.theme});
 
   @override
   Widget build(BuildContext context) {
@@ -176,6 +196,6 @@ class ChildShell extends StatelessWidget {
         ),
       );
     }
-    return Scaffold(body: SceneBackground(night: night, child: NightScope(night: night, child: child)));
+    return Scaffold(body: SceneBackground(night: night, theme: theme ?? SceneTheme.active, child: NightScope(night: night, child: child)));
   }
 }

@@ -1,6 +1,7 @@
 import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
+import 'package:rawdah/core/design_system/components/haptics.dart';
 import 'package:flutter/services.dart';
 
 import 'package:rawdah/core/design_system/components/a11y.dart';
@@ -13,7 +14,11 @@ import 'package:rawdah/core/services/voice.dart';
 
 Future<void> showReward(BuildContext context, {required int stars, String title = 'أحسنت!'}) {
   Voice.instance.say(stars > 0 ? '$title حصلت على $stars نجوم' : title);
-  HapticFeedback.mediumImpact();
+  if (stars > 0) {
+    Haptics.celebrate();
+  } else {
+    Haptics.success();
+  }
   return showGeneralDialog(
     context: context,
     barrierDismissible: true,
