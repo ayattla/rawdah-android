@@ -86,7 +86,7 @@ class _OrderChip extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final w = (MediaQuery.sizeOf(context).width - 42) / 2;
+    final w = (MediaQuery.sizeOf(context).width - 74) / 2;
     return Semantics(
       button: true,
       label: 'رتب ${set.title}${done ? '، أنجزته' : ''}',
