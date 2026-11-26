@@ -86,8 +86,8 @@ class HomeMapScreen extends StatelessWidget {
           if (c.onlineEnabled && c.circleCode.isNotEmpty) SliverToBoxAdapter(child: _CircleChip(child: c)),
           const SliverToBoxAdapter(child: _MissionsCard()),
           if (st.hifzDue().isNotEmpty) SliverToBoxAdapter(child: _ReviewBanner(count: st.hifzDue().length)),
-          for (final (title, places) in _wings) ...[
-            SliverToBoxAdapter(child: _WingTitle(title)),
+          for (final (wi, (title, places)) in _wings.indexed) ...[
+            SliverToBoxAdapter(child: _WingTitle(title, wi)),
             SliverPadding(
               padding: const EdgeInsets.symmetric(horizontal: 16),
               sliver: SliverToBoxAdapter(child: _WideTile(place: places.first, onTap: () => _open(context, places.first))),
@@ -353,95 +353,248 @@ class _HeroTile extends StatelessWidget {
       );
 }
 
-/// خط فاصل يتلاشى نحو الطرف، وينتهي بمعين صغير عند العنوان.
-class _Rule extends StatelessWidget {
-  final AlignmentDirectional fadeTo;
-  const _Rule({required this.fadeTo});
+/// ألوان الأجنحة: حلوى مشبعة بحدود أغمق، كملصقات برامج الأطفال.
+const _wingColors = [
+  (Color(0xFF14B8A6), Color(0xFF0B6E66)), // فيروزي
+  (Color(0xFF8B5CF6), Color(0xFF4C2A99)), // بنفسجي
+  (Color(0xFFFF7A3D), Color(0xFFB2410F)), // برتقالي
+];
+
+/// عنوان الجناح: ملصق منفوخ مائل قليلًا بحد سميك وظل صلب، تحوم حوله كواكب صغيرة.
+class _WingTitle extends StatefulWidget {
+  final String text;
+  final int index;
+  const _WingTitle(this.text, this.index);
+
+  @override
+  State<_WingTitle> createState() => _WingTitleState();
+}
+
+class _WingTitleState extends State<_WingTitle> with SingleTickerProviderStateMixin {
+  late final AnimationController _float = AnimationController(vsync: this, duration: const Duration(milliseconds: 2600));
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (A11y.reduceMotionOf(context)) {
+      _float.stop();
+    } else if (!_float.isAnimating) {
+      _float.repeat();
+    }
+  }
+
+  @override
+  void dispose() {
+    _float.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
-    final toStart = fadeTo == AlignmentDirectional.centerStart;
-    final line = Expanded(
-      child: Container(
-        height: 2,
-        decoration: BoxDecoration(
-          gradient: LinearGradient(
-            begin: toStart ? AlignmentDirectional.centerEnd : AlignmentDirectional.centerStart,
-            end: fadeTo,
-            colors: [RC.gold.withValues(alpha: 0.7), RC.gold.withValues(alpha: 0)],
-          ),
+    final (fill, edge) = _wingColors[widget.index % _wingColors.length];
+    final tilt = widget.index.isEven ? -0.035 : 0.035;
+    final reduce = A11y.reduceMotionOf(context);
+    final label = Container(
+      padding: const EdgeInsets.symmetric(horizontal: 22, vertical: 8),
+      decoration: ShapeDecoration(
+        color: fill,
+        shape: StadiumBorder(side: BorderSide(color: edge, width: 3.5)),
+        shadows: [BoxShadow(color: edge, offset: const Offset(0, 5))],
+      ),
+      child: Text(widget.text, style: RT.display(20, color: Colors.white)),
+    );
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(16, 22, 16, 14),
+      child: SizedBox(
+        height: 64,
+        child: AnimatedBuilder(
+          animation: _float,
+          builder: (context, child) {
+            final t = _float.value * 2 * math.pi;
+            return Stack(alignment: Alignment.center, clipBehavior: Clip.none, children: [
+              // كوكب بحلقة على جهة، وقمران صغيران على الأخرى، يتمايلون ببطء
+              PositionedDirectional(
+                start: 38,
+                top: 6 + math.sin(t) * 4,
+                child: _Planet(color: edge, ring: fill, size: 26),
+              ),
+              PositionedDirectional(
+                end: 46,
+                top: 30 + math.cos(t) * 3,
+                child: _Dot(color: fill.withValues(alpha: 0.55), size: 14),
+              ),
+              PositionedDirectional(
+                end: 74,
+                top: 8 + math.sin(t + 1) * 3,
+                child: _Dot(color: edge.withValues(alpha: 0.35), size: 9),
+              ),
+              Transform.rotate(angle: reduce ? tilt : tilt + math.sin(t) * 0.012, child: child),
+            ]);
+          },
+          child: label,
         ),
       ),
     );
-    final diamond = Transform.rotate(
-      angle: math.pi / 4,
-      child: Container(width: 7, height: 7, color: RC.gold),
-    );
-    return Row(children: toStart ? [line, diamond] : [diamond, line]);
   }
 }
 
-class _WingTitle extends StatelessWidget {
-  final String text;
-  const _WingTitle(this.text);
-
+class _Dot extends StatelessWidget {
+  final Color color;
+  final double size;
+  const _Dot({required this.color, required this.size});
   @override
-  Widget build(BuildContext context) => Padding(
-        padding: const EdgeInsets.fromLTRB(20, 18, 20, 10),
-        child: Row(children: [
-          Expanded(child: _Rule(fadeTo: AlignmentDirectional.centerStart)),
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 12),
-            child: Text(text, style: RT.display(19, color: RC.ink)),
-          ),
-          Expanded(child: _Rule(fadeTo: AlignmentDirectional.centerEnd)),
-        ]),
+  Widget build(BuildContext context) =>
+      Container(width: size, height: size, decoration: BoxDecoration(color: color, shape: BoxShape.circle));
+}
+
+class _Planet extends StatelessWidget {
+  final Color color;
+  final Color ring;
+  final double size;
+  const _Planet({required this.color, required this.ring, required this.size});
+  @override
+  Widget build(BuildContext context) => SizedBox(
+        width: size * 1.8,
+        height: size,
+        child: CustomPaint(painter: _PlanetPainter(color, ring)),
       );
 }
 
-/// البلاطة العريضة: محراب كبير يطل من الطرف كأنه باب القسم.
-class _WideTile extends StatelessWidget {
+class _PlanetPainter extends CustomPainter {
+  final Color color;
+  final Color ring;
+  _PlanetPainter(this.color, this.ring);
+  @override
+  void paint(Canvas canvas, Size size) {
+    final c = size.center(Offset.zero);
+    final r = size.height / 2;
+    final ringPaint = Paint()
+      ..color = ring
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 3;
+    final oval = Rect.fromCenter(center: c, width: size.width, height: r * 0.9);
+    canvas.save();
+    canvas.translate(c.dx, c.dy);
+    canvas.rotate(-0.35);
+    canvas.translate(-c.dx, -c.dy);
+    canvas.drawArc(oval, math.pi, math.pi, false, ringPaint); // الحلقة خلف الكوكب
+    canvas.drawCircle(c, r * 0.72, Paint()..color = color);
+    canvas.drawCircle(c + Offset(-r * 0.22, -r * 0.22), r * 0.2, Paint()..color = Colors.white24);
+    canvas.drawArc(oval, 0, math.pi, false, ringPaint); // الحلقة أمامه
+    canvas.restore();
+  }
+
+  @override
+  bool shouldRepaint(covariant _PlanetPainter old) => old.color != color || old.ring != ring;
+}
+
+/// البلاطة العريضة: «شاشة» بإطار أبيض داخلي سميك وزرّين ملونين، والشارة تطفو برفق.
+class _WideTile extends StatefulWidget {
   final _Place place;
   final VoidCallback onTap;
   const _WideTile({required this.place, required this.onTap});
 
   @override
-  Widget build(BuildContext context) => Chunky(
-        color: place.color,
-        radius: 24,
-        depth: 6,
-        onTap: onTap,
-        semanticLabel: '${place.title}، ${place.hint}',
-        child: ClipRRect(
-          borderRadius: BorderRadius.circular(24),
-          child: SizedBox(
-            height: 112 * MediaQuery.textScalerOf(context).scale(1).clamp(1.0, 1.4),
-            child: Stack(children: [
-              if (!A11y.highContrastOf(context))
-                PositionedDirectional(
-                  end: 18,
-                  bottom: -26,
-                  child: CustomPaint(size: const Size(110, 140), painter: _ArchDoorPainter(Colors.white.withValues(alpha: 0.14))),
-                ),
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 16),
-                child: Row(children: [
-                  KhatamBadge(icon: place.icon, color: Colors.white, size: 62, iconColor: place.color),
-                  Expanded(
-                    child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
-                      Text(place.title, textAlign: TextAlign.center, style: RT.display(24, color: Colors.white), maxLines: 1, overflow: TextOverflow.ellipsis),
-                      Text(place.hint, textAlign: TextAlign.center, style: RT.body(14.5, color: Colors.white), maxLines: 1, overflow: TextOverflow.ellipsis),
-                    ]),
-                  ),
-                  const SizedBox(width: 62, child: Icon(Icons.chevron_left_rounded, color: Colors.white, size: 30)),
-                ]),
-              ),
-            ]),
-          ),
-        ),
-      );
+  State<_WideTile> createState() => _WideTileState();
 }
 
+class _WideTileState extends State<_WideTile> with SingleTickerProviderStateMixin {
+  late final AnimationController _bob = AnimationController(vsync: this, duration: const Duration(milliseconds: 2200));
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (A11y.reduceMotionOf(context)) {
+      _bob.stop();
+    } else if (!_bob.isAnimating) {
+      _bob.repeat(reverse: true);
+    }
+  }
+
+  @override
+  void dispose() {
+    _bob.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final place = widget.place;
+    final hc = A11y.highContrastOf(context);
+    return Chunky(
+      color: place.color,
+      radius: 28,
+      depth: 7,
+      onTap: widget.onTap,
+      semanticLabel: '${place.title}، ${place.hint}',
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(28),
+        child: SizedBox(
+          height: 118 * MediaQuery.textScalerOf(context).scale(1).clamp(1.0, 1.4),
+          child: Stack(children: [
+            if (!hc) ...[
+              PositionedDirectional(
+                end: 22,
+                bottom: -30,
+                child: CustomPaint(size: const Size(104, 136), painter: _ArchDoorPainter(Colors.white.withValues(alpha: 0.14))),
+              ),
+              // إطار الشاشة الداخلي
+              Positioned.fill(
+                child: Container(
+                  margin: const EdgeInsets.all(7),
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(22),
+                    border: Border.all(color: Colors.white.withValues(alpha: 0.55), width: 3),
+                  ),
+                ),
+              ),
+              // زرّا الشاشة
+              const PositionedDirectional(end: 18, top: 14, child: _Dot(color: Color(0xFFFFD23F), size: 11)),
+              const PositionedDirectional(end: 34, top: 14, child: _Dot(color: Color(0xFFFF5D8F), size: 11)),
+            ],
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 18),
+              child: Row(children: [
+                AnimatedBuilder(
+                  animation: _bob,
+                  builder: (_, child) => Transform.translate(
+                    offset: Offset(0, -4 * Curves.easeInOut.transform(_bob.value)),
+                    child: Transform.rotate(angle: (_bob.value - 0.5) * 0.08, child: child),
+                  ),
+                  child: KhatamBadge(icon: place.icon, color: Colors.white, size: 64, iconColor: place.color),
+                ),
+                Expanded(
+                  child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
+                    Text(place.title,
+                        textAlign: TextAlign.center,
+                        style: RT.display(25, color: Colors.white).copyWith(
+                          shadows: hc ? null : [Shadow(color: Colors.black.withValues(alpha: 0.25), offset: const Offset(0, 2))],
+                        ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis),
+                    const SizedBox(height: 2),
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 3),
+                      decoration: BoxDecoration(color: Colors.black.withValues(alpha: 0.16), borderRadius: BorderRadius.circular(20)),
+                      child: Text(place.hint,
+                          textAlign: TextAlign.center,
+                          style: RT.body(14, color: Colors.white),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis),
+                    ),
+                  ]),
+                ),
+                const SizedBox(width: 64, child: Icon(Icons.chevron_left_rounded, color: Colors.white, size: 32)),
+              ]),
+            ),
+          ]),
+        ),
+      ),
+    );
+  }
+}
+
+/// البلاطة الصغيرة: بيضاء بحافة سفلية بلون القسم كأنها لعبة بلاستيكية، وشريط ملون علوي.
 class _PlaceTile extends StatelessWidget {
   final _Place place;
   final VoidCallback onTap;
@@ -450,19 +603,30 @@ class _PlaceTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) => Chunky(
         color: Colors.white,
-        edge: RC.sandDark,
-        border: Border.all(color: RC.sandDark, width: 2),
-        radius: 22,
-        depth: 5,
+        edge: place.color,
+        border: Border.all(color: place.color.withValues(alpha: 0.35), width: 2.5),
+        radius: 24,
+        depth: 6,
         onTap: onTap,
         semanticLabel: '${place.title}، ${place.hint}',
-        child: Padding(
-          padding: const EdgeInsets.all(12),
-          child: Column(children: [
-            KhatamBadge(icon: place.icon, color: place.color, size: 46),
-            const Spacer(),
-            Text(place.title, textAlign: TextAlign.center, style: RT.display(18, color: RC.ink), maxLines: 1, overflow: TextOverflow.ellipsis),
-            Text(place.hint, textAlign: TextAlign.center, style: RT.body(13, color: RC.inkSoft), maxLines: 1, overflow: TextOverflow.ellipsis),
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(22),
+          child: Stack(children: [
+            PositionedDirectional(
+              top: -18,
+              start: -18,
+              child: _Dot(color: place.color.withValues(alpha: 0.12), size: 64),
+            ),
+            PositionedDirectional(top: 12, end: 12, child: _Dot(color: place.color.withValues(alpha: 0.25), size: 8)),
+            Padding(
+              padding: const EdgeInsets.all(12),
+              child: Column(children: [
+                KhatamBadge(icon: place.icon, color: place.color, size: 48),
+                const Spacer(),
+                Text(place.title, textAlign: TextAlign.center, style: RT.display(18, color: RC.ink), maxLines: 1, overflow: TextOverflow.ellipsis),
+                Text(place.hint, textAlign: TextAlign.center, style: RT.body(13, color: RC.inkSoft), maxLines: 1, overflow: TextOverflow.ellipsis),
+              ]),
+            ),
           ]),
         ),
       );
