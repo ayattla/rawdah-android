@@ -42,12 +42,23 @@ class KidBar extends StatelessWidget {
                   : const SizedBox.shrink(),
             ),
           ),
+          // العنوان على ملصق أبيض بحد سميك وظل صلب، كلافتات برامج الأطفال
           Expanded(
-            child: Text(title,
-                textAlign: TextAlign.center,
-                maxLines: 1,
-                style: RT.display(23, color: NightScope.of(context) ? Colors.white : RC.ink),
-                overflow: TextOverflow.ellipsis),
+            child: Center(
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 5),
+                decoration: ShapeDecoration(
+                  color: Colors.white,
+                  shape: const StadiumBorder(side: BorderSide(color: Color(0xFF4C2A99), width: 3)),
+                  shadows: const [BoxShadow(color: Color(0xFF4C2A99), offset: Offset(0, 4))],
+                ),
+                child: Text(title,
+                    textAlign: TextAlign.center,
+                    maxLines: 1,
+                    style: RT.display(20, color: RC.ink),
+                    overflow: TextOverflow.ellipsis),
+              ),
+            ),
           ),
           ConstrainedBox(
             constraints: const BoxConstraints(minWidth: 104),
@@ -134,8 +145,8 @@ class BigTile extends StatelessWidget {
     final hc = A11y.highContrastOf(context);
     return Chunky(
       color: Colors.white,
-      edge: color.withValues(alpha: 0.45),
-      border: Border.all(color: hc ? color : color.withValues(alpha: 0.25), width: 2),
+      edge: color,
+      border: Border.all(color: hc ? color : color.withValues(alpha: 0.45), width: 3),
       padding: const EdgeInsets.fromLTRB(14, 12, 14, 12),
       semanticLabel: [title, if (subtitle != null) subtitle!, if (done) 'مكتمل'].join('، '),
       onTap: () {
