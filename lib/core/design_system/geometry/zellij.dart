@@ -4,23 +4,32 @@ import 'package:flutter/material.dart';
 
 
 // =====================================================================
-// الهندسة: النجمة الثمانية (خاتم سليمان) ونقش الزليج
+// الهندسة: المحراب ونقش الرواق
 // =====================================================================
 
-/// مسار النجمة الثمانية: مربعان متداخلان، نصف القطر الداخلي 0.765 من الخارجي.
+/// مسار المحراب: قوس مدبب فوق جسم مستطيل بزوايا سفلية لينة، داخل دائرة نصف قطرها [r].
+/// صار المحراب توقيع روضة البصري بدل النجمة الثمانية: يكرر قوس الرأس في الصفحة الرئيسية،
+/// ويحيل إلى المسجد بلا رسم كائنات. [rotation] باقٍ للتوافق ولا أثر له.
 Path khatamPath(Offset c, double r, {double rotation = 0}) {
-  final p = Path();
-  const inner = 0.765;
-  for (var i = 0; i < 16; i++) {
-    final a = rotation - math.pi / 2 + i * math.pi / 8;
-    final rr = i.isEven ? r : r * inner;
-    final pt = c + Offset(math.cos(a) * rr, math.sin(a) * rr);
-    i == 0 ? p.moveTo(pt.dx, pt.dy) : p.lineTo(pt.dx, pt.dy);
-  }
-  return p..close();
+  final w = r * 1.62, h = r * 2;
+  final left = c.dx - w / 2, right = c.dx + w / 2;
+  final top = c.dy - h / 2, bottom = c.dy + h / 2;
+  final spring = top + w * 0.58; // بداية انحناء القوس
+  final k = w * 0.16;
+  final rise = spring - top;
+  return Path()
+    ..moveTo(left, spring)
+    ..lineTo(left, bottom - k)
+    ..quadraticBezierTo(left, bottom, left + k, bottom)
+    ..lineTo(right - k, bottom)
+    ..quadraticBezierTo(right, bottom, right, bottom - k)
+    ..lineTo(right, spring)
+    ..cubicTo(right, spring - rise * 0.6, c.dx + w * 0.16, top + rise * 0.14, c.dx, top)
+    ..cubicTo(c.dx - w * 0.16, top + rise * 0.14, left, spring - rise * 0.6, left, spring)
+    ..close();
 }
 
-/// شكل النجمة الثمانية كحدود لعناصر Flutter.
+/// شكل المحراب كحدود لعناصر Flutter.
 class KhatamBorder extends ShapeBorder {
   const KhatamBorder();
   @override
@@ -36,7 +45,7 @@ class KhatamBorder extends ShapeBorder {
   ShapeBorder scale(double t) => this;
 }
 
-/// نقش الزليج: شبكة نجوم ثمانية تربطها معيّنات، يخفت نحو الأسفل.
+/// نقش الخلفية: رواق من محاريب صغيرة متناوبة تربطها معيّنات، يخفت نحو الأسفل.
 class ZellijPainter extends CustomPainter {
   final Color color;
   final double cell;

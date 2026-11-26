@@ -38,19 +38,27 @@ class HomeMapScreen extends StatelessWidget {
   static final _journeys =
       _Place('رحلاتي', 'محطات تصل بك إلى الشهادة', Icons.route_rounded, RC.ink, (_) => const JourneysScreen());
 
-  static final List<_Place> _places = [
-    _Place('بيت القصص', 'قصص نتعلم منها', Icons.auto_stories_rounded, RC.coral, (_) => const StoriesScreen()),
-    _Place('المدرسة', 'قرآن وأذكار ودروس', Icons.school_rounded, RC.sea, (_) => const SchoolScreen()),
-    _Place('المسابقات', 'أجب واجمع النجوم', Icons.emoji_events_rounded, RC.goldDark, (_) => const QuizHubScreen()),
-    _Place('ركن المسلم الصغير', 'السيرة والأذكار ورتب', Icons.mosque_rounded, const Color(0xFF1F5E4A), (_) => const IslamicHubScreen()),
-    _Place('حروفي وأرقامي', 'حروف وكلمات وعدّ', Icons.abc_rounded, const Color(0xFF1F2A44), (_) => const LearnHubScreen()),
-    _Place('عالم العلوم', 'الفضاء والماء وبلادي', Icons.science_rounded, RC.night, (_) => const ScienceHubScreen()),
-    _Place('ساحة الألعاب', 'نلعب ونتعلم', Icons.extension_rounded, RC.plum, (_) => const GamesHubScreen()),
-    _Place('ميدان المنافسة', 'نافس واصعد الهرم', Icons.leaderboard_rounded, RC.green, (_) => const CompetitionScreen()),
-    _Place('حديقتي', 'نخلتي وعادات الخير', Icons.park_rounded, RC.garden, (_) => const GardenScreen()),
-    _Place('رمضان', 'فانوس لكل يوم', Icons.nightlight_round, RC.night, (_) => const RamadanScreen()),
-    _Place('مجلس العائلة', 'مسابقة مع أهلي', Icons.chair_rounded, RC.rose, (_) => const FamilyQuizScreen()),
+  /// الأقسام مجمعة حسب ما يريده الطفل: أول بلاطة في كل جناح عريضة، والباقي صغيرة.
+  static final List<(String, List<_Place>)> _wings = [
+    ('قرآني وديني', [
+      _Place('المدرسة', 'قرآن وأذكار ودروس', Icons.school_rounded, RC.sea, (_) => const SchoolScreen()),
+      _Place('ركن المسلم', 'السيرة والأذكار ورتب', Icons.mosque_rounded, const Color(0xFF1F5E4A), (_) => const IslamicHubScreen()),
+      _Place('بيت القصص', 'قصص نتعلم منها', Icons.auto_stories_rounded, RC.coral, (_) => const StoriesScreen()),
+    ]),
+    ('أتعلم وأكتشف', [
+      _Place('حروفي وأرقامي', 'حروف وكلمات وعد وقراءة', Icons.abc_rounded, const Color(0xFF1F2A44), (_) => const LearnHubScreen()),
+      _Place('عالم العلوم', 'الفضاء والماء وبلادي', Icons.science_rounded, RC.night, (_) => const ScienceHubScreen()),
+      _Place('حديقتي', 'نخلتي وعادات الخير', Icons.park_rounded, RC.garden, (_) => const GardenScreen()),
+    ]),
+    ('ألعب وأنافس', [
+      _Place('المسابقات', 'أجب واجمع النجوم', Icons.emoji_events_rounded, RC.goldDark, (_) => const QuizHubScreen()),
+      _Place('ساحة الألعاب', 'نلعب ونتعلم', Icons.extension_rounded, RC.plum, (_) => const GamesHubScreen()),
+      _Place('ميدان المنافسة', 'نافس واصعد', Icons.leaderboard_rounded, RC.green, (_) => const CompetitionScreen()),
+      _Place('مجلس العائلة', 'مسابقة مع أهلي', Icons.chair_rounded, RC.rose, (_) => const FamilyQuizScreen()),
+      _Place('رمضان', 'فانوس لكل يوم', Icons.nightlight_round, RC.night, (_) => const RamadanScreen()),
+    ]),
   ];
+
 
   void _open(BuildContext context, _Place p) {
     Voice.instance.say(p.title);
@@ -78,22 +86,28 @@ class HomeMapScreen extends StatelessWidget {
           if (c.onlineEnabled && c.circleCode.isNotEmpty) SliverToBoxAdapter(child: _CircleChip(child: c)),
           const SliverToBoxAdapter(child: _MissionsCard()),
           if (st.hifzDue().isNotEmpty) SliverToBoxAdapter(child: _ReviewBanner(count: st.hifzDue().length)),
-          SliverPadding(
-            padding: const EdgeInsets.fromLTRB(16, 4, 16, 8),
-            sliver: SliverGrid(
-              // البلاطة تطول مع تكبير الخط حتى لا يُقص العنوان
-              gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                crossAxisCount: 2,
-                mainAxisSpacing: 14,
-                crossAxisSpacing: 14,
-                childAspectRatio: 1.02 / MediaQuery.textScalerOf(context).scale(1).clamp(1.0, 1.6),
-              ),
-              delegate: SliverChildBuilderDelegate(
-                childCount: _places.length,
-                (context, i) => _PlaceTile(place: _places[i], onTap: () => _open(context, _places[i])),
+          for (final (title, places) in _wings) ...[
+            SliverToBoxAdapter(child: _WingTitle(title)),
+            SliverPadding(
+              padding: const EdgeInsets.symmetric(horizontal: 16),
+              sliver: SliverToBoxAdapter(child: _WideTile(place: places.first, onTap: () => _open(context, places.first))),
+            ),
+            SliverPadding(
+              padding: const EdgeInsets.fromLTRB(16, 12, 16, 4),
+              sliver: SliverGrid(
+                gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                  crossAxisCount: 2,
+                  mainAxisSpacing: 12,
+                  crossAxisSpacing: 12,
+                  childAspectRatio: 1.45 / MediaQuery.textScalerOf(context).scale(1).clamp(1.0, 1.6),
+                ),
+                delegate: SliverChildBuilderDelegate(
+                  childCount: places.length - 1,
+                  (context, i) => _PlaceTile(place: places[i + 1], onTap: () => _open(context, places[i + 1])),
+                ),
               ),
             ),
-          ),
+          ],
           const SliverToBoxAdapter(child: _HadithCard()),
           const SliverToBoxAdapter(child: _FactCard()),
           const SliverToBoxAdapter(child: SizedBox(height: 24)),
@@ -339,10 +353,26 @@ class _HeroTile extends StatelessWidget {
       );
 }
 
-class _PlaceTile extends StatelessWidget {
+class _WingTitle extends StatelessWidget {
+  final String text;
+  const _WingTitle(this.text);
+
+  @override
+  Widget build(BuildContext context) => Padding(
+        padding: const EdgeInsets.fromLTRB(20, 18, 20, 10),
+        child: Row(children: [
+          Text(text, style: RT.display(19, color: RC.ink)),
+          const SizedBox(width: 10),
+          Expanded(child: Container(height: 2, color: RC.sandDark)),
+        ]),
+      );
+}
+
+/// البلاطة العريضة: محراب كبير يطل من الطرف كأنه باب القسم.
+class _WideTile extends StatelessWidget {
   final _Place place;
   final VoidCallback onTap;
-  const _PlaceTile({required this.place, required this.onTap});
+  const _WideTile({required this.place, required this.onTap});
 
   @override
   Widget build(BuildContext context) => Chunky(
@@ -353,44 +383,72 @@ class _PlaceTile extends StatelessWidget {
         semanticLabel: '${place.title}، ${place.hint}',
         child: ClipRRect(
           borderRadius: BorderRadius.circular(24),
-          child: Stack(children: [
-            // نجمة كبيرة مقصوصة في الزاوية: توقيع البلاطة (تختفي في التباين العالي)
-            if (!A11y.highContrastOf(context))
-            PositionedDirectional(
-              end: -34,
-              top: -34,
-              child: CustomPaint(
-                size: const Size(120, 120),
-                painter: _CornerStarPainter(Colors.white.withValues(alpha: 0.16)),
+          child: SizedBox(
+            height: 112 * MediaQuery.textScalerOf(context).scale(1).clamp(1.0, 1.4),
+            child: Stack(children: [
+              if (!A11y.highContrastOf(context))
+                PositionedDirectional(
+                  end: 18,
+                  bottom: -26,
+                  child: CustomPaint(size: const Size(110, 140), painter: _ArchDoorPainter(Colors.white.withValues(alpha: 0.14))),
+                ),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16),
+                child: Row(children: [
+                  KhatamBadge(icon: place.icon, color: Colors.white, size: 62, iconColor: place.color),
+                  const SizedBox(width: 14),
+                  Expanded(
+                    child: Column(mainAxisAlignment: MainAxisAlignment.center, crossAxisAlignment: CrossAxisAlignment.start, children: [
+                      Text(place.title, style: RT.display(24, color: Colors.white), maxLines: 1, overflow: TextOverflow.ellipsis),
+                      Text(place.hint, style: RT.body(14.5, color: Colors.white), maxLines: 1, overflow: TextOverflow.ellipsis),
+                    ]),
+                  ),
+                  const Icon(Icons.chevron_left_rounded, color: Colors.white, size: 30),
+                ]),
               ),
-            ),
-            Padding(
-              padding: const EdgeInsets.all(14),
-              child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                KhatamBadge(icon: place.icon, color: Colors.white, size: 58, iconColor: place.color),
-                const Spacer(),
-                Text(place.title,
-                    style: RT.display(21, color: Colors.white), maxLines: 1, overflow: TextOverflow.ellipsis),
-                Text(place.hint,
-                    style: RT.body(13.5, color: Colors.white),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis),
-              ]),
-            ),
+            ]),
+          ),
+        ),
+      );
+}
+
+class _PlaceTile extends StatelessWidget {
+  final _Place place;
+  final VoidCallback onTap;
+  const _PlaceTile({required this.place, required this.onTap});
+
+  @override
+  Widget build(BuildContext context) => Chunky(
+        color: Colors.white,
+        edge: RC.sandDark,
+        border: Border.all(color: RC.sandDark, width: 2),
+        radius: 22,
+        depth: 5,
+        onTap: onTap,
+        semanticLabel: '${place.title}، ${place.hint}',
+        child: Padding(
+          padding: const EdgeInsets.all(12),
+          child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+            KhatamBadge(icon: place.icon, color: place.color, size: 46),
+            const Spacer(),
+            Text(place.title, style: RT.display(18, color: RC.ink), maxLines: 1, overflow: TextOverflow.ellipsis),
+            Text(place.hint, style: RT.body(13, color: RC.inkSoft), maxLines: 1, overflow: TextOverflow.ellipsis),
           ]),
         ),
       );
 }
 
-class _CornerStarPainter extends CustomPainter {
+/// محراب مفرغ بخطين: إطار خارجي وقوس داخلي.
+class _ArchDoorPainter extends CustomPainter {
   final Color color;
-  _CornerStarPainter(this.color);
+  _ArchDoorPainter(this.color);
   @override
   void paint(Canvas canvas, Size size) {
+    final r = size.height / 2;
     final c = size.center(Offset.zero);
-    canvas.drawPath(khatamPath(c, size.width / 2), Paint()..color = color);
+    canvas.drawPath(khatamPath(c, r), Paint()..color = color);
     canvas.drawPath(
-        khatamPath(c, size.width * 0.3, rotation: math.pi / 8),
+        khatamPath(c + Offset(0, r * 0.18), r * 0.7),
         Paint()
           ..color = color
           ..style = PaintingStyle.stroke
@@ -398,7 +456,7 @@ class _CornerStarPainter extends CustomPainter {
   }
 
   @override
-  bool shouldRepaint(covariant _CornerStarPainter old) => old.color != color;
+  bool shouldRepaint(covariant _ArchDoorPainter old) => old.color != color;
 }
 
 // ------------------------------------------------------------------ البطاقات
