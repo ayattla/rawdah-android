@@ -30,4 +30,10 @@ void main() {
     expect(big.length, kScienceTopics.fold<int>(0, (n, t) => n + t.questions.length));
     expect(big.length, greaterThan(small.length));
   });
+
+  test('معلومة اليوم تتغير يوميا', () {
+    final a = factOfDay(DateTime(2026, 11, 26, 1));
+    expect(factOfDay(DateTime(2026, 11, 26, 23)), same(a));
+    expect(factOfDay(DateTime(2026, 11, 27)), isNot(same(a)));
+  });
 }

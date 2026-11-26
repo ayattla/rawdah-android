@@ -16,6 +16,7 @@ import 'package:rawdah/features/quizzes/presentation/quizzes_screen.dart';
 import 'package:rawdah/features/ramadan/presentation/ramadan_screen.dart';
 import 'package:rawdah/features/school/presentation/school_screen.dart';
 import 'package:rawdah/features/science/presentation/science_screens.dart';
+import 'package:rawdah/features/science/data/science_content.dart';
 import 'package:rawdah/features/learn/presentation/words_numbers_screens.dart';
 import 'package:rawdah/features/islamic/presentation/islamic_screens.dart';
 import 'package:rawdah/features/stories/presentation/stories_screen.dart';
@@ -94,6 +95,7 @@ class HomeMapScreen extends StatelessWidget {
             ),
           ),
           const SliverToBoxAdapter(child: _HadithCard()),
+          const SliverToBoxAdapter(child: _FactCard()),
           const SliverToBoxAdapter(child: SizedBox(height: 24)),
         ]),
       ),
@@ -533,6 +535,37 @@ class _ReviewBanner extends StatelessWidget {
           const SizedBox(width: 10),
           Expanded(child: Text(label, style: RT.display(17, color: Colors.white))),
           const Icon(Icons.chevron_left_rounded, color: Colors.white),
+        ]),
+      ),
+    );
+  }
+}
+
+/// هل تعلم؟ معلومة واحدة كل يوم من بطاقات عالم العلوم.
+class _FactCard extends StatelessWidget {
+  const _FactCard();
+
+  @override
+  Widget build(BuildContext context) {
+    final f = factOfDay(DateTime.now());
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
+      child: Chunky(
+        color: const Color(0xFFFFF3D6),
+        radius: 20,
+        depth: 4,
+        padding: const EdgeInsets.all(14),
+        onTap: () => Voice.instance.say('هل تعلم؟ ${f.fact}'),
+        child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
+          const Icon(Icons.lightbulb_rounded, color: Color(0xFFC98A12), size: 28),
+          const SizedBox(width: 10),
+          Expanded(
+            child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+              Text('هل تعلم؟', style: RT.display(17, color: const Color(0xFF7A5200))),
+              const SizedBox(height: 2),
+              Text(f.fact, style: RT.body(15)),
+            ]),
+          ),
         ]),
       ),
     );

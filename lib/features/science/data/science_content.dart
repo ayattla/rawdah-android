@@ -297,3 +297,10 @@ const kScienceTopics = <ScienceTopic>[
 /// كل أسئلة العلوم المناسبة لفئة الطفل (أسئلة فئته وما دونها).
 List<Question> scienceQuestionsFor(int band) =>
     [for (final t in kScienceTopics) ...t.questions.where((q) => q.band <= band)];
+
+/// معلومة اليوم: تتبدل كل يوم بالتناوب على كل بطاقات العلوم.
+ScienceCard factOfDay(DateTime d) {
+  final all = [for (final t in kScienceTopics) ...t.cards];
+  final day = DateTime.utc(d.year, d.month, d.day).millisecondsSinceEpoch ~/ 86400000;
+  return all[day % all.length];
+}

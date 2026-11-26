@@ -40,6 +40,23 @@ class IslamicHubScreen extends StatelessWidget {
             ),
             const SizedBox(height: 12),
             BigTile(
+              title: 'أسماء الله الحسنى',
+              subtitle: '${kGodNames.length} أسماء بمعانيها',
+              icon: Icons.auto_awesome_rounded,
+              color: const Color(0xFF2B3A67),
+              done: c.completed.contains('god_names'),
+              onTap: () => open(const GodNamesScreen()),
+            ),
+            const SizedBox(height: 12),
+            BigTile(
+              title: 'صح أم خطأ',
+              subtitle: 'آداب المسلم وسلامتي',
+              icon: Icons.rule_rounded,
+              color: const Color(0xFFB3412F),
+              onTap: () => open(const TrueFalseScreen()),
+            ),
+            const SizedBox(height: 12),
+            BigTile(
               title: 'ذاكرة الأذكار',
               subtitle: 'اقلب البطاقات وطابق الذكر بوقته',
               icon: Icons.style_rounded,
@@ -327,6 +344,144 @@ class SeerahScreen extends StatelessWidget {
                 ),
               )),
             ),
+          ]),
+        ),
+      ]),
+    );
+  }
+}
+
+/// أسماء الله الحسنى: بطاقات تُقلب لتظهر المعنى وموضع الاسم في القرآن.
+class GodNamesScreen extends StatefulWidget {
+  const GodNamesScreen({super.key});
+
+  @override
+  State<GodNamesScreen> createState() => _GodNamesScreenState();
+}
+
+class _GodNamesScreenState extends State<GodNamesScreen> {
+  final Set<int> _open = {};
+
+  @override
+  Widget build(BuildContext context) {
+    return ChildShell(
+      child: Column(children: [
+        const KidBar(title: 'أسماء الله الحسنى'),
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16),
+          child: Text('المس الاسم لتعرف معناه', textAlign: TextAlign.center, style: RT.body(15, color: RC.inkSoft)),
+        ),
+        Expanded(
+          child: GridView.builder(
+            padding: const EdgeInsets.all(14),
+            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(crossAxisCount: 2, mainAxisSpacing: 12, crossAxisSpacing: 12, childAspectRatio: 1.05),
+            itemCount: kGodNames.length,
+            itemBuilder: (_, i) {
+              final n = kGodNames[i];
+              final open = _open.contains(i);
+              return Chunky(
+                key: ValueKey('name_$i'),
+                color: open ? _paper : _green,
+                radius: 22,
+                depth: 5,
+                padding: const EdgeInsets.all(12),
+                onTap: () {
+                  setState(() => open ? _open.remove(i) : _open.add(i));
+                  if (!open) {
+                    Voice.instance.say('${n.name}. ${n.meaning}');
+                    if (_open.length == kGodNames.length) AppScope.read(context).complete('god_names', stars: 3);
+                  }
+                },
+                child: Center(
+                  child: open
+                      ? Column(mainAxisSize: MainAxisSize.min, children: [
+                          Text(n.name, style: RT.display(20, color: _green)),
+                          const SizedBox(height: 4),
+                          Text(n.meaning, textAlign: TextAlign.center, style: RT.body(14, color: _ink, weight: FontWeight.w600)),
+                          const SizedBox(height: 4),
+                          Text(n.where, style: RT.body(12, color: _gold)),
+                        ])
+                      : Text(n.name, style: const TextStyle(fontFamily: 'AmiriQuran', fontSize: 34, color: Colors.white, height: 1.6)),
+                ),
+              );
+            },
+          ),
+        ),
+      ]),
+    );
+  }
+}
+
+/// صح أم خطأ: عبارة واحدة كبيرة وزران، ثم السبب.
+class TrueFalseScreen extends StatefulWidget {
+  final Random? random;
+  const TrueFalseScreen({super.key, this.random});
+
+  @override
+  State<TrueFalseScreen> createState() => _TrueFalseScreenState();
+}
+
+class _TrueFalseScreenState extends State<TrueFalseScreen> {
+  late final List<TrueFalse> _items = ([...kTrueFalse]..shuffle(widget.random ?? Random())).take(10).toList();
+  int _i = 0, _right = 0;
+  bool? _answered;
+
+  void _answer(bool v) {
+    if (_answered != null) return;
+    final ok = v == _items[_i].isTrue;
+    if (ok) _right++;
+    setState(() => _answered = ok);
+    Voice.instance.say(ok ? 'أحسنت' : 'انتبه');
+  }
+
+  Future<void> _next() async {
+    if (_i + 1 >= _items.length) {
+      final stars = _right >= 9 ? 3 : (_right >= 7 ? 2 : 1);
+      AppScope.read(context).complete('truefalse_${todayKey()}', stars: stars);
+      await showReward(context, stars: stars, title: 'عرفت $_right من ${_items.length}');
+      if (mounted) Navigator.of(context).pop();
+      return;
+    }
+    setState(() {
+      _i++;
+      _answered = null;
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final t = _items[_i];
+    return ChildShell(
+      child: Column(children: [
+        KidBar(title: 'صح أم خطأ ${_i + 1} / ${_items.length}'),
+        Expanded(
+          child: ListView(padding: const EdgeInsets.all(20), children: [
+            Container(
+              constraints: const BoxConstraints(minHeight: 190),
+              alignment: Alignment.center,
+              padding: const EdgeInsets.all(20),
+              decoration: BoxDecoration(
+                color: _answered == null ? _paper : (_answered! ? const Color(0xFFE6F2EA) : const Color(0xFFFDE2E0)),
+                borderRadius: BorderRadius.circular(28),
+                border: Border.all(color: RC.sandDark, width: 2),
+              ),
+              child: Text(t.text, textAlign: TextAlign.center, style: RT.display(26)),
+            ),
+            const SizedBox(height: 18),
+            if (_answered == null)
+              Row(children: [
+                Expanded(child: PrimaryButton(label: 'صح', icon: Icons.check_rounded, color: _green, onTap: () => _answer(true))),
+                const SizedBox(width: 12),
+                Expanded(child: PrimaryButton(label: 'خطأ', icon: Icons.close_rounded, color: const Color(0xFFB3412F), onTap: () => _answer(false))),
+              ])
+            else ...[
+              Text(t.isTrue ? 'العبارة صحيحة' : 'العبارة خطأ',
+                  textAlign: TextAlign.center, style: RT.display(20, color: t.isTrue ? _green : const Color(0xFFB3412F))),
+              const SizedBox(height: 6),
+              Text(t.why, textAlign: TextAlign.center, style: RT.body(17)),
+              const SizedBox(height: 16),
+              PrimaryButton(label: _i + 1 >= _items.length ? 'إنهاء' : 'التالي', icon: Icons.arrow_forward_rounded, onTap: _next),
+            ],
           ]),
         ),
       ]),

@@ -61,4 +61,13 @@ void main() {
     expect(g.stars, 3);
     expect(g.flip(99), isNull);
   });
+
+  test('الأسماء الحسنى وصح أم خطأ', () {
+    expect(kGodNames.map((n) => n.name).toSet().length, kGodNames.length);
+    expect(kGodNames.every((n) => n.meaning.isNotEmpty && n.where.startsWith('سورة')), true);
+    expect(kTrueFalse.length, greaterThanOrEqualTo(10));
+    expect(kTrueFalse.where((t) => t.isTrue).length, greaterThan(4));
+    expect(kTrueFalse.where((t) => !t.isTrue).length, greaterThan(4));
+    expect(kTrueFalse.map((t) => t.text).toSet().length, kTrueFalse.length);
+  });
 }

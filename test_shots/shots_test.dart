@@ -379,6 +379,23 @@ void main() {
     await _shot(t, '36_seerah', st, const SeerahScreen(), height: 1400);
   });
 
+  testWidgets('37 صح أم خطأ', (t) async {
+    final st = await _state();
+    await _shot(t, '37_truefalse', st, TrueFalseScreen(random: Random(2)), act: () async {
+      await t.tap(find.text('صح'));
+      await t.pump(const Duration(milliseconds: 300));
+    });
+  });
+
+  testWidgets('38 الأسماء الحسنى', (t) async {
+    final st = await _state();
+    await _shot(t, '38_names', st, const GodNamesScreen(), height: 1200, act: () async {
+      await t.tap(find.byKey(const ValueKey('name_0')));
+      await t.tap(find.byKey(const ValueKey('name_3')));
+      await t.pump(const Duration(milliseconds: 300));
+    });
+  });
+
   // فحوص إرشادات الوصول المضمّنة في Flutter: حجم أهداف اللمس، وجود وصف لكل زر، وتباين النص.
   for (final entry in <String, Widget Function()>{
     'الرئيسية': () => const HomeMapScreen(),
