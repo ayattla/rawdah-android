@@ -47,10 +47,14 @@ class KidBar extends StatelessWidget {
             child: Center(
               child: Container(
                 padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 5),
-                decoration: ShapeDecoration(
-                  color: Colors.white,
-                  shape: const StadiumBorder(side: BorderSide(color: Color(0xFF4C2A99), width: 3)),
-                  shadows: const [BoxShadow(color: Color(0xFF4C2A99), offset: Offset(0, 4))],
+                decoration: const ShapeDecoration(
+                  gradient: LinearGradient(
+                    begin: Alignment.topCenter,
+                    end: Alignment.bottomCenter,
+                    colors: [Color(0xFFFFE680), Color(0xFFFFC23F)],
+                  ),
+                  shape: StadiumBorder(side: BorderSide(color: Color(0xFF2A1A66), width: 3)),
+                  shadows: [BoxShadow(color: Color(0xFF2A1A66), offset: Offset(0, 4))],
                 ),
                 child: Text(title,
                     textAlign: TextAlign.center,
@@ -143,10 +147,10 @@ class BigTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final hc = A11y.highContrastOf(context);
-    return Chunky(
+    return PopIn(child: Chunky(
       color: Colors.white,
       edge: color,
-      border: Border.all(color: hc ? color : color.withValues(alpha: 0.45), width: 3),
+      border: Border.all(color: hc ? color : const Color(0xFF2A1A66), width: 3),
       padding: const EdgeInsets.fromLTRB(14, 12, 14, 12),
       semanticLabel: [title, if (subtitle != null) subtitle!, if (done) 'مكتمل'].join('، '),
       onTap: () {
@@ -178,7 +182,7 @@ class BigTile extends StatelessWidget {
           ),
         ),
       ]),
-    );
+    ));
   }
 }
 
@@ -216,3 +220,22 @@ class PrimaryButton extends StatelessWidget {
 }
 
 /// نافذة الجائزة: ليل لازوردي، نجمة ثمانية تدور ببطء خلف فانوس مضيء.
+
+
+/// ظهور منبثق مرن كألعاب الأطفال: يكبر العنصر من ٨٥٪ مع ارتداد خفيف.
+class PopIn extends StatelessWidget {
+  final Widget child;
+  const PopIn({super.key, required this.child});
+
+  @override
+  Widget build(BuildContext context) {
+    if (A11y.reduceMotionOf(context)) return child;
+    return TweenAnimationBuilder<double>(
+      tween: Tween(begin: 0.85, end: 1),
+      duration: const Duration(milliseconds: 520),
+      curve: Curves.elasticOut,
+      builder: (_, v, c) => Transform.scale(scale: v, child: c),
+      child: child,
+    );
+  }
+}

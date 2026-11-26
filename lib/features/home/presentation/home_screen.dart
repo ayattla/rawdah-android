@@ -94,7 +94,7 @@ class HomeMapScreen extends StatelessWidget {
             SliverToBoxAdapter(child: _WingTitle(title, wi)),
             SliverPadding(
               padding: const EdgeInsets.symmetric(horizontal: 16),
-              sliver: SliverToBoxAdapter(child: _WideTile(place: places.first, onTap: () => _open(context, places.first))),
+              sliver: SliverToBoxAdapter(child: PopIn(child: _WideTile(place: places.first, onTap: () => _open(context, places.first)))),
             ),
             SliverPadding(
               padding: const EdgeInsets.fromLTRB(16, 12, 16, 4),
@@ -108,7 +108,7 @@ class HomeMapScreen extends StatelessWidget {
                 ),
                 delegate: SliverChildBuilderDelegate(
                   childCount: places.length - 1,
-                  (context, i) => _PlaceTile(place: places[i + 1], onTap: () => _open(context, places[i + 1])),
+                  (context, i) => PopIn(child: _PlaceTile(place: places[i + 1], onTap: () => _open(context, places[i + 1]))),
                 ),
               ),
             ),
@@ -528,6 +528,7 @@ class _WideTileState extends State<_WideTile> with SingleTickerProviderStateMixi
     final hc = A11y.highContrastOf(context);
     return Chunky(
       color: place.color,
+      border: hc ? null : Border.all(color: const Color(0xFF2A1A66), width: 3),
       radius: 28,
       depth: 7,
       onTap: widget.onTap,
@@ -609,7 +610,7 @@ class _PlaceTile extends StatelessWidget {
   Widget build(BuildContext context) => Chunky(
         color: Colors.white,
         edge: place.color,
-        border: Border.all(color: place.color.withValues(alpha: 0.35), width: 2.5),
+        border: Border.all(color: const Color(0xFF2A1A66), width: 3),
         radius: 24,
         depth: 6,
         onTap: onTap,
