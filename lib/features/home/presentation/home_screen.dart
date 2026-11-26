@@ -20,6 +20,7 @@ import 'package:rawdah/features/science/data/science_content.dart';
 import 'package:rawdah/features/learn/presentation/words_numbers_screens.dart';
 import 'package:rawdah/features/islamic/presentation/islamic_screens.dart';
 import 'package:rawdah/features/stories/presentation/stories_screen.dart';
+import 'package:rawdah/features/planets/presentation/planets_screen.dart';
 
 class _Place {
   final String title;
@@ -40,6 +41,8 @@ class HomeMapScreen extends StatelessWidget {
       _Place('رحلاتي', 'محطات تصل بك إلى الشهادة', Icons.route_rounded, RC.ink, (_) => const JourneysScreen());
 
   /// الأقسام مجمعة حسب ما يريده الطفل: أول بلاطة في كل جناح عريضة، والباقي صغيرة.
+  static List<_Place> get _allPlaces => [for (final w in _wings) ...w.$2];
+
   static final List<(String, List<_Place>)> _wings = [
     ('قرآني وديني', [
       _Place('المدرسة', 'قرآن وأذكار ودروس', Icons.school_rounded, RC.sea, (_) => const SchoolScreen(), SceneTheme.quran),
@@ -91,12 +94,55 @@ class HomeMapScreen extends StatelessWidget {
           if (c.onlineEnabled && c.circleCode.isNotEmpty) SliverToBoxAdapter(child: _CircleChip(child: c)),
           const SliverToBoxAdapter(child: _MissionsCard()),
           if (st.hifzDue().isNotEmpty) SliverToBoxAdapter(child: _ReviewBanner(count: st.hifzDue().length)),
+          SliverToBoxAdapter(child: _HomeWidgets(child: c)),
           SliverPadding(
-            padding: const EdgeInsets.fromLTRB(12, 18, 12, 6),
+            padding: const EdgeInsets.fromLTRB(16, 20, 16, 6),
             sliver: SliverToBoxAdapter(
-              child: _PlanetMap(
-                places: [for (final w in _wings) ...w.$2],
-                onOpen: (p) => _open(context, p),
+              child: SizedBox(
+                height: 200 * MediaQuery.textScalerOf(context).scale(1).clamp(1.0, 1.3),
+                child: PopIn(
+                  child: _TvCard(
+                    title: 'كواكب المعرفة',
+                    hint: 'أبجد وتاريخ ومغامرات ورياضة وزمردة',
+                    icon: Icons.public_rounded,
+                    screen: const Color(0xFF2B1B7A),
+                    frame: const Color(0xFFFFC23F),
+                    wide: true,
+                    art: const _MiniPlanetsArt(),
+                    onTap: () async {
+                      Voice.instance.say('كواكب المعرفة');
+                      await Navigator.of(context).push(MaterialPageRoute(builder: (_) => const PlanetsScreen()));
+                    },
+                  ),
+                ),
+              ),
+            ),
+          ),
+          SliverPadding(
+            padding: const EdgeInsets.fromLTRB(16, 14, 16, 8),
+            sliver: SliverGrid(
+              gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                crossAxisCount: 2,
+                mainAxisSpacing: 18,
+                crossAxisSpacing: 14,
+                mainAxisExtent: 172 * MediaQuery.textScalerOf(context).scale(1).clamp(1.0, 1.4),
+              ),
+              delegate: SliverChildBuilderDelegate(
+                childCount: _allPlaces.length,
+                (context, i) {
+                  final p = _allPlaces[i];
+                  return PopIn(
+                    child: _TvCard(
+                      title: p.title,
+                      hint: p.hint,
+                      icon: p.icon,
+                      screen: p.color,
+                      frame: _candyFrames[i % _candyFrames.length],
+                      tilt: (i.isEven ? -1 : 1) * 0.022,
+                      onTap: () => _open(context, p),
+                    ),
+                  );
+                },
               ),
             ),
           ),
@@ -345,134 +391,47 @@ class _HeroTile extends StatelessWidget {
       );
 }
 
-/// خريطة الكواكب: كل قسم كوكب بلونه على مدار منقط متعرج، يطفو برفق ويقفز عند لمسه.
-class _PlanetMap extends StatefulWidget {
-  final List<_Place> places;
-  final void Function(_Place) onOpen;
-  const _PlanetMap({required this.places, required this.onOpen});
+/// ألوان إطارات التلفاز الحلوى، تتبدل من بطاقة لأخرى.
+const _candyFrames = [Color(0xFFFFC23F), Color(0xFFFF5D8F), Color(0xFF22D3EE), Color(0xFF9BE15D), Color(0xFFFF9F1C), Color(0xFFA78BFA)];
+const _outline = Color(0xFF2A1A66);
 
-  @override
-  State<_PlanetMap> createState() => _PlanetMapState();
-}
-
-class _PlanetMapState extends State<_PlanetMap> with SingleTickerProviderStateMixin {
-  late final AnimationController _t = AnimationController(vsync: this, duration: const Duration(seconds: 6));
-  static const _rowH = 150.0;
-
-  /// ألوان كواكب زاهية تضيء على الفضاء الداكن (ألوان الأقسام الداكنة تختفي عليه).
-  static const _vivid = [
-    Color(0xFF14B8A6), Color(0xFF22C55E), Color(0xFFFF5D5D), Color(0xFFA855F7), Color(0xFF3B82F6), Color(0xFF84CC16),
-    Color(0xFFFF9F1C), Color(0xFFFF5D8F), Color(0xFF22D3EE), Color(0xFFFFC23F), Color(0xFF8B5CF6),
-  ];
-
-  @override
-  void didChangeDependencies() {
-    super.didChangeDependencies();
-    if (A11y.reduceMotionOf(context)) {
-      _t.stop();
-    } else if (!_t.isAnimating) {
-      _t.repeat();
-    }
-  }
-
-  @override
-  void dispose() {
-    _t.dispose();
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final n = widget.places.length;
-    final scale = MediaQuery.textScalerOf(context).scale(1).clamp(1.0, 1.4);
-    final rowH = _rowH * scale;
-    return LayoutBuilder(builder: (context, box) {
-      final w = box.maxWidth;
-      // مواضع الكواكب: يمين ثم يسار بالتناوب مع انحراف بسيط حتى لا يبدو جامدًا
-      final centers = [
-        for (var i = 0; i < n; i++)
-          Offset(w * (i.isEven ? 0.30 : 0.70) + (i % 3 - 1) * 10, rowH * i + rowH * 0.42),
-      ];
-      return SizedBox(
-        height: rowH * n + 10,
-        child: Stack(children: [
-          Positioned.fill(child: CustomPaint(painter: _OrbitPathPainter(centers))),
-          for (var i = 0; i < n; i++)
-            Positioned(
-              left: centers[i].dx - 80,
-              top: centers[i].dy - 56,
-              width: 160,
-              child: AnimatedBuilder(
-                animation: _t,
-                builder: (_, child) {
-                  final ph = _t.value * 2 * math.pi + i * 0.9;
-                  return Transform.translate(offset: Offset(0, math.sin(ph) * 4), child: child);
-                },
-                child: _PlanetButton(
-                  place: widget.places[i],
-                  color: _vivid[i % _vivid.length],
-                  size: i == 0 ? 92 : 80,
-                  ringed: i % 2 == 0,
-                  spin: _t,
-                  onTap: () => widget.onOpen(widget.places[i]),
-                ),
-              ),
-            ),
-        ]),
-      );
-    });
-  }
-}
-
-class _OrbitPathPainter extends CustomPainter {
-  final List<Offset> pts;
-  _OrbitPathPainter(this.pts);
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    if (pts.length < 2) return;
-    final p = Path()..moveTo(pts.first.dx, pts.first.dy);
-    for (var i = 1; i < pts.length; i++) {
-      final a = pts[i - 1], b = pts[i];
-      final midY = (a.dy + b.dy) / 2;
-      p.cubicTo(a.dx, midY, b.dx, midY, b.dx, b.dy);
-    }
-    final dot = Paint()..color = const Color(0xFF8C7BEA).withValues(alpha: 0.7);
-    for (final m in p.computeMetrics()) {
-      for (var d = 0.0; d < m.length; d += 16) {
-        canvas.drawCircle(m.getTangentForOffset(d)!.position, 2.4, dot);
-      }
-    }
-  }
-
-  @override
-  bool shouldRepaint(covariant _OrbitPathPainter old) => old.pts.length != pts.length || old.pts.first != pts.first;
-}
-
-/// كوكب القسم: كرة ملونة بحد غامق ولمعة، وحلقة تدور ببطء، والأيقونة في وسطه، والاسم تحته.
-class _PlanetButton extends StatefulWidget {
-  final _Place place;
-  final Color color;
-  final double size;
-  final bool ringed;
-  final Animation<double> spin;
+/// بطاقة «تلفاز كرتوني»: إطار حلوى متموج بحد غامق، وشاشة ملونة فيها الأيقونة،
+/// وهوائي وزران، ولافتة الاسم معلقة أسفل الإطار. تميل قليلًا وتقفز عند اللمس.
+class _TvCard extends StatefulWidget {
+  final String title;
+  final String hint;
+  final IconData icon;
+  final Color screen;
+  final Color frame;
+  final double tilt;
+  final bool wide;
+  final Widget? art;
   final VoidCallback onTap;
-  const _PlanetButton({required this.place, required this.color, required this.size, required this.ringed, required this.spin, required this.onTap});
+  const _TvCard({
+    required this.title,
+    required this.hint,
+    required this.icon,
+    required this.screen,
+    required this.frame,
+    required this.onTap,
+    this.tilt = 0,
+    this.wide = false,
+    this.art,
+  });
 
   @override
-  State<_PlanetButton> createState() => _PlanetButtonState();
+  State<_TvCard> createState() => _TvCardState();
 }
 
-class _PlanetButtonState extends State<_PlanetButton> {
+class _TvCardState extends State<_TvCard> {
   bool _down = false;
 
   @override
   Widget build(BuildContext context) {
-    final p = widget.place;
-    final s = widget.size;
+    final hc = A11y.highContrastOf(context);
     return Semantics(
       button: true,
-      label: '${p.title}، ${p.hint}',
+      label: '${widget.title}، ${widget.hint}',
       excludeSemantics: true,
       child: GestureDetector(
         onTapDown: (_) => setState(() => _down = true),
@@ -483,104 +442,297 @@ class _PlanetButtonState extends State<_PlanetButton> {
           widget.onTap();
         },
         child: AnimatedScale(
-          scale: _down ? 0.88 : 1,
+          scale: _down ? 0.93 : 1,
           duration: const Duration(milliseconds: 140),
           curve: Curves.easeOutBack,
-          child: Column(mainAxisSize: MainAxisSize.min, children: [
-            SizedBox(
-              width: s * 1.5,
-              height: s,
-              child: AnimatedBuilder(
-                animation: widget.spin,
-                builder: (_, __) => CustomPaint(
-                  painter: _PlanetBodyPainter(widget.color, widget.ringed, widget.spin.value),
-                  child: Center(child: Icon(p.icon, color: Colors.white, size: s * 0.40)),
+          child: Transform.rotate(
+            angle: hc ? 0 : widget.tilt,
+            child: LayoutBuilder(builder: (context, box) {
+              final w = box.maxWidth, h = box.maxHeight;
+              final frameRect = Rect.fromLTWH(4, 10, w - 8, h - 30);
+              final screenRect = frameRect.deflate(11);
+              return Stack(clipBehavior: Clip.none, children: [
+                Positioned.fill(
+                  child: CustomPaint(
+                    painter: _TvPainter(
+                      frame: wobblyFramePath(frameRect, radius: 26, amp: hc ? 0 : 2.2, wave: 90),
+                      screen: wobblyFramePath(screenRect, radius: 18, amp: hc ? 0 : 1.6, wave: 80),
+                      frameColor: widget.frame,
+                      screenColor: widget.screen,
+                      flat: hc,
+                    ),
+                  ),
                 ),
-              ),
-            ),
-            const SizedBox(height: 4),
-            // لافتة الاسم تغطي المدار خلفها فلا يتداخل الخط مع النص
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 3),
-              decoration: BoxDecoration(
-                color: const Color(0xFF221763),
-                borderRadius: BorderRadius.circular(14),
-                border: Border.all(color: widget.color.withValues(alpha: 0.7), width: 2),
-              ),
-              child: Column(mainAxisSize: MainAxisSize.min, children: [
-                Text(p.title,
-                    textAlign: TextAlign.center,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: RT.display(16, color: Colors.white)),
-                Text(p.hint,
-                    textAlign: TextAlign.center,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: RT.body(12, color: const Color(0xFFCFC6FF))),
-              ]),
-            ),
-          ]),
+                Positioned.fromRect(
+                  rect: screenRect,
+                  child: Center(
+                    child: widget.art ??
+                        Icon(widget.icon, size: widget.wide ? 54 : 46, color: Colors.white, shadows: const [
+                          Shadow(color: Color(0x55000000), offset: Offset(0, 3)),
+                        ]),
+                  ),
+                ),
+                // الهوائي
+                if (!hc)
+                  Positioned(
+                    top: -4,
+                    left: w / 2 - 22,
+                    child: CustomPaint(size: const Size(44, 18), painter: _AntennaPainter(widget.frame)),
+                  ),
+                // لافتة الاسم المعلقة
+                Positioned(
+                  left: 10,
+                  right: 10,
+                  bottom: 0,
+                  child: Center(
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+                      decoration: ShapeDecoration(
+                        color: Colors.white,
+                        shape: const StadiumBorder(side: BorderSide(color: _outline, width: 3)),
+                        shadows: const [BoxShadow(color: _outline, offset: Offset(0, 3))],
+                      ),
+                      child: Column(mainAxisSize: MainAxisSize.min, children: [
+                        FittedBox(
+                          fit: BoxFit.scaleDown,
+                          child: Text(widget.title, maxLines: 1, textAlign: TextAlign.center, style: RT.display(widget.wide ? 19 : 16, color: RC.ink)),
+                        ),
+                        if (widget.wide)
+                          Text(widget.hint, maxLines: 1, textAlign: TextAlign.center, style: RT.body(12.5, color: RC.inkSoft)),
+                      ]),
+                    ),
+                  ),
+                ),
+              ]);
+            }),
+          ),
         ),
       ),
     );
   }
 }
 
-class _PlanetBodyPainter extends CustomPainter {
-  final Color color;
-  final bool ringed;
-  final double t;
-  _PlanetBodyPainter(this.color, this.ringed, this.t);
+class _TvPainter extends CustomPainter {
+  final Path frame;
+  final Path screen;
+  final Color frameColor;
+  final Color screenColor;
+  final bool flat;
+  _TvPainter({required this.frame, required this.screen, required this.frameColor, required this.screenColor, required this.flat});
 
   @override
   void paint(Canvas canvas, Size size) {
-    final c = size.center(Offset.zero);
-    final r = size.height / 2 * 0.92;
-    final hsl = HSLColor.fromColor(color);
-    final dark = hsl.withLightness((hsl.lightness - 0.25).clamp(0.0, 1.0)).toColor();
-    final light = hsl.withLightness((hsl.lightness + 0.15).clamp(0.0, 1.0)).toColor();
-    final ringColor = HSLColor.fromColor(color).withHue((hsl.hue + 40) % 360).withSaturation(0.9).withLightness(0.62).toColor();
-    final tilt = -0.32 + math.sin(t * 2 * math.pi) * 0.06;
-    final oval = Rect.fromCenter(center: c, width: r * 3.1, height: r * 0.8);
-    final ring = Paint()
-      ..color = ringColor
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = r * 0.16
-      ..strokeCap = StrokeCap.round;
-    void rotated(void Function() draw) {
-      canvas.save();
-      canvas.translate(c.dx, c.dy);
-      canvas.rotate(tilt);
-      canvas.translate(-c.dx, -c.dy);
-      draw();
-      canvas.restore();
-    }
-
-    if (ringed) rotated(() => canvas.drawArc(oval, math.pi, math.pi, false, ring));
-    canvas.drawCircle(c + Offset(0, r * 0.08), r, Paint()..color = dark);
-    canvas.drawCircle(c, r, Paint()..shader = RadialGradient(center: const Alignment(-0.4, -0.5), colors: [light, color, dark]).createShader(Rect.fromCircle(center: c, radius: r)));
-    canvas.drawCircle(c, r, Paint()
-      ..color = dark
+    final hsl = HSLColor.fromColor(screenColor);
+    final dark = hsl.withLightness((hsl.lightness - 0.12).clamp(0.0, 1.0)).toColor();
+    final light = hsl.withLightness((hsl.lightness + 0.14).clamp(0.0, 1.0)).toColor();
+    if (!flat) canvas.drawPath(frame.shift(const Offset(0, 6)), Paint()..color = _outline);
+    canvas.drawPath(frame, Paint()..color = frameColor);
+    canvas.drawPath(frame, Paint()
+      ..color = _outline
       ..style = PaintingStyle.stroke
       ..strokeWidth = 3);
-    // فوهتان صغيرتان ولمعة
-    canvas.drawCircle(c + Offset(r * 0.42, r * 0.38), r * 0.13, Paint()..color = dark.withValues(alpha: 0.35));
-    canvas.drawCircle(c + Offset(-r * 0.5, r * 0.45), r * 0.08, Paint()..color = dark.withValues(alpha: 0.3));
-    canvas.drawCircle(c + Offset(-r * 0.4, -r * 0.42), r * 0.16, Paint()..color = Colors.white.withValues(alpha: 0.45));
-    if (ringed) {
-      rotated(() {
-        canvas.drawArc(oval, 0, math.pi, false, ring);
-        canvas.drawArc(oval, 0, math.pi, false, Paint()
-          ..color = dark.withValues(alpha: 0.5)
-          ..style = PaintingStyle.stroke
-          ..strokeWidth = 1.5);
-      });
+    final sb = screen.getBounds();
+    canvas.drawPath(
+      screen,
+      Paint()..shader = LinearGradient(begin: Alignment.topCenter, end: Alignment.bottomCenter, colors: [light, screenColor, dark]).createShader(sb),
+    );
+    canvas.drawPath(screen, Paint()
+      ..color = _outline
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 2.5);
+    if (flat) return;
+    // لمعة الشاشة
+    canvas.save();
+    canvas.clipPath(screen);
+    canvas.drawPath(
+      Path()
+        ..moveTo(sb.left, sb.top)
+        ..lineTo(sb.left + sb.width * 0.55, sb.top)
+        ..lineTo(sb.left + sb.width * 0.25, sb.bottom)
+        ..lineTo(sb.left, sb.bottom)
+        ..close(),
+      Paint()..color = Colors.white.withValues(alpha: 0.10),
+    );
+    canvas.restore();
+    // زران على الإطار
+    for (final (dx, col) in [(sb.right - 14.0, const Color(0xFFFF5D8F)), (sb.right - 30.0, const Color(0xFF22D3EE))]) {
+      final p = Offset(dx, sb.bottom + 6);
+      canvas.drawCircle(p, 5, Paint()..color = col);
+      canvas.drawCircle(p, 5, Paint()
+        ..color = _outline
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = 1.8);
     }
   }
 
   @override
-  bool shouldRepaint(covariant _PlanetBodyPainter old) => old.t != t || old.color != color;
+  bool shouldRepaint(covariant _TvPainter old) => old.frameColor != frameColor || old.screenColor != screenColor || old.flat != flat;
+}
+
+class _AntennaPainter extends CustomPainter {
+  final Color color;
+  _AntennaPainter(this.color);
+  @override
+  void paint(Canvas canvas, Size size) {
+    final line = Paint()
+      ..color = _outline
+      ..strokeWidth = 3
+      ..strokeCap = StrokeCap.round;
+    final base = Offset(size.width / 2, size.height + 2);
+    canvas.drawLine(base, Offset(4, 4), line);
+    canvas.drawLine(base, Offset(size.width - 4, 4), line);
+    for (final p in [const Offset(4, 4), Offset(size.width - 4, 4)]) {
+      canvas.drawCircle(p, 4.5, Paint()..color = color);
+      canvas.drawCircle(p, 4.5, Paint()
+        ..color = _outline
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = 2);
+    }
+  }
+
+  @override
+  bool shouldRepaint(covariant _AntennaPainter old) => old.color != color;
+}
+
+/// كواكب صغيرة مرسومة داخل شاشة «كواكب المعرفة».
+class _MiniPlanetsArt extends StatelessWidget {
+  const _MiniPlanetsArt();
+  @override
+  Widget build(BuildContext context) => const SizedBox.expand(child: CustomPaint(painter: _MiniPlanetsPainter()));
+}
+
+class _MiniPlanetsPainter extends CustomPainter {
+  const _MiniPlanetsPainter();
+  @override
+  void paint(Canvas canvas, Size size) {
+    final r = math.Random(4);
+    for (var i = 0; i < 26; i++) {
+      canvas.drawCircle(Offset(r.nextDouble() * size.width, r.nextDouble() * size.height), r.nextDouble() * 1.4 + 0.5,
+          Paint()..color = Colors.white70);
+    }
+    void planet(Offset c, double rad, Color col, Color ring) {
+      final edge = Paint()
+        ..color = _outline
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = 2.5;
+      final ringP = Paint()
+        ..color = ring
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = rad * 0.22;
+      final oval = Rect.fromCenter(center: c, width: rad * 3, height: rad * 0.8);
+      canvas.save();
+      canvas.translate(c.dx, c.dy);
+      canvas.rotate(-0.3);
+      canvas.translate(-c.dx, -c.dy);
+      canvas.drawArc(oval, math.pi, math.pi, false, ringP);
+      canvas.restore();
+      canvas.drawCircle(c, rad, Paint()..color = col);
+      canvas.drawCircle(c, rad, edge);
+      canvas.drawCircle(c + Offset(-rad * 0.35, -rad * 0.35), rad * 0.22, Paint()..color = Colors.white54);
+      canvas.save();
+      canvas.translate(c.dx, c.dy);
+      canvas.rotate(-0.3);
+      canvas.translate(-c.dx, -c.dy);
+      canvas.drawArc(oval, 0, math.pi, false, ringP);
+      canvas.restore();
+    }
+
+    final w = size.width, h = size.height;
+    planet(Offset(w * 0.22, h * 0.55), h * 0.22, const Color(0xFFFF9F1C), const Color(0xFFFFE680));
+    planet(Offset(w * 0.52, h * 0.38), h * 0.16, const Color(0xFF22C55E), const Color(0xFF22D3EE));
+    planet(Offset(w * 0.80, h * 0.58), h * 0.20, const Color(0xFFFF5D8F), const Color(0xFFA78BFA));
+  }
+
+  @override
+  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
+}
+
+/// ودجات أعلى الرئيسية: تحدي اليوم وسلسلة الأيام، كلافتات حلوى.
+class _HomeWidgets extends StatelessWidget {
+  final ChildProfile child;
+  const _HomeWidgets({required this.child});
+
+  @override
+  Widget build(BuildContext context) {
+    final done = child.completed.contains('daily_${todayKey()}');
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
+      child: Row(children: [
+        Expanded(
+          child: _CandyWidget(
+            color: const Color(0xFFFFC23F),
+            icon: done ? Icons.check_circle_rounded : Icons.bolt_rounded,
+            title: 'تحدي اليوم',
+            line: done ? 'أنجزته اليوم' : '٣ أسئلة بنجوم مضاعفة',
+            onTap: () {
+              final day = DateTime.now();
+              final r = math.Random(day.year * 1000 + day.month * 40 + day.day);
+              final pool = kQuestions.where((q) => q.band <= child.ageBand).toList()..shuffle(r);
+              Navigator.of(context).push(MaterialPageRoute(
+                builder: (_) => QuizRunner(title: 'تحدي اليوم', questions: pool.take(3).toList(), completionId: 'daily_${todayKey()}'),
+              ));
+            },
+          ),
+        ),
+        const SizedBox(width: 12),
+        Expanded(
+          child: _CandyWidget(
+            color: const Color(0xFF22D3EE),
+            icon: Icons.local_fire_department_rounded,
+            title: 'سلسلة أيامي',
+            line: '${child.streak} يوم متواصل',
+            onTap: null,
+          ),
+        ),
+      ]),
+    );
+  }
+}
+
+class _CandyWidget extends StatelessWidget {
+  final Color color;
+  final IconData icon;
+  final String title;
+  final String line;
+  final VoidCallback? onTap;
+  const _CandyWidget({required this.color, required this.icon, required this.title, required this.line, this.onTap});
+
+  @override
+  Widget build(BuildContext context) {
+    final body = Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(22),
+        border: Border.all(color: _outline, width: 3),
+        boxShadow: [BoxShadow(color: color, offset: const Offset(0, 5))],
+      ),
+      child: Column(children: [
+        Container(
+          width: 40,
+          height: 40,
+          decoration: BoxDecoration(color: color, shape: BoxShape.circle, border: Border.all(color: _outline, width: 2.5)),
+          child: Icon(icon, color: _outline, size: 24),
+        ),
+        const SizedBox(height: 6),
+        Text(title, textAlign: TextAlign.center, style: RT.display(16, color: RC.ink)),
+        FittedBox(fit: BoxFit.scaleDown, child: Text(line, textAlign: TextAlign.center, style: RT.body(12.5, color: RC.inkSoft))),
+      ]),
+    );
+    if (onTap == null) return Semantics(label: '$title، $line', child: body);
+    return Semantics(
+      button: true,
+      label: '$title، $line',
+      excludeSemantics: true,
+      child: GestureDetector(
+        onTap: () {
+          Haptics.tap();
+          onTap!();
+        },
+        child: body,
+      ),
+    );
+  }
 }
 
 // ------------------------------------------------------------------ البطاقات

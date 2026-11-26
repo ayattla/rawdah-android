@@ -25,6 +25,8 @@ import 'package:rawdah/features/learn/presentation/reading_screens.dart';
 import 'package:rawdah/features/learn/data/reading.dart';
 import 'package:rawdah/features/islamic/data/islamic_content.dart';
 import 'package:rawdah/features/islamic/presentation/islamic_screens.dart';
+import 'package:rawdah/features/planets/presentation/planets_screen.dart';
+import 'package:rawdah/features/planets/data/planets_content.dart';
 import '../test/features/recitation/recitation_fakes.dart';
 import 'package:rawdah/core/di/providers.dart';
 import 'package:rawdah/core/storage/local_store.dart';
@@ -394,6 +396,26 @@ void main() {
       await t.tap(find.byKey(const ValueKey('name_3')));
       await t.pump(const Duration(milliseconds: 300));
     });
+  });
+
+  testWidgets('39 كواكب المعرفة', (t) async {
+    final st = await _state();
+    await _shot(t, '39_planets', st, const PlanetsScreen(), height: 1900);
+  });
+
+  testWidgets('40 كوكب تاريخ', (t) async {
+    final st = await _state();
+    await _shot(t, '40_tarikh', st, TopicHubScreen(title: 'كوكب تاريخ', topics: kTarikhTopics));
+  });
+
+  testWidgets('41 تمارين', (t) async {
+    final st = await _state();
+    await _shot(t, '41_exercise', st, ExerciseScreen(exercises: exercisesFor(1)));
+  });
+
+  testWidgets('42 بون بون', (t) async {
+    final st = await _state();
+    await _shot(t, '42_bonbon', st, BonBonScreen(random: Random(2)));
   });
 
   // فحوص إرشادات الوصول المضمّنة في Flutter: حجم أهداف اللمس، وجود وصف لكل زر، وتباين النص.
