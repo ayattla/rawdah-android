@@ -24,6 +24,23 @@ List<Question> buildGeneratedQuestions() {
     return [for (final v in s.toList()..shuffle(r)) '$v'];
   }
 
+  // ما السورة التي بعد هذه في ترتيب المصحف (للسور المتتالية الموجودة)
+  final byNum = {for (final s in kSurahs) s.number: s};
+  final names = [for (final s in kSurahs) s.name];
+  for (final s in kSurahs) {
+    final nx = byNum[s.number + 1];
+    if (nx == null) continue;
+    final wrong = (names.where((x) => x != nx.name && x != s.name).toList()..shuffle(r)).take(2);
+    final o = [nx.name, ...wrong]..shuffle(r);
+    out.add(Question('gen_next_${s.number}', 1, 'ما السورة التي تأتي بعد سورة ${s.name} في المصحف؟', o, o.indexOf(nx.name), 'بعد سورة ${s.name} تأتي سورة ${nx.name}.'));
+  }
+  // في أي سورة هذه الآية؟ (الآية الأولى بنصها من المصحف)
+  for (final s in kSurahs) {
+    if (s.number == 1 || s.ayat.isEmpty) continue;
+    final wrong = (names.where((x) => x != s.name).toList()..shuffle(r)).take(2);
+    final o = [s.name, ...wrong]..shuffle(r);
+    out.add(Question('gen_where_${s.number}', s.ayat.length <= 8 ? 1 : 2, 'في أي سورة هذه الآية: ﴿${s.ayat.first}﴾؟', o, o.indexOf(s.name), 'هذه أول آية في سورة ${s.name}.'));
+  }
   for (final s in kSurahs) {
     final n = s.ayat.length;
     final o1 = numOpts(n);

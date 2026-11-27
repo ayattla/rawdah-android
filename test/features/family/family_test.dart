@@ -18,7 +18,9 @@ void main() {
     expect(fil.options[fil.answer], '${kSurahs.firstWhere((s) => s.number == 105).ayat.length}');
     final ba = kGeneratedQuestions.firstWhere((q) => q.id == 'gen_dots_ث');
     expect(ba.options[ba.answer], 'ثلاث نقاط');
-    expect(kGeneratedQuestions.length, greaterThan(100));
+    expect(kGeneratedQuestions.length, greaterThan(150));
+    final nx = kGeneratedQuestions.firstWhere((q) => q.id == 'gen_next_113');
+    expect(nx.options[nx.answer], 'الناس');
   });
 
   test('ترتيب دوري العائلة', () {

@@ -14,6 +14,8 @@ const _gameColors = {
   TowerGame.balance: Color(0xFF0EA5E9),
   TowerGame.scramble: Color(0xFFF59E0B),
   TowerGame.sudoku: Color(0xFF10B981),
+  TowerGame.story: Color(0xFFEF4444),
+  TowerGame.riddle: Color(0xFF6366F1),
 };
 const _gameIcons = {
   TowerGame.sequence: Icons.trending_up_rounded,
@@ -21,6 +23,8 @@ const _gameIcons = {
   TowerGame.balance: Icons.balance_rounded,
   TowerGame.scramble: Icons.abc_rounded,
   TowerGame.sudoku: Icons.grid_4x4_rounded,
+  TowerGame.story: Icons.shopping_basket_rounded,
+  TowerGame.riddle: Icons.lightbulb_rounded,
 };
 
 /// برج الألغاز: خمس ألعاب لا تنتهي، كل واحدة بمستويات تصعد بلا حد.
@@ -109,6 +113,10 @@ class _TowerPlayScreenState extends State<TowerPlayScreen> {
         _choice = oddOnePuzzle(_level, _r);
       case TowerGame.balance:
         _choice = balancePuzzle(_level, _r);
+      case TowerGame.story:
+        _choice = storyPuzzle(_level, _r);
+      case TowerGame.riddle:
+        _choice = riddlePuzzle(_level, _r);
       case TowerGame.scramble:
         _scr = scramblePuzzle(_level, _r);
         _picked = [];
