@@ -214,7 +214,9 @@ enum TowerGame {
   scramble('رتب الحروف', 'tower_scr'),
   sudoku('سودوكو الصغار', 'tower_sud'),
   story('مسائل السوق', 'tower_story'),
-  riddle('أحاجي وفوازير', 'tower_rid');
+  riddle('أحاجي وفوازير', 'tower_rid'),
+  compare('أكبر أو أصغر', 'tower_cmp'),
+  missing('الحرف الناقص', 'tower_mis');
 
   final String title;
   final String key;
@@ -303,6 +305,43 @@ ChoicePuzzle riddlePuzzle(int level, Random r) {
   final x = kRiddles[(level * 5 + r.nextInt(kRiddles.length)) % kRiddles.length];
   final opts = [x.$2, ...x.$3]..shuffle(r);
   return ChoicePuzzle('من أنا؟ ${x.$1}', const [], opts, opts.indexOf(x.$2), 'الجواب: ${x.$2}');
+}
+
+/// أي الطرفين أكبر؟ تبدأ بأعداد ثم عمليات.
+ChoicePuzzle comparePuzzle(int level, Random r) {
+  int n(int a, int b) => a + r.nextInt(b - a + 1);
+  String side(int v) {
+    if (level < 4) return '$v';
+    final k = r.nextInt(level < 10 ? 2 : 3);
+    if (k == 0 && v > 1) { final a = n(1, v - 1); return '$a + ${v - a}'; }
+    if (k == 1) { final b = n(1, 9); return '${v + b} − $b'; }
+    for (final d in [2, 3, 4, 5]) { if (v % d == 0 && v > d) return '$d × ${v ~/ d}'; }
+    return '$v';
+  }
+  final top = 10 + level * 4;
+  final a = n(1, top);
+  var b = n(1, top);
+  if (level >= 6 && r.nextInt(5) == 0) b = a;
+  final la = side(a), lb = side(b);
+  const opts = ['الأول أكبر', 'الثاني أكبر', 'متساويان'];
+  final ans = a > b ? 0 : (b > a ? 1 : 2);
+  return ChoicePuzzle('قارن بين الطرفين', ['‪$la‬', '‪$lb‬'], opts, ans, '‪$la = $a‬ و ‪$lb = $b‬');
+}
+
+/// أكمل الحرف الناقص في الكلمة، من كلمات لعبة رتب الحروف.
+ChoicePuzzle missingPuzzle(int level, Random r) {
+  final cut = level < 5 ? 18 : (level < 12 ? 40 : kScrambleWords.length);
+  final w = kScrambleWords[r.nextInt(cut)];
+  final pos = w.startsWith('ال') && w.length > 3 ? 2 + r.nextInt(w.length - 2) : r.nextInt(w.length);
+  final ch = w[pos];
+  const letters = 'ابتثجحخدذرزسشصضطظعغفقكلمنهوي';
+  final o = <String>{ch};
+  while (o.length < 3) {
+    o.add(letters[r.nextInt(letters.length)]);
+  }
+  final opts = o.toList()..shuffle(r);
+  final shown = w.replaceRange(pos, pos + 1, '_');
+  return ChoicePuzzle('أي حرف يكمل الكلمة؟', [shown], opts, opts.indexOf(ch), 'الكلمة: $w');
 }
 
 String floorName(int level) {
