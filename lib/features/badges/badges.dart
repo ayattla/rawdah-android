@@ -30,6 +30,7 @@ final kBadgeTracks = <BadgeTrack>[
   BadgeTrack('باني المدينة', 'مستوى مدينة', Icons.location_city_rounded, const Color(0xFF10B981), [3, 10, 20, 40], (c) => [for (final e in c.counters.entries) if (e.key.startsWith('b_')) e.value].fold(0, (a, b) => a + b)),
   BadgeTrack('جامع البطاقات', 'بطاقة', Icons.collections_bookmark_rounded, const Color(0xFF6366F1), [5, 15, 30, 40], (c) => c.owned.where((x) => x.startsWith('card_')).length),
   BadgeTrack('المبرمج', 'مستوى برمجة', Icons.code_rounded, const Color(0xFF0EA5E9), [5, 15, 35, 70], (c) => c.counters['code_lvl'] ?? 0),
+  BadgeTrack('بطل الجمعة', 'بطولة جمعة', Icons.emoji_events_rounded, const Color(0xFFFFC23F), [1, 4, 12, 30], (c) => c.counters['fri_count'] ?? 0),
   BadgeTrack('متسلق السلم', 'قمة سلم المعرفة', Icons.stairs_rounded, const Color(0xFF14B8A6), [1, 5, 20, 50], (c) => c.counters['ladder_top'] ?? 0),
 ];
 
