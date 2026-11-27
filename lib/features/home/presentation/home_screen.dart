@@ -23,6 +23,7 @@ import 'package:rawdah/features/stories/presentation/stories_screen.dart';
 import 'package:rawdah/features/planets/presentation/planets_screen.dart';
 import 'package:rawdah/features/tower/presentation/tower_screens.dart';
 import 'package:rawdah/features/episodes/episodes.dart';
+import 'package:rawdah/features/shop/shop.dart';
 import 'package:rawdah/features/workshop/workshop_screens.dart';
 import 'package:rawdah/features/daily/presentation/daily_screen.dart';
 import 'package:rawdah/features/daily/domain/quests.dart';
@@ -65,6 +66,7 @@ class HomeMapScreen extends StatelessWidget {
     ]),
     ('ألعب وأنافس', [
       _Place('برج الألغاز', 'ألغاز لا تنتهي', Icons.extension_rounded, const Color(0xFF8B5CF6), (_) => const TowerScreen()),
+      _Place('متجر الروضة', 'ألوان وألقاب بنجومك', Icons.storefront_rounded, const Color(0xFFF59E0B), (_) => const ShopScreen()),
       _Place('إتقاني', 'أتقن كل الأسئلة', Icons.psychology_rounded, const Color(0xFF10B981), (_) => const MasteryScreen()),
       _Place('المسابقات', 'أجب واجمع النجوم', Icons.emoji_events_rounded, RC.goldDark, (_) => const QuizHubScreen()),
       _Place('ساحة الألعاب', 'نلعب ونتعلم', Icons.extension_rounded, RC.plum, (_) => const GamesHubScreen()),
@@ -148,7 +150,7 @@ class HomeMapScreen extends StatelessWidget {
                       hint: p.hint,
                       icon: p.icon,
                       screen: p.color,
-                      frame: _candyFrames[i % _candyFrames.length],
+                      frame: equippedFrames(st)[i % 6],
                       tilt: (i.isEven ? -1 : 1) * 0.022,
                       onTap: () => _open(context, p),
                     ),
@@ -188,6 +190,12 @@ class _TopBar extends StatelessWidget {
             child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
               Text('السلام عليكم', style: RT.body(14, color: const Color(0xFFCFC6FF))),
               Text(child.name, style: RT.display(26, color: Colors.white), overflow: TextOverflow.ellipsis),
+              if (equippedTitle(AppScope.of(context)) case final t?)
+                Row(mainAxisSize: MainAxisSize.min, children: [
+                  Icon(t.icon, size: 16, color: const Color(0xFFFFC23F)),
+                  const SizedBox(width: 4),
+                  Text(t.name, style: RT.body(13.5, color: const Color(0xFFFFC23F), weight: FontWeight.w700)),
+                ]),
             ]),
           ),
           StarCount(stars: child.stars),
@@ -402,8 +410,6 @@ class _HeroTile extends StatelessWidget {
       );
 }
 
-/// ألوان إطارات التلفاز الحلوى، تتبدل من بطاقة لأخرى.
-const _candyFrames = [Color(0xFFFFC23F), Color(0xFFFF5D8F), Color(0xFF22D3EE), Color(0xFF9BE15D), Color(0xFFFF9F1C), Color(0xFFA78BFA)];
 const _outline = Color(0xFF2A1A66);
 
 /// بطاقة «تلفاز كرتوني»: إطار حلوى متموج بحد غامق، وشاشة ملونة فيها الأيقونة،

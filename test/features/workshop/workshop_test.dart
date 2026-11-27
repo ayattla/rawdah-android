@@ -4,6 +4,7 @@ import 'package:flutter_test/flutter_test.dart';
 
 import 'package:rawdah/features/episodes/episodes.dart';
 import 'package:rawdah/features/workshop/workshop_domain.dart';
+import 'package:rawdah/features/shop/shop.dart';
 
 void main() {
   test('مسلسل الحلقات: أكثر من شهرين وحلقة واحدة في اليوم', () {
@@ -31,5 +32,15 @@ void main() {
     expect(kConductors.toSet().intersection(kInsulators.toSet()), isEmpty);
     expect(promptOfDay(DateTime(2026, 11, 27)), isNotEmpty);
     expect(kMachinesTopic.cards.length, 6);
+  });
+
+  test('المتجر: أسعار وألوان سليمة', () {
+    expect(kFramePalettes.first.price, 0);
+    expect(kFramePalettes.every((p) => p.colors.length >= 6), true);
+    expect(kFramePalettes.map((p) => p.id).toSet().length, kFramePalettes.length);
+    expect(kTitles.map((t) => t.id).toSet().length, kTitles.length);
+    for (var i = 1; i < kTitles.length; i++) {
+      expect(kTitles[i].price, greaterThanOrEqualTo(kTitles[i - 1].price));
+    }
   });
 }

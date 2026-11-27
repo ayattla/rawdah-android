@@ -59,7 +59,73 @@ class DailyScreen extends StatelessWidget {
                     }
                   : null,
             ),
+            const SizedBox(height: 18),
+            const _WeeklyLeague(),
           ]),
+        ),
+      ]),
+    );
+  }
+}
+
+/// دوري الأسبوع: كل يوم يفتح فيه الطفل صندوق اليوم يضيء، وخمسة أيام تعطيه وسام الأسبوع.
+class _WeeklyLeague extends StatelessWidget {
+  const _WeeklyLeague();
+
+  static const _names = ['سبت', 'أحد', 'اثنين', 'ثلاثاء', 'أربعاء', 'خميس', 'جمعة'];
+
+  @override
+  Widget build(BuildContext context) {
+    final st = AppScope.of(context);
+    final now = DateTime.now();
+    final today = DateTime(now.year, now.month, now.day);
+    final start = today.subtract(Duration(days: (today.weekday - DateTime.saturday) % 7));
+    final days = [for (var i = 0; i < 7; i++) start.add(Duration(days: i))];
+    final lit = [for (final d in days) st.counter('chest_${todayKey(d)}') > 0];
+    final n = lit.where((x) => x).length;
+    final weekKey = 'week_${todayKey(start)}';
+    final claimed = st.counter(weekKey) > 0;
+    return Container(
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(22), border: Border.all(color: _outline, width: 3)),
+      child: Column(children: [
+        Text('دوري الأسبوع', style: RT.display(20)),
+        Text('افتح صندوق اليوم ٥ أيام هذا الأسبوع لتربح وسام الأسبوع', textAlign: TextAlign.center, style: RT.body(13.5, color: RC.inkSoft)),
+        const SizedBox(height: 12),
+        Row(children: [
+          for (var i = 0; i < 7; i++)
+            Expanded(
+              child: Column(children: [
+                Container(
+                  width: 34,
+                  height: 34,
+                  decoration: BoxDecoration(
+                    color: lit[i] ? const Color(0xFFFFC23F) : (days[i] == today ? const Color(0xFFE9E3FF) : RC.sand),
+                    shape: BoxShape.circle,
+                    border: Border.all(color: _outline, width: 2.5),
+                  ),
+                  child: lit[i] ? const Icon(Icons.check_rounded, size: 20, color: _outline) : null,
+                ),
+                const SizedBox(height: 4),
+                Text(_names[i], style: RT.body(11.5, color: RC.inkSoft)),
+              ]),
+            ),
+        ]),
+        const SizedBox(height: 12),
+        Text('الأوسمة: ${st.counter('medals')}', style: RT.display(16, color: const Color(0xFF8B5CF6))),
+        const SizedBox(height: 8),
+        PrimaryButton(
+          label: claimed ? 'استلمت وسام هذا الأسبوع' : (n >= 5 ? 'استلم وسام الأسبوع (٤٠ نجمة)' : '$n من ٥ أيام'),
+          icon: Icons.military_tech_rounded,
+          color: n >= 5 && !claimed ? const Color(0xFF8B5CF6) : RC.sandDark,
+          onTap: n >= 5 && !claimed
+              ? () async {
+                  st.setCounter(weekKey, 1);
+                  st.setCounter('medals', st.counter('medals') + 1);
+                  st.addStars(40);
+                  await showReward(context, stars: 40, title: 'وسام الأسبوع لك!');
+                }
+              : null,
         ),
       ]),
     );
