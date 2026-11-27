@@ -194,20 +194,19 @@ int dealPrice(Cosmetic c) => (c.price * 0.6).round();
 
 const kMysteryPrice = 70;
 
-/// يفتح الصندوق: غرض غير مملوك عشوائي، أو نجوم إن ملك الطفل كل شيء.
+/// صندوق الهدية: بلا حظ ولا عشوائية، يعطي أرخص غرض ناقص عند الطفل،
+/// وإن ملك كل شيء يعطيه مساعدة حماية السلسلة ويرجع له نجوما.
 String openMystery(AppState st, Random r) {
   final c = st.current!;
   if (c.balance < kMysteryPrice) return '';
   c.spentStars += kMysteryPrice;
-  final left = allCosmetics().where((x) => !c.owned.contains(x.id)).toList();
-  if (left.isEmpty || r.nextInt(5) == 0) {
-    final h = kHelpers[r.nextInt(kHelpers.length)];
-    st.setCounter(h.key, st.counter(h.key) + 1);
-    if (left.isEmpty) st.addStars(30);
-    return h.name;
+  final left = allCosmetics().where((x) => !c.owned.contains(x.id)).toList()..sort((a, b) => a.price.compareTo(b.price));
+  if (left.isEmpty) {
+    st.setCounter('inv_freeze', st.counter('inv_freeze') + 1);
+    st.addStars(30);
+    return kHelpers.last.name;
   }
-  final got = left[r.nextInt(left.length)];
-  c.owned.add(got.id);
+  c.owned.add(left.first.id);
   st.setCounter('mystery_opened', st.counter('mystery_opened') + 1);
-  return got.name;
+  return left.first.name;
 }

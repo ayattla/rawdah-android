@@ -3,6 +3,8 @@ library;
 
 export 'components/a11y.dart';
 export 'components/chunky.dart';
+export 'components/cosmos.dart';
+export 'components/warp.dart';
 export 'components/haptics.dart';
 export 'components/kid_widgets.dart';
 export 'components/lantern.dart';

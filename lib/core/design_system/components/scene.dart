@@ -2,6 +2,8 @@ import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 
+import 'package:rawdah/core/design_system/components/cosmos.dart';
+
 import 'package:rawdah/core/design_system/components/a11y.dart';
 import 'package:rawdah/core/design_system/components/kid_widgets.dart';
 import 'package:rawdah/core/design_system/components/lantern.dart';
@@ -106,9 +108,11 @@ class SceneBackground extends StatelessWidget {
   const SceneBackground({super.key, required this.child, this.night = false, this.theme});
 
   @override
-  Widget build(BuildContext context) =>
-      CustomPaint(
-          painter: ScenePainter(night: night, plain: A11y.highContrastOf(context), theme: theme ?? SceneTheme.active), child: SafeArea(child: child));
+  Widget build(BuildContext context) {
+    final plain = A11y.highContrastOf(context);
+    if (night && !plain) return CosmosBackground(sky: ScenePainter.nightSky, child: SafeArea(child: child));
+    return CustomPaint(painter: ScenePainter(night: night, plain: plain, theme: theme ?? SceneTheme.active), child: SafeArea(child: child));
+  }
 }
 
 

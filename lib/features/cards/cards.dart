@@ -89,7 +89,7 @@ const kSetPrize = 100;
   final names = <String>[];
   var dups = 0;
   for (var k = 0; k < 3; k++) {
-    // نفضل البطاقات الناقصة قليلا حتى لا يمل الطفل من التكرار
+    // كل ظرف يعطي بطاقات جديدة مضمونة، فلا مقامرة ولا حظ
     final missing = <(CardSet, int)>[
       for (final s in kCardSets)
         for (var i = 0; i < s.cards.length; i++)
@@ -97,7 +97,7 @@ const kSetPrize = 100;
     ];
     late CardSet s;
     late int i;
-    if (missing.isNotEmpty && r.nextInt(10) < 7) {
+    if (missing.isNotEmpty) {
       (s, i) = missing[r.nextInt(missing.length)];
     } else {
       s = kCardSets[r.nextInt(kCardSets.length)];

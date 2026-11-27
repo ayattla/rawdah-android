@@ -133,8 +133,8 @@ class ShopScreen extends StatelessWidget {
                 await showReward(context, stars: 3, title: 'طلع لك: $got');
               },
               child: Column(children: [
-                Text('صندوق المفاجآت', style: RT.display(19, color: Colors.white)),
-                Text('$kMysteryPrice نجمة • غرض عشوائي من المتجر', style: RT.body(14, color: Colors.white)),
+                Text('صندوق الهدية', style: RT.display(19, color: Colors.white)),
+                Text('$kMysteryPrice نجمة • يعطيك أرخص غرض ناقص عندك', style: RT.body(14, color: Colors.white)),
               ]),
             ),
             const SizedBox(height: 16),

@@ -104,7 +104,7 @@ class HomeMapScreen extends StatelessWidget {
   Future<void> _open(BuildContext context, _Place p) async {
     Voice.instance.say(p.title);
     SceneTheme.active = p.theme;
-    await Navigator.of(context).push(MaterialPageRoute(builder: p.builder));
+    await Navigator.of(context).push(WarpRoute<void>(builder: p.builder, title: p.title, color: p.color, icon: p.icon));
     SceneTheme.active = SceneTheme.home;
   }
 
@@ -149,7 +149,7 @@ class HomeMapScreen extends StatelessWidget {
                     art: const _MiniPlanetsArt(),
                     onTap: () async {
                       Voice.instance.say('كواكب المعرفة');
-                      await Navigator.of(context).push(MaterialPageRoute(builder: (_) => const PlanetsScreen()));
+                      await Navigator.of(context).push(WarpRoute<void>(builder: (_) => const PlanetsScreen(), title: 'كواكب المعرفة', color: const Color(0xFF6D4AFF), icon: Icons.public_rounded));
                     },
                   ),
                 ),
@@ -467,6 +467,7 @@ class _TvCard extends StatefulWidget {
 
 class _TvCardState extends State<_TvCard> {
   bool _down = false;
+  int _wiggle = 0;
 
   @override
   Widget build(BuildContext context) {
@@ -476,15 +477,19 @@ class _TvCardState extends State<_TvCard> {
       label: '${widget.title}، ${widget.hint}',
       excludeSemantics: true,
       child: GestureDetector(
-        onTapDown: (_) => setState(() => _down = true),
+        onTapDown: (d) {
+          WarpRoute.lastTap = d.globalPosition;
+          setState(() => _down = true);
+        },
         onTapCancel: () => setState(() => _down = false),
         onTapUp: (_) => setState(() => _down = false),
         onTap: () {
           Haptics.tap();
+          setState(() => _wiggle++);
           widget.onTap();
         },
         child: AnimatedScale(
-          scale: _down ? 0.93 : 1,
+          scale: _down ? 0.92 : 1,
           duration: const Duration(milliseconds: 140),
           curve: Curves.easeOutBack,
           child: Transform.rotate(
@@ -502,6 +507,7 @@ class _TvCardState extends State<_TvCard> {
                       frameColor: widget.frame,
                       screenColor: widget.screen,
                       flat: hc,
+                      down: _down,
                     ),
                   ),
                 ),
@@ -509,9 +515,15 @@ class _TvCardState extends State<_TvCard> {
                   rect: screenRect,
                   child: Center(
                     child: widget.art ??
-                        Icon(widget.icon, size: widget.wide ? 54 : 46, color: Colors.white, shadows: const [
-                          Shadow(color: Color(0x55000000), offset: Offset(0, 3)),
-                        ]),
+                        TweenAnimationBuilder<double>(
+                          key: ValueKey(_wiggle),
+                          tween: Tween(begin: _wiggle == 0 ? 1 : 0, end: 1),
+                          duration: const Duration(milliseconds: 420),
+                          builder: (_, v, ic) => Transform.rotate(angle: math.sin(v * math.pi * 3) * 0.18 * (1 - v), child: Transform.scale(scale: 1 + 0.25 * math.sin(v * math.pi), child: ic)),
+                          child: Icon(widget.icon, size: widget.wide ? 54 : 46, color: Colors.white, shadows: const [
+                            Shadow(color: Color(0x55000000), offset: Offset(0, 3)),
+                          ]),
+                        ),
                   ),
                 ),
                 // الهوائي
@@ -560,19 +572,61 @@ class _TvPainter extends CustomPainter {
   final Color frameColor;
   final Color screenColor;
   final bool flat;
-  _TvPainter({required this.frame, required this.screen, required this.frameColor, required this.screenColor, required this.flat});
+  final bool down;
+  _TvPainter({required this.frame, required this.screen, required this.frameColor, required this.screenColor, required this.flat, this.down = false});
 
   @override
   void paint(Canvas canvas, Size size) {
     final hsl = HSLColor.fromColor(screenColor);
     final dark = hsl.withLightness((hsl.lightness - 0.12).clamp(0.0, 1.0)).toColor();
     final light = hsl.withLightness((hsl.lightness + 0.14).clamp(0.0, 1.0)).toColor();
-    if (!flat) canvas.drawPath(frame.shift(const Offset(0, 6)), Paint()..color = _outline);
-    canvas.drawPath(frame, Paint()..color = frameColor);
+    final fh = HSLColor.fromColor(frameColor);
+    // حافة داخلية بلون مكمل مثل الإطارات البلاستيكية الملونة
+    final rim = fh.withHue((fh.hue + 150) % 360).withSaturation(0.85).withLightness(0.62).toColor();
+    final fb = frame.getBounds();
+    if (!flat && down) {
+      canvas.drawPath(frame, Paint()
+        ..color = frameColor.withValues(alpha: 0.75)
+        ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 14));
+    }
+    if (!flat) canvas.drawPath(frame.shift(Offset(0, down ? 3 : 6)), Paint()..color = _outline);
+    canvas.drawPath(
+      frame,
+      Paint()
+        ..shader = flat
+            ? null
+            : LinearGradient(begin: Alignment.topCenter, end: Alignment.bottomCenter, colors: [fh.withLightness((fh.lightness + 0.12).clamp(0.0, 1.0)).toColor(), frameColor, fh.withLightness((fh.lightness - 0.1).clamp(0.0, 1.0)).toColor()])
+                .createShader(fb)
+        ..color = frameColor,
+    );
     canvas.drawPath(frame, Paint()
       ..color = _outline
       ..style = PaintingStyle.stroke
       ..strokeWidth = 3);
+    if (!flat) {
+      // لمعة البلاستيك أعلى الإطار
+      canvas.save();
+      canvas.clipPath(frame);
+      canvas.drawRRect(
+        RRect.fromRectAndRadius(Rect.fromLTWH(fb.left + 14, fb.top + 3, fb.width * 0.45, 5), const Radius.circular(4)),
+        Paint()..color = Colors.white.withValues(alpha: 0.45),
+      );
+      canvas.restore();
+      // حافة ملونة حول الشاشة
+      canvas.drawPath(screen, Paint()
+        ..color = rim
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = 9);
+      // براغي حلوى على الزوايا
+      for (final p in [fb.topLeft + const Offset(9, 9), fb.topRight + const Offset(-9, 9), fb.bottomLeft + const Offset(9, -9)]) {
+        canvas.drawCircle(p, 4.2, Paint()..color = rim);
+        canvas.drawCircle(p, 4.2, Paint()
+          ..color = _outline
+          ..style = PaintingStyle.stroke
+          ..strokeWidth = 1.6);
+        canvas.drawCircle(p - const Offset(1.3, 1.3), 1.2, Paint()..color = Colors.white.withValues(alpha: 0.8));
+      }
+    }
     final sb = screen.getBounds();
     canvas.drawPath(
       screen,
@@ -608,7 +662,7 @@ class _TvPainter extends CustomPainter {
   }
 
   @override
-  bool shouldRepaint(covariant _TvPainter old) => old.frameColor != frameColor || old.screenColor != screenColor || old.flat != flat;
+  bool shouldRepaint(covariant _TvPainter old) => old.frameColor != frameColor || old.screenColor != screenColor || old.flat != flat || old.down != down;
 }
 
 class _AntennaPainter extends CustomPainter {
