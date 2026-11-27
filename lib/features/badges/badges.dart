@@ -27,6 +27,7 @@ final kBadgeTracks = <BadgeTrack>[
   BadgeTrack('بطل الأسبوع', 'وسام أسبوعي', Icons.military_tech_rounded, const Color(0xFFFFC23F), [1, 4, 12, 30], (c) => c.counters['medals'] ?? 0),
   BadgeTrack('سريع الحساب', 'أفضل نتيجة في الدقيقة', Icons.speed_rounded, const Color(0xFFEF4444), [8, 15, 25, 35], (c) => c.counters['speed_best'] ?? 0),
   BadgeTrack('سيد الجداول', 'جدول متقن', Icons.calculate_rounded, const Color(0xFF8B5CF6), [1, 3, 6, 9], (c) => [for (var t = 2; t <= 10; t++) c.counters['mul_t$t'] ?? 0].where((v) => v >= 10).length),
+  BadgeTrack('باني المدينة', 'مستوى مدينة', Icons.location_city_rounded, const Color(0xFF10B981), [3, 10, 20, 40], (c) => [for (final e in c.counters.entries) if (e.key.startsWith('b_')) e.value].fold(0, (a, b) => a + b)),
   BadgeTrack('متسلق السلم', 'قمة سلم المعرفة', Icons.stairs_rounded, const Color(0xFF14B8A6), [1, 5, 20, 50], (c) => c.counters['ladder_top'] ?? 0),
 ];
 
