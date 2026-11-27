@@ -11,9 +11,11 @@ import 'package:rawdah/features/science/data/science_content.dart';
 /// سلم المعرفة: عشر درجات تصعب تدريجيا، ومعك مساعدتان: حذف خيار والتخطي.
 List<Question> ladderQuestions(int band, Random r) {
   final all = [...kQuestions, ...kGeneratedQuestions, ...scienceQuestionsFor(band)].where((q) => q.band <= band).toList()..shuffle(r);
-  final easy = all.where((q) => q.band < band || band == 0).toList();
-  final hard = all.where((q) => q.band == band).toList();
-  final out = <Question>[...easy.take(5), ...hard.take(5)];
+  final out = <Question>[];
+  if (band > 0) {
+    out.addAll(all.where((q) => q.band < band).take(5));
+    out.addAll(all.where((q) => q.band == band).take(5));
+  }
   for (final q in all) {
     if (out.length >= 11) break; // ١٠ + واحد احتياط للتخطي
     if (!out.contains(q)) out.add(q);
