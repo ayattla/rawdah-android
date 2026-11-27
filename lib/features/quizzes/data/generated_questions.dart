@@ -71,7 +71,34 @@ List<Question> buildGeneratedQuestions() {
     final where = n == 0 ? '' : (l.dots > 0 ? ' فوقه' : ' تحته');
     out.add(Question('gen_dots_${l.char}', 0, 'كم نقطة في حرف ${l.name} (${l.char})؟', opts, opts.indexOf(ans), 'حرف ${l.name}: $ans$where.'));
   }
+  // عواصم الدول العربية والإسلامية
+  final caps = kCapitals.map((e) => e.$2).toList();
+  for (var i = 0; i < kCapitals.length; i++) {
+    final (country, cap) = kCapitals[i];
+    final wrong = (caps.where((x) => x != cap).toList()..shuffle(r)).take(2);
+    final o = [cap, ...wrong]..shuffle(r);
+    out.add(Question('gen_cap_$i', i < 8 ? 1 : 2, 'ما عاصمة $country؟', o, o.indexOf(cap), 'عاصمة $country هي $cap.'));
+  }
+  // جدول الضرب
+  for (var a = 2; a <= 10; a++) {
+    for (var b = 2; b <= 10; b++) {
+      if (b < a) continue;
+      final o = numOpts(a * b, spread: a);
+      out.add(Question('gen_mul_${a}_$b', 1, 'كم ناتج ‪$a × $b‬؟', o, o.indexOf('${a * b}'), '‪$a × $b = ${a * b}‬'));
+    }
+  }
   return out;
 }
+
+const kCapitals = <(String, String)>[
+  ('السعودية', 'الرياض'), ('مصر', 'القاهرة'), ('الإمارات', 'أبوظبي'), ('الكويت', 'الكويت'),
+  ('قطر', 'الدوحة'), ('البحرين', 'المنامة'), ('عمان', 'مسقط'), ('الأردن', 'عمّان'),
+  ('اليمن', 'صنعاء'), ('العراق', 'بغداد'), ('سوريا', 'دمشق'), ('لبنان', 'بيروت'),
+  ('فلسطين', 'القدس'), ('المغرب', 'الرباط'), ('الجزائر', 'الجزائر'), ('تونس', 'تونس'),
+  ('ليبيا', 'طرابلس'), ('السودان', 'الخرطوم'), ('موريتانيا', 'نواكشوط'), ('الصومال', 'مقديشو'),
+  ('جيبوتي', 'جيبوتي'), ('جزر القمر', 'موروني'), ('تركيا', 'أنقرة'), ('باكستان', 'إسلام آباد'),
+  ('إندونيسيا', 'جاكرتا'), ('ماليزيا', 'كوالالمبور'), ('أفغانستان', 'كابل'), ('بنغلاديش', 'دكا'),
+  ('نيجيريا', 'أبوجا'), ('السنغال', 'داكار'),
+];
 
 final List<Question> kGeneratedQuestions = buildGeneratedQuestions();

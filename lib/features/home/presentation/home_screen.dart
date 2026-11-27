@@ -29,6 +29,7 @@ import 'package:rawdah/features/health/health_screen.dart';
 import 'package:rawdah/features/choices/choices_screen.dart';
 import 'package:rawdah/features/ladder/ladder.dart';
 import 'package:rawdah/features/badges/badges.dart';
+import 'package:rawdah/features/speed/speed.dart';
 import 'package:rawdah/features/quizzes/data/generated_questions.dart';
 import 'package:rawdah/features/workshop/workshop_screens.dart';
 import 'package:rawdah/features/daily/presentation/daily_screen.dart';
@@ -73,6 +74,7 @@ class HomeMapScreen extends StatelessWidget {
     ('ألعب وأنافس', [
       _Place('برج الألغاز', 'ألغاز لا تنتهي', Icons.extension_rounded, const Color(0xFF8B5CF6), (_) => const TowerScreen()),
       _Place('دوري العائلة', 'بطولة البيت الشهرية', Icons.emoji_events_rounded, const Color(0xFFFF5D8F), (_) => const FamilyLeagueScreen()),
+      _Place('ميدان الحساب', 'تحدي الدقيقة وجدول الضرب', Icons.calculate_rounded, const Color(0xFFEF4444), (_) => const SpeedHubScreen()),
       _Place('سلم المعرفة', '١٠ درجات ونجوم أكثر', Icons.stairs_rounded, const Color(0xFF14B8A6), (_) => const LadderScreen()),
       _Place('أوسمتي', 'برونزي وفضي وذهبي وماسي', Icons.military_tech_rounded, const Color(0xFFFFC23F), (_) => const BadgesScreen()),
       _Place('وش تسوي لو؟', 'مواقف وقرارات', Icons.alt_route_rounded, const Color(0xFFEF4444), (_) => const ChoicesScreen()),
