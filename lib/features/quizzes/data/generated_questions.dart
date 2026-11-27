@@ -1,3 +1,4 @@
+import 'package:rawdah/features/language/language_data.dart';
 import 'dart:math';
 
 import 'package:rawdah/core/content/content.dart';
@@ -86,6 +87,31 @@ List<Question> buildGeneratedQuestions() {
       final o = numOpts(a * b, spread: a);
       out.add(Question('gen_mul_${a}_$b', 1, 'كم ناتج ‪$a × $b‬؟', o, o.indexOf('${a * b}'), '‪$a × $b = ${a * b}‬'));
     }
+  }
+  // اللغة: الأضداد والجموع والمرادفات
+  List<String> pick3(String ans, Iterable<String> pool) {
+    final w = (pool.where((x) => x != ans).toSet().toList()..shuffle(r)).take(2);
+    return [ans, ...w]..shuffle(r);
+  }
+  for (var i = 0; i < kOpposites.length; i++) {
+    final (a, b) = kOpposites[i];
+    final o = pick3(b, kOpposites.map((e) => e.$2));
+    out.add(Question('gen_opp_$i', 0, 'ما ضد كلمة «$a»؟', o, o.indexOf(b), 'ضد $a: $b'));
+  }
+  for (var i = 0; i < kPlurals.length; i++) {
+    final (a, b) = kPlurals[i];
+    final o = pick3(b, kPlurals.map((e) => e.$2));
+    out.add(Question('gen_pl_$i', 1, 'ما جمع كلمة «$a»؟', o, o.indexOf(b), 'جمع $a: $b'));
+  }
+  for (var i = 0; i < kSynonyms.length; i++) {
+    final (a, b) = kSynonyms[i];
+    final o = pick3(b, kSynonyms.map((e) => e.$2));
+    out.add(Question('gen_syn_$i', 2, 'ما معنى كلمة «$a»؟', o, o.indexOf(b), 'معنى $a: $b'));
+  }
+  for (var i = 0; i < kShapes.length; i++) {
+    final (n, sides) = kShapes[i];
+    final o = numOpts(sides, spread: 2);
+    out.add(Question('gen_shape_$i', 0, 'كم ضلعا لشكل $n؟', o, o.indexOf('$sides'), 'لـ$n $sides أضلاع'));
   }
   return out;
 }

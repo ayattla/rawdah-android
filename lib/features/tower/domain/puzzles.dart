@@ -1,5 +1,7 @@
 import 'dart:math';
 
+import 'package:rawdah/features/language/language_data.dart';
+
 /// برج الألغاز: مولدات لا تنتهي، صعوبتها تكبر مع المستوى.
 /// كل لغز سؤال باختيارات، ما عدا السودوكو له شبكة خاصة.
 
@@ -216,7 +218,8 @@ enum TowerGame {
   story('مسائل السوق', 'tower_story'),
   riddle('أحاجي وفوازير', 'tower_rid'),
   compare('أكبر أو أصغر', 'tower_cmp'),
-  missing('الحرف الناقص', 'tower_mis');
+  missing('الحرف الناقص', 'tower_mis'),
+  words('كلمات وأضداد', 'tower_words');
 
   final String title;
   final String key;
@@ -342,6 +345,35 @@ ChoicePuzzle missingPuzzle(int level, Random r) {
   final opts = o.toList()..shuffle(r);
   final shown = w.replaceRange(pos, pos + 1, '_');
   return ChoicePuzzle('أي حرف يكمل الكلمة؟', [shown], opts, opts.indexOf(ch), 'الكلمة: $w');
+}
+
+/// ضد أو جمع أو مفرد أو مرادف، تتنوع مع المستوى.
+ChoicePuzzle wordsPuzzle(int level, Random r) {
+  final kind = r.nextInt(level < 4 ? 1 : (level < 9 ? 3 : 4));
+  late List<(String, String)> data;
+  late String q;
+  var flip = false;
+  switch (kind) {
+    case 0:
+      data = kOpposites;
+      q = 'ما ضد الكلمة؟';
+      flip = r.nextBool();
+    case 1:
+      data = kPlurals;
+      q = 'ما جمع الكلمة؟';
+    case 2:
+      data = kPlurals;
+      q = 'ما مفرد الكلمة؟';
+      flip = true;
+    default:
+      data = kSynonyms;
+      q = 'ما معنى الكلمة؟';
+  }
+  final e = data[r.nextInt(data.length)];
+  final word = flip ? e.$2 : e.$1, ans = flip ? e.$1 : e.$2;
+  final pool = data.map((x) => flip ? x.$1 : x.$2).where((x) => x != ans).toSet().toList()..shuffle(r);
+  final opts = [ans, ...pool.take(level < 6 ? 1 : 2)]..shuffle(r);
+  return ChoicePuzzle(q, [word], opts, opts.indexOf(ans), '$word ← $ans');
 }
 
 String floorName(int level) {
