@@ -28,6 +28,7 @@ import 'package:rawdah/features/shop/economy.dart';
 import 'package:rawdah/features/shop/treasure_screen.dart';
 import 'package:rawdah/features/city/city.dart';
 import 'package:rawdah/features/cards/cards.dart';
+import 'package:rawdah/features/coding/coding_screen.dart';
 import 'package:rawdah/features/family/family_league.dart';
 import 'package:rawdah/features/health/health_screen.dart';
 import 'package:rawdah/features/choices/choices_screen.dart';
@@ -83,6 +84,7 @@ class HomeMapScreen extends StatelessWidget {
       _Place('أوسمتي', 'برونزي وفضي وذهبي وماسي', Icons.military_tech_rounded, const Color(0xFFFFC23F), (_) => const BadgesScreen()),
       _Place('وش تسوي لو؟', 'مواقف وقرارات', Icons.alt_route_rounded, const Color(0xFFEF4444), (_) => const ChoicesScreen()),
       _Place('صحتي', 'الماء والطبق الصحي', Icons.favorite_rounded, const Color(0xFF10B981), (_) => const HealthScreen()),
+      _Place('المبرمج الصغير', 'أوامر توصل الصاروخ', Icons.code_rounded, const Color(0xFF0EA5E9), (_) => const CodingScreen()),
       _Place('ألبوم المعرفة', '٤٠ بطاقة تجمعها', Icons.collections_bookmark_rounded, const Color(0xFF6366F1), (_) => const AlbumScreen()),
       _Place('مدينتي', 'ابن مدينتك بنجومك', Icons.location_city_rounded, const Color(0xFF10B981), (_) => const CityScreen()),
       _Place('كنز النجوم', 'مكافآت يومية وتحديات الأسبوع', Icons.diamond_rounded, const Color(0xFF8B5CF6), (_) => const TreasureScreen()),
