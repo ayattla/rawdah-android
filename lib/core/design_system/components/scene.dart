@@ -35,7 +35,11 @@ class ScenePainter extends CustomPainter {
   final bool night;
   final bool plain; // تباين عالٍ: لون واحد بلا زخرفة
   final SceneTheme theme;
-  ScenePainter({this.night = false, this.plain = false, this.theme = SceneTheme.home});
+  final List<Color> skyColors;
+  ScenePainter({this.night = false, this.plain = false, this.theme = SceneTheme.home}) : skyColors = nightSky;
+
+  /// ألوان سماء الليل، يغيرها الطفل من المتجر.
+  static List<Color> nightSky = const [Color(0xFF1E1458), Color(0xFF261A6E), Color(0xFF1A1450)];
 
   @override
   void paint(Canvas canvas, Size size) {
@@ -50,10 +54,10 @@ class ScenePainter extends CustomPainter {
       canvas.drawRect(
         rect,
         Paint()
-          ..shader = const LinearGradient(
+          ..shader = LinearGradient(
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
-            colors: [Color(0xFF1E1458), Color(0xFF261A6E), Color(0xFF1A1450)],
+            colors: skyColors,
           ).createShader(rect),
       );
       final r = math.Random(7);
@@ -92,7 +96,7 @@ class ScenePainter extends CustomPainter {
   }
 
   @override
-  bool shouldRepaint(covariant ScenePainter old) => old.night != night || old.plain != plain || old.theme != theme;
+  bool shouldRepaint(covariant ScenePainter old) => old.night != night || old.plain != plain || old.theme != theme || old.skyColors != skyColors;
 }
 
 class SceneBackground extends StatelessWidget {

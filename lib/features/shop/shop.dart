@@ -1,7 +1,10 @@
+import 'dart:math';
+
 import 'package:flutter/material.dart';
 
 import 'package:rawdah/core/design_system/design_system.dart';
 import 'package:rawdah/core/state/app_state.dart';
+import 'package:rawdah/features/shop/economy.dart';
 
 /// متجر الروضة: يصرف الطفل نجومه على ألوان إطارات الرئيسية وألقاب تظهر تحت اسمه.
 /// كل شيء بالنجوم فقط، بلا أي شراء حقيقي.
@@ -95,6 +98,113 @@ class ShopScreen extends StatelessWidget {
               ]),
             ),
             const SizedBox(height: 16),
+            Builder(builder: (context) {
+              final d = dealOfDay(DateTime.now());
+              final got = c.owned.contains(d.id);
+              return Chunky(
+                color: got ? RC.sandDark : const Color(0xFFEF4444),
+                onTap: got
+                    ? null
+                    : () async {
+                        if (st.buy(d.id, dealPrice(d))) {
+                          Haptics.celebrate();
+                          await showReward(context, stars: 0, title: 'صار عندك ${d.name}، استعمله من تحت');
+                        } else {
+                          Haptics.error();
+                        }
+                      },
+                child: Column(children: [
+                  Text('عرض اليوم: خصم ٤٠٪', style: RT.display(17, color: Colors.white)),
+                  Text(got ? '${d.name} • عندك' : '${d.name} • ${dealPrice(d)} بدل ${d.price}', textAlign: TextAlign.center, style: RT.body(15, color: Colors.white)),
+                ]),
+              );
+            }),
+            const SizedBox(height: 10),
+            Chunky(
+              color: const Color(0xFF8B5CF6),
+              onTap: () async {
+                final got = openMystery(st, Random());
+                if (got.isEmpty) {
+                  Haptics.error();
+                  ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('تحتاج ${kMysteryPrice - c.balance} نجمة زيادة')));
+                  return;
+                }
+                Haptics.celebrate();
+                await showReward(context, stars: 3, title: 'طلع لك: $got');
+              },
+              child: Column(children: [
+                Text('صندوق المفاجآت', style: RT.display(19, color: Colors.white)),
+                Text('$kMysteryPrice نجمة • غرض عشوائي من المتجر', style: RT.body(14, color: Colors.white)),
+              ]),
+            ),
+            const SizedBox(height: 16),
+            Text('مساعدات', textAlign: TextAlign.center, style: RT.display(19)),
+            const SizedBox(height: 10),
+            for (final h in kHelpers)
+              Padding(
+                padding: const EdgeInsets.only(bottom: 10),
+                child: Chunky(
+                  color: Colors.white,
+                  border: Border.all(color: outline, width: 3),
+                  radius: 20,
+                  depth: 5,
+                  padding: const EdgeInsets.all(12),
+                  onTap: () {
+                    if (buyHelper(st, h)) {
+                      Haptics.success();
+                    } else {
+                      Haptics.error();
+                      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('تحتاج ${h.price - c.balance} نجمة زيادة')));
+                    }
+                  },
+                  child: Row(children: [
+                    KhatamBadge(icon: h.icon, color: const Color(0xFF0EA5E9), size: 40),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: Column(children: [
+                        Text('${h.name} • عندك ${st.counter(h.key)}', style: RT.display(17)),
+                        Text(h.what, textAlign: TextAlign.center, style: RT.body(13, color: RC.inkSoft)),
+                      ]),
+                    ),
+                    _PriceTag(owned: false, on: false, price: h.price),
+                  ]),
+                ),
+              ),
+            const SizedBox(height: 10),
+            Text('سماء الرئيسية', textAlign: TextAlign.center, style: RT.display(19)),
+            const SizedBox(height: 10),
+            for (var i = 0; i < kSkies.length; i++)
+              Builder(builder: (context) {
+                final k = kSkies[i];
+                final owned = k.price == 0 || c.owned.contains(k.id);
+                final on = st.counter('equip_sky') == i;
+                return Padding(
+                  padding: const EdgeInsets.only(bottom: 10),
+                  child: Chunky(
+                    color: on ? const Color(0xFFFFF7E0) : Colors.white,
+                    border: Border.all(color: outline, width: 3),
+                    radius: 20,
+                    depth: 5,
+                    padding: const EdgeInsets.all(12),
+                    onTap: () => buyOrEquip(id: k.id, price: k.price, name: 'سماء ${k.name}', equip: () => st.setCounter('equip_sky', i)),
+                    child: Row(children: [
+                      Container(
+                        width: 60,
+                        height: 34,
+                        decoration: BoxDecoration(
+                          gradient: LinearGradient(colors: k.colors, begin: Alignment.topCenter, end: Alignment.bottomCenter),
+                          borderRadius: BorderRadius.circular(10),
+                          border: Border.all(color: outline, width: 2),
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      Expanded(child: Text(k.name, textAlign: TextAlign.center, style: RT.display(18))),
+                      _PriceTag(owned: owned, on: on, price: k.price),
+                    ]),
+                  ),
+                );
+              }),
+            const SizedBox(height: 10),
             Text('ألوان إطارات الرئيسية', textAlign: TextAlign.center, style: RT.display(19)),
             const SizedBox(height: 10),
             for (var i = 0; i < kFramePalettes.length; i++)

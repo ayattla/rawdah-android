@@ -7,6 +7,7 @@ import 'package:rawdah/core/design_system/design_system.dart';
 import 'package:rawdah/core/state/app_state.dart';
 import 'package:rawdah/features/quizzes/data/generated_questions.dart';
 import 'package:rawdah/features/science/data/science_content.dart';
+import 'package:rawdah/features/shop/economy.dart';
 
 /// سلم المعرفة: عشر درجات تصعب تدريجيا، ومعك مساعدتان: حذف خيار والتخطي.
 List<Question> ladderQuestions(int band, Random r) {
@@ -74,7 +75,11 @@ class _LadderScreenState extends State<LadderScreen> {
     });
   }
 
+  bool get _canHalf => !_usedHalf || AppScope.read(context).counter('inv_half') > 0;
+  bool get _canSkip => !_usedSkip || AppScope.read(context).counter('inv_skip') > 0;
+
   void _half() {
+    if (_usedHalf) useHelper(AppScope.read(context), 'inv_half');
     final wrong = [for (var k = 0; k < _q.options.length; k++) if (k != _q.answer) k]..shuffle(_r);
     setState(() {
       _usedHalf = true;
@@ -82,11 +87,16 @@ class _LadderScreenState extends State<LadderScreen> {
     });
   }
 
-  void _skip() => setState(() {
-        _usedSkip = true;
-        _qi = _qs!.length - 1;
-        _hidden = {};
-      });
+  void _skip() {
+    final st = AppScope.read(context);
+    if (_usedSkip) useHelper(st, 'inv_skip');
+    final pool = ladderQuestions(st.current!.ageBand, _r).where((q) => !_qs!.contains(q)).toList();
+    setState(() {
+      _usedSkip = true;
+      if (pool.isNotEmpty) _qs![_qi] = pool.first;
+      _hidden = {};
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -136,16 +146,16 @@ class _LadderScreenState extends State<LadderScreen> {
             Row(children: [
               Expanded(
                 child: Chunky(
-                  color: _usedHalf || q.options.length < 3 ? RC.sandDark : const Color(0xFF8B5CF6),
-                  onTap: _usedHalf || _picked != null || q.options.length < 3 ? null : _half,
+                  color: !_canHalf || _hidden.isNotEmpty || q.options.length < 3 ? RC.sandDark : const Color(0xFF8B5CF6),
+                  onTap: !_canHalf || _hidden.isNotEmpty || _picked != null || q.options.length < 3 ? null : _half,
                   child: Text('احذف خيارا', style: RT.display(16, color: Colors.white)),
                 ),
               ),
               const SizedBox(width: 10),
               Expanded(
                 child: Chunky(
-                  color: _usedSkip ? RC.sandDark : const Color(0xFF0EA5E9),
-                  onTap: _usedSkip || _picked != null ? null : _skip,
+                  color: !_canSkip ? RC.sandDark : const Color(0xFF0EA5E9),
+                  onTap: !_canSkip || _picked != null ? null : _skip,
                   child: Text('غير السؤال', style: RT.display(16, color: Colors.white)),
                 ),
               ),

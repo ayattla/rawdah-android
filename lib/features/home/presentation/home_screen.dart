@@ -24,6 +24,8 @@ import 'package:rawdah/features/planets/presentation/planets_screen.dart';
 import 'package:rawdah/features/tower/presentation/tower_screens.dart';
 import 'package:rawdah/features/episodes/episodes.dart';
 import 'package:rawdah/features/shop/shop.dart';
+import 'package:rawdah/features/shop/economy.dart';
+import 'package:rawdah/features/shop/treasure_screen.dart';
 import 'package:rawdah/features/family/family_league.dart';
 import 'package:rawdah/features/health/health_screen.dart';
 import 'package:rawdah/features/choices/choices_screen.dart';
@@ -79,6 +81,7 @@ class HomeMapScreen extends StatelessWidget {
       _Place('أوسمتي', 'برونزي وفضي وذهبي وماسي', Icons.military_tech_rounded, const Color(0xFFFFC23F), (_) => const BadgesScreen()),
       _Place('وش تسوي لو؟', 'مواقف وقرارات', Icons.alt_route_rounded, const Color(0xFFEF4444), (_) => const ChoicesScreen()),
       _Place('صحتي', 'الماء والطبق الصحي', Icons.favorite_rounded, const Color(0xFF10B981), (_) => const HealthScreen()),
+      _Place('كنز النجوم', 'مكافآت يومية وتحديات الأسبوع', Icons.diamond_rounded, const Color(0xFF8B5CF6), (_) => const TreasureScreen()),
       _Place('متجر الروضة', 'ألوان وألقاب بنجومك', Icons.storefront_rounded, const Color(0xFFF59E0B), (_) => const ShopScreen()),
       _Place('إتقاني', 'أتقن كل الأسئلة', Icons.psychology_rounded, const Color(0xFF10B981), (_) => const MasteryScreen()),
       _Place('المسابقات', 'أجب واجمع النجوم', Icons.emoji_events_rounded, RC.goldDark, (_) => const QuizHubScreen()),
@@ -102,6 +105,7 @@ class HomeMapScreen extends StatelessWidget {
     final st = AppScope.of(context);
     final c = st.current;
     if (c == null) return const Scaffold(body: SizedBox());
+    ScenePainter.nightSky = equippedSky(st);
     return PopScope(
       canPop: true,
       onPopInvokedWithResult: (didPop, _) {
