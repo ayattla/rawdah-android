@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:rawdah/core/content/content.dart';
 import 'package:rawdah/core/design_system/quran_text.dart';
 import 'package:rawdah/features/hifz/domain/hifz_schedule.dart';
+import 'package:rawdah/features/parents/presentation/parent_goals.dart';
 import 'package:rawdah/features/competition/data/online_service.dart';
 import 'package:rawdah/core/services/voice.dart';
 import 'package:rawdah/core/state/app_state.dart';
@@ -213,6 +214,8 @@ class _ChildCard extends StatelessWidget {
             'العلوم: ${c.completed.where((x) => x.startsWith('science_')).length} مواضيع',
             style: const TextStyle(fontSize: 15, color: RC.inkSoft, fontWeight: FontWeight.w700),
           ),
+          const SizedBox(height: 14),
+          WeeklyReportCard(child: c),
           if (c.hifz.isNotEmpty) ...[
             const SizedBox(height: 14),
             _HifzReport(child: c),

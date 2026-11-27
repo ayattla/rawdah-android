@@ -9,6 +9,7 @@ import 'package:rawdah/features/hifz/domain/hifz_schedule.dart';
 import 'package:rawdah/features/quizzes/presentation/quizzes_screen.dart';
 import 'package:rawdah/features/science/data/science_content.dart';
 import 'package:rawdah/features/tower/presentation/tower_screens.dart';
+import 'package:rawdah/features/parents/presentation/parent_goals.dart';
 
 const _outline = Color(0xFF2A1A66);
 
@@ -46,6 +47,7 @@ class DailyScreen extends StatelessWidget {
               ]),
             ),
             const SizedBox(height: 14),
+            const ChildGoalCard(),
             for (final q in qs) _QuestRow(q: q, have: st.todayCount(q.kind)),
             const SizedBox(height: 10),
             PrimaryButton(
@@ -115,7 +117,7 @@ class _WeeklyLeague extends StatelessWidget {
         Text('الأوسمة: ${st.counter('medals')}', style: RT.display(16, color: const Color(0xFF8B5CF6))),
         const SizedBox(height: 8),
         PrimaryButton(
-          label: claimed ? 'استلمت وسام هذا الأسبوع' : (n >= 5 ? 'استلم وسام الأسبوع (٤٠ نجمة)' : '$n من ٥ أيام'),
+          label: claimed ? 'استلمت وسام هذا الأسبوع' : (n >= 5 ? 'استلم وسام الأسبوع (40 نجمة)' : '$n من 5 أيام'),
           icon: Icons.military_tech_rounded,
           color: n >= 5 && !claimed ? const Color(0xFF8B5CF6) : RC.sandDark,
           onTap: n >= 5 && !claimed

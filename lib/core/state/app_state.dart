@@ -686,9 +686,12 @@ class AppState extends ChangeNotifier {
     if (c == null) return;
     final k = 'dq_${todayKey()}_$kind';
     c.counters[k] = (c.counters[k] ?? 0) + by;
+    c.counters['total_$kind'] = (c.counters['total_$kind'] ?? 0) + by;
     // تنظيف عدادات الأيام القديمة حتى لا يكبر الملف
     if (c.counters.length > 400) {
-      c.counters.removeWhere((key, _) => key.startsWith('dq_') && !key.startsWith('dq_${todayKey()}'));
+      // نبقي آخر أسبوعين لتقرير الوالدين
+      final keep = {for (var i = 0; i < 14; i++) 'dq_${todayKey(DateTime.now().subtract(Duration(days: i)))}'};
+      c.counters.removeWhere((key, _) => key.startsWith('dq_') && !keep.any(key.startsWith));
     }
   }
 
