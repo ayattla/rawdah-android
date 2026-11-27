@@ -24,6 +24,8 @@ import 'package:rawdah/features/planets/presentation/planets_screen.dart';
 import 'package:rawdah/features/tower/presentation/tower_screens.dart';
 import 'package:rawdah/features/episodes/episodes.dart';
 import 'package:rawdah/features/shop/shop.dart';
+import 'package:rawdah/features/family/family_league.dart';
+import 'package:rawdah/features/quizzes/data/generated_questions.dart';
 import 'package:rawdah/features/workshop/workshop_screens.dart';
 import 'package:rawdah/features/daily/presentation/daily_screen.dart';
 import 'package:rawdah/features/daily/domain/quests.dart';
@@ -66,6 +68,7 @@ class HomeMapScreen extends StatelessWidget {
     ]),
     ('ألعب وأنافس', [
       _Place('برج الألغاز', 'ألغاز لا تنتهي', Icons.extension_rounded, const Color(0xFF8B5CF6), (_) => const TowerScreen()),
+      _Place('دوري العائلة', 'بطولة البيت الشهرية', Icons.emoji_events_rounded, const Color(0xFFFF5D8F), (_) => const FamilyLeagueScreen()),
       _Place('متجر الروضة', 'ألوان وألقاب بنجومك', Icons.storefront_rounded, const Color(0xFFF59E0B), (_) => const ShopScreen()),
       _Place('إتقاني', 'أتقن كل الأسئلة', Icons.psychology_rounded, const Color(0xFF10B981), (_) => const MasteryScreen()),
       _Place('المسابقات', 'أجب واجمع النجوم', Icons.emoji_events_rounded, RC.goldDark, (_) => const QuizHubScreen()),
@@ -682,7 +685,7 @@ class _HomeWidgets extends StatelessWidget {
             title: 'تحدي اليوم',
             line: done ? 'أنجزته اليوم' : '٥ أسئلة تختار لك ما تحتاجه',
             onTap: () {
-              final pool = kQuestions.where((q) => q.band <= child.ageBand).toList();
+              final pool = [...kQuestions, ...kGeneratedQuestions].where((q) => q.band <= child.ageBand).toList();
               final qs = smartPick(pool, child.mastery, dayNumber(DateTime.now()), count: 5);
               Navigator.of(context).push(MaterialPageRoute(
                 builder: (_) => QuizRunner(title: 'تحدي اليوم', questions: qs, completionId: 'daily_${todayKey()}'),

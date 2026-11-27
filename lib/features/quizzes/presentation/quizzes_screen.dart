@@ -7,6 +7,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:rawdah/features/science/data/science_content.dart';
 import 'package:rawdah/features/quizzes/domain/math_questions.dart';
 import 'package:rawdah/features/quizzes/domain/mastery.dart';
+import 'package:rawdah/features/quizzes/data/generated_questions.dart';
 import 'package:rawdah/features/hifz/domain/hifz_schedule.dart';
 import 'package:rawdah/core/content/content.dart';
 import 'package:rawdah/core/di/providers.dart';
@@ -46,7 +47,7 @@ class QuizHubScreen extends ConsumerWidget {
               subtitle: '5 أسئلة من مستواك',
               icon: Icons.bolt_rounded,
               color: RC.gold,
-              onTap: () => open('مسابقة سريعة', smartPick(kQuestions.where((q) => q.band <= c.ageBand).toList(), c.mastery, dayNumber(DateTime.now()), count: 5)),
+              onTap: () => open('مسابقة سريعة', smartPick([...kQuestions, ...kGeneratedQuestions].where((q) => q.band <= c.ageBand).toList(), c.mastery, dayNumber(DateTime.now()), count: 5)),
             ),
             const SizedBox(height: 12),
             BigTile(

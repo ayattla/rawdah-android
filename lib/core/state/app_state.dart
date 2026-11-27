@@ -18,6 +18,11 @@ const List<String> kAgeBandNames = ['البراعم 4-6', 'المستكشفون 
 /// رموز الأطفال: كلها جمادات ونباتات وأجرام، بلا ذوات أرواح.
 const List<String> kSymbols = ['star', 'moon', 'sun', 'tree', 'book', 'gem'];
 
+String monthKey([DateTime? d]) {
+  final t = d ?? DateTime.now();
+  return '${t.year}-${t.month.toString().padLeft(2, '0')}';
+}
+
 String todayKey([DateTime? d]) {
   final t = d ?? DateTime.now();
   return '${t.year}-${t.month.toString().padLeft(2, '0')}-${t.day.toString().padLeft(2, '0')}';
@@ -687,6 +692,10 @@ class AppState extends ChangeNotifier {
     final k = 'dq_${todayKey()}_$kind';
     c.counters[k] = (c.counters[k] ?? 0) + by;
     c.counters['total_$kind'] = (c.counters['total_$kind'] ?? 0) + by;
+    // نقاط دوري العائلة الشهري
+    const w = {'correct': 1, 'tower': 2, 'activity': 3, 'review': 3};
+    final mk = 'mp_${monthKey()}';
+    c.counters[mk] = (c.counters[mk] ?? 0) + (w[kind] ?? 0) * by;
     // تنظيف عدادات الأيام القديمة حتى لا يكبر الملف
     if (c.counters.length > 400) {
       // نبقي آخر أسبوعين لتقرير الوالدين

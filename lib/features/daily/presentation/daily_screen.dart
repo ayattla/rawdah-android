@@ -5,6 +5,7 @@ import 'package:rawdah/core/design_system/design_system.dart';
 import 'package:rawdah/core/state/app_state.dart';
 import 'package:rawdah/features/daily/domain/quests.dart';
 import 'package:rawdah/features/quizzes/domain/mastery.dart';
+import 'package:rawdah/features/quizzes/data/generated_questions.dart';
 import 'package:rawdah/features/hifz/domain/hifz_schedule.dart';
 import 'package:rawdah/features/quizzes/presentation/quizzes_screen.dart';
 import 'package:rawdah/features/science/data/science_content.dart';
@@ -204,8 +205,13 @@ class MasteryScreen extends StatelessWidget {
     if (c == null) return const SizedBox.shrink();
     final general = kQuestions.where((q) => q.band <= c.ageBand).toList();
     final science = scienceQuestionsFor(c.ageBand);
-    final banks = [('أسئلة الدين والثقافة', general, const Color(0xFF8B5CF6)), ('أسئلة العلوم', science, const Color(0xFF0EA5E9))];
-    final all = [...general, ...science];
+    final gen = kGeneratedQuestions.where((q) => q.band <= c.ageBand).toList();
+    final banks = [
+      ('أسئلة الدين والثقافة', general, const Color(0xFF8B5CF6)),
+      ('أسئلة العلوم', science, const Color(0xFF0EA5E9)),
+      ('القرآن والحروف والأشهر', gen, const Color(0xFFF59E0B)),
+    ];
+    final all = [...general, ...science, ...gen];
     final ratio = masteryRatio(all, c.mastery);
     final today = dayNumber(DateTime.now());
     final due = all.where((q) => (c.mastery[q.id]?[1] ?? 1 << 30) <= today && !isMastered(c.mastery[q.id])).length;
