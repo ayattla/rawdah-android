@@ -693,7 +693,7 @@ class _BonBonScreenState extends State<BonBonScreen> {
         KidBar(title: 'كوكب بون بون ${_i + 1} / $_rounds'),
         Padding(
           padding: const EdgeInsets.all(12),
-          child: Text('المس ال${_target.name}', textAlign: TextAlign.center, style: RT.display(28)),
+          child: Text('المس ال${_target.name}', textAlign: TextAlign.center, style: RT.display(28, color: RC.onDark)),
         ),
         Expanded(
           child: GridView.count(

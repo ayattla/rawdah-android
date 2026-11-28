@@ -434,7 +434,7 @@ class _CountGameScreenState extends State<CountGameScreen> {
         KidBar(title: 'عد التمر ${_ar(_i + 1)} / ${_ar(_rounds.length)}'),
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 20),
-          child: Text('كم تمرة في الصحن؟ المسها وعدها', textAlign: TextAlign.center, style: RT.display(19)),
+          child: Text('كم تمرة في الصحن؟ المسها وعدها', textAlign: TextAlign.center, style: RT.display(19, color: RC.onDark)),
         ),
         const SizedBox(height: 10),
         Expanded(
@@ -559,7 +559,7 @@ class _CompareGameScreenState extends State<CompareGameScreen> {
     return ChildShell(
       child: Column(children: [
         KidBar(title: 'أيهما أكثر؟ ${_ar(_i + 1)} / ${_ar(_rounds.length)}'),
-        Text('المس الصحن الذي فيه تمر أكثر', textAlign: TextAlign.center, style: RT.display(19)),
+        Text('المس الصحن الذي فيه تمر أكثر', textAlign: TextAlign.center, style: RT.display(19, color: RC.onDark)),
         const SizedBox(height: 16),
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 16),

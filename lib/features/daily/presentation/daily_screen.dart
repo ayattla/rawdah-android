@@ -187,7 +187,7 @@ class _QuestRow extends StatelessWidget {
             ]),
           ),
           const SizedBox(width: 10),
-          Text('${have.clamp(0, q.goal)}/${q.goal}', style: RT.display(16, color: RC.inkSoft)),
+          Text('${have.clamp(0, q.goal)}/${q.goal}', style: RT.display(16, color: RC.onDarkSoft)),
         ]),
       ),
     );
@@ -229,15 +229,15 @@ class MasteryScreen extends StatelessWidget {
                     child: CircularProgressIndicator(value: ratio, strokeWidth: 14, color: const Color(0xFF10B981), backgroundColor: RC.sandDark),
                   ),
                   Column(mainAxisSize: MainAxisSize.min, children: [
-                    Text('${(ratio * 100).round()}٪', style: RT.display(36)),
-                    Text('متقن', style: RT.body(14, color: RC.inkSoft)),
+                    Text('${(ratio * 100).round()}٪', style: RT.display(36, color: RC.onDark)),
+                    Text('متقن', style: RT.body(14, color: RC.onDarkSoft)),
                   ]),
                 ]),
               ),
             ),
             const SizedBox(height: 10),
             Text('السؤال يعتبر متقنا إذا أجبته صح أربع مرات في أيام مختلفة',
-                textAlign: TextAlign.center, style: RT.body(14, color: RC.inkSoft)),
+                textAlign: TextAlign.center, style: RT.body(14, color: RC.onDarkSoft)),
             const SizedBox(height: 14),
             for (final (name, pool, col) in banks)
               Padding(

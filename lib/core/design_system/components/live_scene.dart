@@ -60,10 +60,18 @@ class _DecorPainter extends CustomPainter {
   final double t;
   _DecorPainter(this.theme, this.t);
 
-  static const _ink = Color(0xFF2A1A66);
+  static final _dots = () {
+    final r = math.Random(31);
+    return [for (var i = 0; i < 46; i++) (r.nextDouble(), r.nextDouble(), r.nextDouble())];
+  }();
 
   @override
   void paint(Canvas canvas, Size size) {
+    // نقاط ضوء تتلألأ في كل العوالم
+    for (final (x, y, ph) in _dots) {
+      final tw = 0.5 + 0.5 * math.sin((t * 8 + ph * 6.28) * math.pi);
+      canvas.drawCircle(Offset(x * size.width, y * size.height), 0.6 + ph * 1.3, Paint()..color = Colors.white.withValues(alpha: 0.15 + 0.5 * tw));
+    }
     switch (theme) {
       case SceneTheme.islamic || SceneTheme.quran:
         _lanterns(canvas, size);
@@ -72,6 +80,7 @@ class _DecorPainter extends CustomPainter {
       case SceneTheme.science:
         _atoms(canvas, size);
       case SceneTheme.play:
+        _beams(canvas, size);
         _confetti(canvas, size);
       case SceneTheme.home:
         _bubbles(canvas, size);
@@ -119,7 +128,7 @@ class _DecorPainter extends CustomPainter {
       final x = (i.isEven ? 0.04 : 0.86) + (i % 3) * 0.03;
       final y = 1 - ((t + i / glyphs.length) % 1);
       final tp = TextPainter(
-        text: TextSpan(text: glyphs[i], style: TextStyle(fontFamily: 'Baloo', fontWeight: FontWeight.w800, fontSize: 26 + (i % 3) * 6.0, color: cols[i % cols.length].withValues(alpha: 0.28))),
+        text: TextSpan(text: glyphs[i], style: TextStyle(fontFamily: 'Baloo', fontWeight: FontWeight.w800, fontSize: 26 + (i % 3) * 6.0, color: cols[i % cols.length].withValues(alpha: 0.45))),
         textDirection: TextDirection.rtl,
       )..layout();
       canvas.save();
@@ -138,7 +147,7 @@ class _DecorPainter extends CustomPainter {
         canvas.translate(c.dx, c.dy);
         canvas.rotate(k * math.pi / 3);
         canvas.drawOval(Rect.fromCenter(center: Offset.zero, width: r * 2.4, height: r * 0.8), Paint()
-          ..color = const Color(0xFF3B82F6).withValues(alpha: 0.22)
+          ..color = const Color(0xFF7FD6FF).withValues(alpha: 0.35)
           ..style = PaintingStyle.stroke
           ..strokeWidth = 2);
         final a = t * math.pi * 4 * (k + 1) + ph;
@@ -146,6 +155,22 @@ class _DecorPainter extends CustomPainter {
         canvas.restore();
       }
       canvas.drawCircle(c, 6, Paint()..color = const Color(0xFF8B5CF6).withValues(alpha: 0.5));
+    }
+  }
+
+  /// أضواء مسرح المسابقات تتأرجح ببطء.
+  void _beams(Canvas canvas, Size size) {
+    final w = size.width, h = size.height;
+    for (final (x, ph) in [(0.12, 0.0), (0.88, 2.0)]) {
+      final sway = math.sin(t * math.pi * 4 + ph) * w * 0.12;
+      final top = Offset(w * x, 0);
+      final path = Path()
+        ..moveTo(top.dx - 14, 0)
+        ..lineTo(top.dx + 14, 0)
+        ..lineTo(top.dx + sway + w * 0.2, h * 0.6)
+        ..lineTo(top.dx + sway - w * 0.2, h * 0.6)
+        ..close();
+      canvas.drawPath(path, Paint()..shader = LinearGradient(begin: Alignment.topCenter, end: Alignment.bottomCenter, colors: [const Color(0xFFFFF3B0).withValues(alpha: 0.28), const Color(0xFFFFF3B0).withValues(alpha: 0)]).createShader(Rect.fromLTWH(0, 0, w, h * 0.6)));
     }
   }
 
@@ -173,7 +198,7 @@ class _DecorPainter extends CustomPainter {
       final rad = 6 + r.nextDouble() * 12;
       final p = Offset(size.width * x + math.sin(t * 8 + i) * 8, size.height * y);
       canvas.drawCircle(p, rad, Paint()
-        ..color = const Color(0xFF8B5CF6).withValues(alpha: 0.18)
+        ..color = const Color(0xFFB9A8FF).withValues(alpha: 0.35)
         ..style = PaintingStyle.stroke
         ..strokeWidth = 2.5);
       canvas.drawCircle(p - Offset(rad * 0.35, rad * 0.35), rad * 0.2, Paint()..color = Colors.white.withValues(alpha: 0.7));
@@ -185,7 +210,7 @@ class _DecorPainter extends CustomPainter {
           size.width * (0.02 + k * 0.03), size.height * 0.3);
     }
     canvas.drawPath(path, Paint()
-      ..color = _ink.withValues(alpha: 0.08)
+      ..color = const Color(0xFF22D3EE).withValues(alpha: 0.25)
       ..style = PaintingStyle.stroke
       ..strokeWidth = 3);
   }

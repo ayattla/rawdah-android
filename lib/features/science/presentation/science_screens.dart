@@ -24,7 +24,7 @@ class ScienceHubScreen extends StatelessWidget {
         Expanded(
           child: ListView(padding: const EdgeInsets.all(16), children: [
             Text('أنهيت $done من ${kScienceTopics.length} مواضيع',
-                textAlign: TextAlign.center, style: RT.body(15, color: RC.inkSoft)),
+                textAlign: TextAlign.center, style: RT.body(15, color: RC.onDarkSoft)),
             const SizedBox(height: 12),
             for (final t in kScienceTopics) ...[
               BigTile(
@@ -154,9 +154,9 @@ class _CardPage extends StatelessWidget {
         child: Center(child: Icon(card.icon, size: 92, color: color)),
       ),
       const SizedBox(height: 18),
-      Text(card.title, textAlign: TextAlign.center, style: RT.display(26)),
+      Text(card.title, textAlign: TextAlign.center, style: RT.display(26, color: RC.onDark)),
       const SizedBox(height: 10),
-      Text(card.body, textAlign: TextAlign.center, style: RT.body(19, weight: FontWeight.w500)),
+      Text(card.body, textAlign: TextAlign.center, style: RT.body(19, color: RC.onDark, weight: FontWeight.w500)),
       const SizedBox(height: 18),
       Container(
         padding: const EdgeInsets.all(16),
@@ -198,9 +198,9 @@ class _FinishPage extends StatelessWidget {
     return ListView(padding: const EdgeInsets.all(20), children: [
       Icon(Icons.auto_awesome_rounded, size: 80, color: topic.color),
       const SizedBox(height: 12),
-      Text('تأمل', textAlign: TextAlign.center, style: RT.display(24)),
+      Text('تأمل', textAlign: TextAlign.center, style: RT.display(24, color: RC.onDark)),
       const SizedBox(height: 8),
-      Text(topic.reflection, textAlign: TextAlign.center, style: RT.body(19, weight: FontWeight.w500)),
+      Text(topic.reflection, textAlign: TextAlign.center, style: RT.body(19, color: RC.onDark, weight: FontWeight.w500)),
       const SizedBox(height: 24),
       PrimaryButton(
         label: done ? 'أعد المسابقة' : 'اختبر نفسك',

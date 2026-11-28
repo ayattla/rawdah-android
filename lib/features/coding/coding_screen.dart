@@ -95,7 +95,7 @@ class _CodingScreenState extends State<CodingScreen> {
         KidBar(title: 'المبرمج الصغير • مستوى $_n'),
         Expanded(
           child: ListView(padding: const EdgeInsets.all(14), children: [
-            Text('رتب الأوامر حتى يوصل الصاروخ للراية', textAlign: TextAlign.center, style: RT.body(16, color: RC.inkSoft)),
+            Text('رتب الأوامر حتى يوصل الصاروخ للراية', textAlign: TextAlign.center, style: RT.body(16, color: RC.onDarkSoft)),
             const SizedBox(height: 8),
             Directionality(
               textDirection: TextDirection.ltr,

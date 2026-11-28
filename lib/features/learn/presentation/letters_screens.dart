@@ -31,7 +31,7 @@ class LettersPathScreen extends StatelessWidget {
             for (final f in kLetterFamilies) ...[
               Padding(
                 padding: const EdgeInsets.only(top: 18, bottom: 8, right: 4),
-                child: Text(f.title, style: RT.display(17, color: RC.inkSoft)),
+                child: Text(f.title, style: RT.display(17, color: RC.onDarkSoft)),
               ),
               Wrap(spacing: 10, runSpacing: 10, children: [
                 for (final l in f.letters)
@@ -307,7 +307,7 @@ class _MeetStep extends StatelessWidget {
               padding: const EdgeInsets.symmetric(horizontal: 8),
               child: Column(children: [
                 _DottedLetter(letter: s, size: 54),
-                Text(_dotsShort(s), style: RT.body(13, color: RC.inkSoft)),
+                Text(_dotsShort(s), style: RT.body(13, color: RC.onDarkSoft)),
               ]),
             ),
         ]),
@@ -349,7 +349,7 @@ class _FormsStep extends StatelessWidget {
       ('وحده', letter.isolated),
     ];
     return ListView(padding: const EdgeInsets.all(20), children: [
-      Text('يتغير شكل الحرف حسب مكانه', textAlign: TextAlign.center, style: RT.display(20)),
+      Text('يتغير شكل الحرف حسب مكانه', textAlign: TextAlign.center, style: RT.display(20, color: RC.onDark)),
       if (letter.nonJoining)
         Padding(
           padding: const EdgeInsets.only(top: 6),
@@ -386,7 +386,7 @@ class _WordsStep extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return ListView(padding: const EdgeInsets.all(20), children: [
-      Text('ابحث عن الحرف الذهبي', textAlign: TextAlign.center, style: RT.display(20)),
+      Text('ابحث عن الحرف الذهبي', textAlign: TextAlign.center, style: RT.display(20, color: RC.onDark)),
       const SizedBox(height: 16),
       for (final w in letter.words)
         Padding(
@@ -454,7 +454,7 @@ class _TraceStepState extends State<_TraceStep> {
     return Padding(
       padding: const EdgeInsets.all(20),
       child: Column(children: [
-        Text('مر بإصبعك على الحرف', style: RT.display(20)),
+        Text('مر بإصبعك على الحرف', style: RT.display(20, color: RC.onDark)),
         const SizedBox(height: 12),
         Expanded(
           child: LayoutBuilder(builder: (context, box) {
@@ -589,8 +589,8 @@ class _PickStepState extends State<_PickStep> {
     return Padding(
       padding: const EdgeInsets.all(20),
       child: Column(children: [
-        Text('أين حرف ${widget.letter.name}؟', style: RT.display(24)),
-        Text('الجولة ${_round + 1} من $_rounds', style: RT.body(15, color: RC.inkSoft)),
+        Text('أين حرف ${widget.letter.name}؟', style: RT.display(24, color: RC.onDark)),
+        Text('الجولة ${_round + 1} من $_rounds', style: RT.body(15, color: RC.onDarkSoft)),
         const SizedBox(height: 16),
         Expanded(
           child: GridView.count(

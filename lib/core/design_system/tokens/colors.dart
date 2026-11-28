@@ -2,6 +2,10 @@ import 'package:flutter/material.dart';
 
 /// الألوان. كل لون يحمل نصًا أبيض يحقق تباين WCAG AA (4.5:1) على الأقل.
 class RC {
+  /// نص فوق خلفيات العوالم الداكنة.
+  static const onDark = Color(0xFFFFFFFF);
+  static const onDarkSoft = Color(0xFFD9D2FF);
+
   /// فيروزي الزليج: اللون الأساسي.
   static const green = Color(0xFF0B7A6E); // نص أبيض عليه 5.2:1
   static const greenDark = Color(0xFF0A6C61);

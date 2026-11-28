@@ -141,7 +141,7 @@ class IslamicHubScreen extends StatelessWidget {
             ),
             Padding(
               padding: const EdgeInsets.fromLTRB(4, 20, 4, 8),
-              child: Text('رتب', style: RT.display(19, color: RC.inkSoft)),
+              child: Text('رتب', style: RT.display(19, color: RC.onDarkSoft)),
             ),
             Wrap(spacing: 10, runSpacing: 10, children: [
               for (final s in sets)
@@ -222,7 +222,7 @@ class _OrderGameScreenState extends State<OrderGameScreen> {
         KidBar(title: s.title),
         Expanded(
           child: ListView(padding: const EdgeInsets.all(16), children: [
-            Text(s.prompt, textAlign: TextAlign.center, style: RT.display(20)),
+            Text(s.prompt, textAlign: TextAlign.center, style: RT.display(20, color: RC.onDark)),
             const SizedBox(height: 12),
             for (var i = 0; i < s.items.length; i++)
               Container(
@@ -319,7 +319,7 @@ class _MemoryGameScreenState extends State<MemoryGameScreen> {
         const KidBar(title: 'ذاكرة الأذكار'),
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 16),
-          child: Text('اقلب بطاقتين: الوقت الأخضر وذكره الذهبي', textAlign: TextAlign.center, style: RT.body(15, color: RC.inkSoft)),
+          child: Text('اقلب بطاقتين: الوقت الأخضر وذكره الذهبي', textAlign: TextAlign.center, style: RT.body(15, color: RC.onDarkSoft)),
         ),
         const SizedBox(height: 10),
         Expanded(
@@ -448,7 +448,7 @@ class _GodNamesScreenState extends State<GodNamesScreen> {
         const KidBar(title: 'أسماء الله الحسنى'),
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 16),
-          child: Text('المس الاسم لتعرف معناه', textAlign: TextAlign.center, style: RT.body(15, color: RC.inkSoft)),
+          child: Text('المس الاسم لتعرف معناه', textAlign: TextAlign.center, style: RT.body(15, color: RC.onDarkSoft)),
         ),
         Expanded(
           child: GridView.builder(
@@ -558,7 +558,7 @@ class _TrueFalseScreenState extends State<TrueFalseScreen> {
               Text(t.isTrue ? 'العبارة صحيحة' : 'العبارة خطأ',
                   textAlign: TextAlign.center, style: RT.display(20, color: t.isTrue ? _green : const Color(0xFFB3412F))),
               const SizedBox(height: 6),
-              Text(t.why, textAlign: TextAlign.center, style: RT.body(17)),
+              Text(t.why, textAlign: TextAlign.center, style: RT.body(17, color: RC.onDark)),
               const SizedBox(height: 16),
               PrimaryButton(label: _i + 1 >= _items.length ? 'إنهاء' : 'التالي', icon: Icons.arrow_forward_rounded, onTap: _next),
             ],

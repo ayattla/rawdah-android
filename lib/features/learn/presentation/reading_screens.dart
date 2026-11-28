@@ -68,7 +68,7 @@ class _ReadingScreenState extends State<ReadingScreen> {
         KidBar(title: p.title),
         Expanded(
           child: ListView(padding: const EdgeInsets.all(18), children: [
-            Text('المس أي كلمة لتسمعها', textAlign: TextAlign.center, style: RT.body(15, color: RC.inkSoft)),
+            Text('المس أي كلمة لتسمعها', textAlign: TextAlign.center, style: RT.body(15, color: RC.onDarkSoft)),
             const SizedBox(height: 10),
             Container(
               padding: const EdgeInsets.fromLTRB(16, 18, 16, 18),

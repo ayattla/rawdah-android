@@ -114,13 +114,13 @@ class EpisodeScreen extends StatelessWidget {
         KidBar(title: 'الحلقة ${index + 1}'),
         Expanded(
           child: ListView(padding: const EdgeInsets.all(20), children: [
-            Text(e.season, textAlign: TextAlign.center, style: RT.body(14, color: RC.inkSoft)),
+            Text(e.season, textAlign: TextAlign.center, style: RT.body(14, color: RC.onDarkSoft)),
             const SizedBox(height: 10),
             Center(child: KhatamBadge(icon: e.icon, color: e.color, size: 110)),
             const SizedBox(height: 14),
-            Text(e.title, textAlign: TextAlign.center, style: RT.display(26)),
+            Text(e.title, textAlign: TextAlign.center, style: RT.display(26, color: RC.onDark)),
             const SizedBox(height: 10),
-            Text(e.body, textAlign: TextAlign.center, style: RT.body(19, weight: FontWeight.w500)),
+            Text(e.body, textAlign: TextAlign.center, style: RT.body(19, color: RC.onDark, weight: FontWeight.w500)),
             const SizedBox(height: 14),
             Container(
               padding: const EdgeInsets.all(14),

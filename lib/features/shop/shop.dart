@@ -162,8 +162,8 @@ class ShopScreen extends StatelessWidget {
                     const SizedBox(width: 8),
                     Expanded(
                       child: Column(children: [
-                        Text('${h.name} • عندك ${st.counter(h.key)}', style: RT.display(17)),
-                        Text(h.what, textAlign: TextAlign.center, style: RT.body(13, color: RC.inkSoft)),
+                        Text('${h.name} • عندك ${st.counter(h.key)}', style: RT.display(17, color: RC.onDark)),
+                        Text(h.what, textAlign: TextAlign.center, style: RT.body(13, color: RC.onDarkSoft)),
                       ]),
                     ),
                     _PriceTag(owned: false, on: false, price: h.price),
@@ -171,7 +171,7 @@ class ShopScreen extends StatelessWidget {
                 ),
               ),
             const SizedBox(height: 10),
-            Text('سماء الرئيسية', textAlign: TextAlign.center, style: RT.display(19)),
+            Text('سماء الرئيسية', textAlign: TextAlign.center, style: RT.display(19, color: RC.onDark)),
             const SizedBox(height: 10),
             for (var i = 0; i < kSkies.length; i++)
               Builder(builder: (context) {
@@ -198,14 +198,14 @@ class ShopScreen extends StatelessWidget {
                         ),
                       ),
                       const SizedBox(width: 8),
-                      Expanded(child: Text(k.name, textAlign: TextAlign.center, style: RT.display(18))),
+                      Expanded(child: Text(k.name, textAlign: TextAlign.center, style: RT.display(18, color: RC.onDark))),
                       _PriceTag(owned: owned, on: on, price: k.price),
                     ]),
                   ),
                 );
               }),
             const SizedBox(height: 10),
-            Text('ألوان إطارات الرئيسية', textAlign: TextAlign.center, style: RT.display(19)),
+            Text('ألوان إطارات الرئيسية', textAlign: TextAlign.center, style: RT.display(19, color: RC.onDark)),
             const SizedBox(height: 10),
             for (var i = 0; i < kFramePalettes.length; i++)
               Builder(builder: (context) {
@@ -231,14 +231,14 @@ class ShopScreen extends StatelessWidget {
                           decoration: BoxDecoration(color: col, shape: BoxShape.circle, border: Border.all(color: outline, width: 2)),
                         ),
                       const SizedBox(width: 8),
-                      Expanded(child: Text(p.name, textAlign: TextAlign.center, style: RT.display(18))),
+                      Expanded(child: Text(p.name, textAlign: TextAlign.center, style: RT.display(18, color: RC.onDark))),
                       _PriceTag(owned: owned, on: on, price: p.price),
                     ]),
                   ),
                 );
               }),
             const SizedBox(height: 10),
-            Text('ألقاب تظهر تحت اسمك', textAlign: TextAlign.center, style: RT.display(19)),
+            Text('ألقاب تظهر تحت اسمك', textAlign: TextAlign.center, style: RT.display(19, color: RC.onDark)),
             const SizedBox(height: 10),
             for (var i = 0; i < kTitles.length; i++)
               Builder(builder: (context) {

@@ -152,7 +152,7 @@ class AlbumScreen extends StatelessWidget {
         const KidBar(title: 'ألبوم المعرفة'),
         Expanded(
           child: ListView(padding: const EdgeInsets.all(16), children: [
-            Text('جمعت ${ownedCards(c)} من ${totalCards()} بطاقة • رصيدك ${c.balance} نجمة', textAlign: TextAlign.center, style: RT.display(17)),
+            Text('جمعت ${ownedCards(c)} من ${totalCards()} بطاقة • رصيدك ${c.balance} نجمة', textAlign: TextAlign.center, style: RT.display(17, color: RC.onDark)),
             const SizedBox(height: 10),
             Row(children: [
               Expanded(
@@ -212,8 +212,8 @@ class AlbumScreen extends StatelessWidget {
                           border: Border.all(color: has ? s.color : outline.withValues(alpha: 0.3), width: 2.5),
                         ),
                         child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
-                          Text(has ? s.cards[i].$1 : '؟', textAlign: TextAlign.center, style: RT.display(15)),
-                          if (has) Text(s.cards[i].$2, textAlign: TextAlign.center, maxLines: 3, overflow: TextOverflow.ellipsis, style: RT.body(11.5, color: RC.inkSoft)),
+                          Text(has ? s.cards[i].$1 : '؟', textAlign: TextAlign.center, style: RT.display(15, color: RC.onDark)),
+                          if (has) Text(s.cards[i].$2, textAlign: TextAlign.center, maxLines: 3, overflow: TextOverflow.ellipsis, style: RT.body(11.5, color: RC.onDarkSoft)),
                         ]),
                       );
                     }),

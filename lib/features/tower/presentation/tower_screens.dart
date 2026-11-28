@@ -210,7 +210,7 @@ class _TowerPlayScreenState extends State<TowerPlayScreen> {
   Widget _choiceBody(Color color) {
     final p = _choice!;
     return Column(children: [
-      Text(p.prompt, textAlign: TextAlign.center, style: RT.display(22)),
+      Text(p.prompt, textAlign: TextAlign.center, style: RT.display(22, color: RC.onDark)),
       const SizedBox(height: 14),
       if (p.shown.isNotEmpty)
         Wrap(alignment: WrapAlignment.center, spacing: 8, runSpacing: 8, children: [
@@ -241,7 +241,7 @@ class _TowerPlayScreenState extends State<TowerPlayScreen> {
       ]),
       if (_solved || _wrong != null) ...[
         const SizedBox(height: 16),
-        Text(_solved ? p.why : 'فكر مرة ثانية', textAlign: TextAlign.center, style: RT.body(16, color: RC.inkSoft)),
+        Text(_solved ? p.why : 'فكر مرة ثانية', textAlign: TextAlign.center, style: RT.body(16, color: RC.onDarkSoft)),
       ],
     ]);
   }
@@ -253,14 +253,14 @@ class _TowerPlayScreenState extends State<TowerPlayScreen> {
           borderRadius: BorderRadius.circular(16),
           border: Border.all(color: _outline, width: 2.5),
         ),
-        child: Text(s, style: RT.display(24, color: RC.ink)),
+        child: Text(s, style: RT.display(24, color: RC.onDark)),
       );
 
   Widget _scrambleBody(Color color) {
     final p = _scr!;
     final typed = [for (final k in _picked) p.tiles[k]].join();
     return Column(children: [
-      Text('رتب الحروف لتكوّن كلمة', textAlign: TextAlign.center, style: RT.display(22)),
+      Text('رتب الحروف لتكوّن كلمة', textAlign: TextAlign.center, style: RT.display(22, color: RC.onDark)),
       const SizedBox(height: 16),
       Container(
         height: 84,
@@ -308,7 +308,7 @@ class _TowerPlayScreenState extends State<TowerPlayScreen> {
     final s = _sud!;
     final full = !_cells.contains(0);
     return Column(children: [
-      Text('املأ الشبكة: كل صف وعمود ومربع فيه ١ ٢ ٣ ٤', textAlign: TextAlign.center, style: RT.display(18)),
+      Text('املأ الشبكة: كل صف وعمود ومربع فيه ١ ٢ ٣ ٤', textAlign: TextAlign.center, style: RT.display(18, color: RC.onDark)),
       const SizedBox(height: 14),
       AspectRatio(
         aspectRatio: 1,

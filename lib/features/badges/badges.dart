@@ -54,7 +54,7 @@ class BadgesScreen extends StatelessWidget {
         const KidBar(title: 'أوسمتي'),
         Expanded(
           child: ListView(padding: const EdgeInsets.all(16), children: [
-            Text('جمعت ${totalTiers(c)} من ${kBadgeTracks.length * 4} وسام', textAlign: TextAlign.center, style: RT.display(20)),
+            Text('جمعت ${totalTiers(c)} من ${kBadgeTracks.length * 4} وسام', textAlign: TextAlign.center, style: RT.display(20, color: RC.onDark)),
             const SizedBox(height: 12),
             for (final t in kBadgeTracks)
               Builder(builder: (_) {

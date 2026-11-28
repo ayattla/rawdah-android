@@ -60,7 +60,7 @@ class FamilyLeagueScreen extends StatelessWidget {
                       child: Text('${i + 1}', style: RT.display(18, color: outline)),
                     ),
                     const SizedBox(width: 12),
-                    Expanded(child: Text(rank[i].$1.name, style: RT.display(19))),
+                    Expanded(child: Text(rank[i].$1.name, style: RT.display(19, color: RC.onDark))),
                     Text('${rank[i].$2} نقطة', style: RT.display(17, color: const Color(0xFF8B5CF6))),
                   ]),
                 ),

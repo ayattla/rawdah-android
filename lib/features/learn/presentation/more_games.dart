@@ -85,7 +85,7 @@ class _FirstLetterScreenState extends State<FirstLetterScreen> with _Rounds {
         KidBar(title: 'أول حرف ${i + 1} / $total'),
         Expanded(
           child: ListView(padding: const EdgeInsets.all(20), children: [
-            Text('بأي حرف تبدأ الكلمة؟', textAlign: TextAlign.center, style: RT.display(21)),
+            Text('بأي حرف تبدأ الكلمة؟', textAlign: TextAlign.center, style: RT.display(21, color: RC.onDark)),
             const SizedBox(height: 16),
             Center(
               child: GestureDetector(
@@ -159,10 +159,10 @@ class _ClockGameScreenState extends State<ClockGameScreen> with _Rounds {
         KidBar(title: 'اقرأ الساعة ${i + 1} / $total'),
         Expanded(
           child: ListView(padding: const EdgeInsets.all(20), children: [
-            Text('كم الساعة؟', textAlign: TextAlign.center, style: RT.display(22)),
+            Text('كم الساعة؟', textAlign: TextAlign.center, style: RT.display(22, color: RC.onDark)),
             const SizedBox(height: 6),
             Text('العقرب القصير للساعات، والطويل للدقائق',
-                textAlign: TextAlign.center, style: RT.body(15, color: RC.inkSoft)),
+                textAlign: TextAlign.center, style: RT.body(15, color: RC.onDarkSoft)),
             const SizedBox(height: 14),
             Center(
               child: Semantics(

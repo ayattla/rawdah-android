@@ -133,7 +133,7 @@ class CityScreen extends StatelessWidget {
                       child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
                         Opacity(opacity: l == 0 ? 0.35 : 1, child: Icon(b.icon, size: 30.0 + l * 8, color: b.color)),
                         const SizedBox(height: 6),
-                        Text(b.name, textAlign: TextAlign.center, style: RT.display(17)),
+                        Text(b.name, textAlign: TextAlign.center, style: RT.display(17, color: RC.onDark)),
                         Row(mainAxisAlignment: MainAxisAlignment.center, children: [
                           for (var k = 0; k < b.maxLevel; k++)
                             Container(
@@ -144,7 +144,7 @@ class CityScreen extends StatelessWidget {
                             ),
                         ]),
                         const SizedBox(height: 4),
-                        Text(maxed ? 'اكتمل' : (l == 0 ? 'ابن بـ ${b.costs[0]}' : 'طور بـ ${b.costs[l]}'), style: RT.body(13, color: RC.inkSoft)),
+                        Text(maxed ? 'اكتمل' : (l == 0 ? 'ابن بـ ${b.costs[0]}' : 'طور بـ ${b.costs[l]}'), style: RT.body(13, color: RC.onDarkSoft)),
                       ]),
                     );
                   }),

@@ -125,7 +125,7 @@ class _CircuitLabScreenState extends State<CircuitLabScreen> {
         KidBar(title: 'مختبر الكهرباء • مستوى $_level'),
         Expanded(
           child: ListView(padding: const EdgeInsets.all(18), children: [
-            Text('اللغز ${_i + 1} من $_per', textAlign: TextAlign.center, style: RT.body(14, color: RC.inkSoft)),
+            Text('اللغز ${_i + 1} من $_per', textAlign: TextAlign.center, style: RT.body(14, color: RC.onDarkSoft)),
             const SizedBox(height: 10),
             Container(
               height: 120,
@@ -133,7 +133,7 @@ class _CircuitLabScreenState extends State<CircuitLabScreen> {
               child: CustomPaint(painter: _CircuitArt(lit: _solved && p.answer == 0)),
             ),
             const SizedBox(height: 14),
-            Text(p.prompt, textAlign: TextAlign.center, style: RT.display(21)),
+            Text(p.prompt, textAlign: TextAlign.center, style: RT.display(21, color: RC.onDark)),
             const SizedBox(height: 6),
             Text(p.detail, textAlign: TextAlign.center, style: RT.display(18, color: _teal)),
             const SizedBox(height: 16),

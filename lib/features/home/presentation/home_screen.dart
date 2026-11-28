@@ -1012,7 +1012,7 @@ class _MissionsCard extends StatelessWidget {
                     ]),
                   ),
                   const SizedBox(height: 6),
-                  Text(m.$2, textAlign: TextAlign.center, style: RT.body(13, weight: FontWeight.w500)),
+                  Text(m.$2, textAlign: TextAlign.center, style: RT.body(13, color: RC.onDark, weight: FontWeight.w500)),
                 ]),
               ),
             ),

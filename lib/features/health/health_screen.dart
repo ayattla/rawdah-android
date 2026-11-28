@@ -116,7 +116,7 @@ class _PlateGameScreenState extends State<PlateGameScreen> {
         const KidBar(title: 'الطبق الصحي'),
         Expanded(
           child: ListView(padding: const EdgeInsets.all(18), children: [
-            Text('${_i + 1} من ${_round.length}', textAlign: TextAlign.center, style: RT.body(15, color: RC.inkSoft)),
+            Text('${_i + 1} من ${_round.length}', textAlign: TextAlign.center, style: RT.body(15, color: RC.onDarkSoft)),
             const SizedBox(height: 10),
             Container(
               padding: const EdgeInsets.symmetric(vertical: 34),
