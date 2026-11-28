@@ -11,6 +11,7 @@ export 'components/lantern.dart';
 export 'components/live_scene.dart';
 export 'components/reward.dart';
 export 'components/scene.dart';
+export 'components/sparkles.dart';
 export 'components/studio.dart';
 export 'components/studio_backdrop.dart';
 export 'geometry/tv_shapes.dart';

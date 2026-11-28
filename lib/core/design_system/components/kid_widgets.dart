@@ -46,7 +46,13 @@ class KidBar extends StatelessWidget {
           // العنوان على ملصق أبيض بحد سميك وظل صلب، كلافتات برامج الأطفال
           Expanded(
             child: Center(
-              child: Container(
+              // اللافتة تدخل بنطة وميلان خفيف مثل لافتات البرامج
+              child: TweenAnimationBuilder<double>(
+                tween: Tween(begin: A11y.reduceMotionOf(context) ? 1 : 0, end: 1),
+                duration: const Duration(milliseconds: 700),
+                curve: Curves.elasticOut,
+                builder: (_, v, child) => Transform.rotate(angle: (1 - v) * -0.12, child: Transform.scale(scale: 0.6 + 0.4 * v, child: child)),
+                child: Container(
                 padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 5),
                 decoration: const ShapeDecoration(
                   gradient: LinearGradient(
@@ -62,6 +68,7 @@ class KidBar extends StatelessWidget {
                     maxLines: 1,
                     style: RT.display(20, color: RC.ink),
                     overflow: TextOverflow.ellipsis),
+              ),
               ),
             ),
           ),

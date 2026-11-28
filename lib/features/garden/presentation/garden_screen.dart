@@ -94,10 +94,10 @@ class GardenScreen extends StatelessWidget {
                 child: Text('متجر الحديقة', style: TextStyle(fontSize: 22, fontWeight: FontWeight.w700, color: RC.onDark)),
               ),
               const Icon(Icons.star_rounded, color: RC.gold),
-              Text(' رصيدك ${c.balance}', style: const TextStyle(fontSize: 17, fontWeight: FontWeight.w600)),
+              Text(' رصيدك ${c.balance}', style: const TextStyle(fontSize: 17, fontWeight: FontWeight.w600, color: Color(0xFFFFE48A))),
             ]),
             const Text('زيّن حديقتك بالنجوم التي جمعتها. نخلتك لا تصغر عند الشراء.',
-                style: TextStyle(fontSize: 14, color: Colors.black54)),
+                style: TextStyle(fontSize: 14, color: RC.onDarkSoft)),
             const SizedBox(height: 8),
             GridView.count(
               shrinkWrap: true,
@@ -140,7 +140,7 @@ class GardenScreen extends StatelessWidget {
             const SizedBox(height: 18),
             const Text('عادات الخير اليوم', style: TextStyle(fontSize: 22, fontWeight: FontWeight.w700, color: RC.onDark)),
             const Text('افعلها في بيتك، ثم اضغط «فعلتها»، وسيعتمدها والداك.',
-                style: TextStyle(fontSize: 15, color: Colors.black54)),
+                style: TextStyle(fontSize: 15, color: RC.onDarkSoft)),
             const SizedBox(height: 10),
             for (final h in kHabits)
               Padding(

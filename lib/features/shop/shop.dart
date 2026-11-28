@@ -139,7 +139,7 @@ class ShopScreen extends StatelessWidget {
               ]),
             ),
             const SizedBox(height: 16),
-            Text('مساعدات', textAlign: TextAlign.center, style: RT.display(19)),
+            Text('مساعدات', textAlign: TextAlign.center, style: RT.display(19, color: RC.onDark)),
             const SizedBox(height: 10),
             for (final h in kHelpers)
               Padding(
@@ -163,8 +163,8 @@ class ShopScreen extends StatelessWidget {
                     const SizedBox(width: 8),
                     Expanded(
                       child: Column(children: [
-                        Text('${h.name} • عندك ${st.counter(h.key)}', style: RT.display(17, color: RC.onDark)),
-                        Text(h.what, textAlign: TextAlign.center, style: RT.body(13, color: RC.onDarkSoft)),
+                        Text('${h.name} • عندك ${st.counter(h.key)}', style: RT.display(17, color: RC.ink)),
+                        Text(h.what, textAlign: TextAlign.center, style: RT.body(13, color: RC.inkSoft)),
                       ]),
                     ),
                     _PriceTag(owned: false, on: false, price: h.price),
@@ -199,7 +199,7 @@ class ShopScreen extends StatelessWidget {
                         ),
                       ),
                       const SizedBox(width: 8),
-                      Expanded(child: Text(k.name, textAlign: TextAlign.center, style: RT.display(18, color: RC.onDark))),
+                      Expanded(child: Text(k.name, textAlign: TextAlign.center, style: RT.display(18, color: RC.ink))),
                       _PriceTag(owned: owned, on: on, price: k.price),
                     ]),
                   ),
@@ -232,7 +232,7 @@ class ShopScreen extends StatelessWidget {
                           decoration: BoxDecoration(color: col, shape: BoxShape.circle, border: Border.all(color: outline, width: 2)),
                         ),
                       const SizedBox(width: 8),
-                      Expanded(child: Text(p.name, textAlign: TextAlign.center, style: RT.display(18, color: RC.onDark))),
+                      Expanded(child: Text(p.name, textAlign: TextAlign.center, style: RT.display(18, color: RC.ink))),
                       _PriceTag(owned: owned, on: on, price: p.price),
                     ]),
                   ),

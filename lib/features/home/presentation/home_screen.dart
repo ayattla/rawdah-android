@@ -104,7 +104,9 @@ class HomeMapScreen extends StatelessWidget {
   Future<void> _open(BuildContext context, _Place p) async {
     Voice.instance.say(p.title);
     SceneTheme.active = p.theme;
-    await Navigator.of(context).push(WarpRoute<void>(builder: p.builder, title: p.title, color: p.color, icon: p.icon));
+    // تنوع الفواصل حسب العالم: ستارة للمسابقات، وتشغيل قناة لبقية الأقسام
+    final route = p.theme == SceneTheme.quiz ? CurtainRoute<void>(builder: p.builder) : ChannelRoute<void>(builder: p.builder);
+    await Navigator.of(context).push(route);
     SceneTheme.active = SceneTheme.home;
   }
 
@@ -119,7 +121,8 @@ class HomeMapScreen extends StatelessWidget {
       onPopInvokedWithResult: (didPop, _) {
         if (didPop) st.leaveChild();
       },
-      child: ChildShell(
+      child: Stack(children: [
+      ChildShell(
         night: true,
         studio: true,
         theme: SceneTheme.home,
@@ -177,6 +180,8 @@ class HomeMapScreen extends StatelessWidget {
           const SliverToBoxAdapter(child: SizedBox(height: 24)),
         ]),
       ),
+      if (!_ChannelIdent.shown && !LiveScene.inTest && !A11y.reduceMotionOf(context)) const Positioned.fill(child: _ChannelIdent()),
+      ]),
     );
   }
 }
@@ -253,16 +258,16 @@ class _ArchHeader extends StatelessWidget {
             ),
             // المستوى والأيام المتتالية على عتبة القوس
             Positioned(
-              left: 14,
-              right: 14,
-              bottom: 12,
+              left: box.maxWidth * 0.1,
+              right: box.maxWidth * 0.1,
+              bottom: box.maxHeight * 0.17,
               child: Row(children: [
                 _LevelRing(level: lvl, progress: progress),
                 const SizedBox(width: 10),
                 Expanded(
                   child: Text(
                     c.streak > 1 ? 'فانوسك مضيء منذ ${c.streak} أيام' : 'تعال كل يوم ليزداد فانوسك نورًا',
-                    style: RT.display(16, color: Colors.white, weight: FontWeight.w700),
+                    style: RT.display(15, color: Colors.white, weight: FontWeight.w700).copyWith(shadows: const [Shadow(color: Color(0xAA14204F), blurRadius: 6)]),
                   ),
                 ),
               ]),
@@ -439,6 +444,76 @@ class _HeroTile extends StatelessWidget {
 }
 
 const _outline = Color(0xFF2A1A66);
+
+/// شارة القناة عند أول فتح للرئيسية في كل تشغيل: أشعة تدور وتلفاز روضة ينط
+/// ولمباته تومض، ثانية ونصف وتختفي، والضغط يتخطاها.
+class _ChannelIdent extends StatefulWidget {
+  const _ChannelIdent();
+  static bool shown = false;
+  @override
+  State<_ChannelIdent> createState() => _ChannelIdentState();
+}
+
+class _ChannelIdentState extends State<_ChannelIdent> with SingleTickerProviderStateMixin {
+  late final AnimationController _c = AnimationController(vsync: this, duration: const Duration(milliseconds: 1700))
+    ..forward().whenComplete(_done);
+  bool _gone = false;
+
+  void _done() {
+    _ChannelIdent.shown = true;
+    if (mounted) setState(() => _gone = true);
+  }
+
+  @override
+  void dispose() {
+    _c.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    if (_gone) return const SizedBox.shrink();
+    return GestureDetector(
+      onTap: () {
+        _c.stop();
+        _done();
+      },
+      child: AnimatedBuilder(
+        animation: _c,
+        builder: (context, _) {
+          final t = _c.value;
+          final fade = t > 0.82 ? 1 - (t - 0.82) / 0.18 : 1.0;
+          final pop = Curves.elasticOut.transform((t / 0.5).clamp(0, 1));
+          return Opacity(
+            opacity: fade.clamp(0, 1),
+            child: Stack(children: [
+              Positioned.fill(child: StudioBackdrop(sky: const [Color(0xFF2B1A8A), Color(0xFF3B1E9E), Color(0xFF1A1150)], child: const SizedBox.expand())),
+              Center(
+                child: Transform.rotate(
+                  angle: (1 - pop) * 0.3,
+                  child: Transform.scale(
+                    scale: 0.3 + 0.7 * pop,
+                    child: SizedBox(
+                      width: 260,
+                      height: 210,
+                      child: CustomPaint(
+                        painter: CandyTvPainter(variant: 2, body: const Color(0xFFFF5DB1), screen: const Color(0xFF2B1B7A), rim: const Color(0xFFFFD43B)),
+                        child: Padding(
+                          padding: const EdgeInsets.only(bottom: 14),
+                          child: Center(child: Text('روضة', style: RT.display(54, color: Colors.white).copyWith(shadows: const [Shadow(color: Color(0xFFFF5DB1), blurRadius: 14)]))),
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            ]),
+          );
+        },
+      ),
+    );
+  }
+}
 
 /// خلفية بطاقة رحلاتي: طريق مغامرة متعرج بخط متقطع وأعلام صغيرة.
 class _TrailPainter extends CustomPainter {

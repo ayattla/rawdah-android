@@ -159,3 +159,112 @@ class _WarpPainter extends CustomPainter {
   @override
   bool shouldRepaint(covariant _WarpPainter old) => true;
 }
+
+/// فاصل تشغيل القناة: خط أبيض ينفتح من وسط الشاشة مثل التلفاز القديم،
+/// مع خطوط مسح خفيفة، ثم يظهر القسم. للتنقل من جدار الشاشات.
+class ChannelRoute<T> extends PageRouteBuilder<T> {
+  ChannelRoute({required WidgetBuilder builder})
+      : super(
+          transitionDuration: const Duration(milliseconds: 480),
+          reverseTransitionDuration: const Duration(milliseconds: 220),
+          pageBuilder: (context, _, __) => builder(context),
+          transitionsBuilder: (context, anim, _, child) {
+            if (A11y.reduceMotionOf(context) || anim.status == AnimationStatus.reverse) return FadeTransition(opacity: anim, child: child);
+            return AnimatedBuilder(
+              animation: anim,
+              child: child,
+              builder: (context, child) {
+                final t = anim.value;
+                final open = Curves.easeOutCubic.transform(((t - 0.12) / 0.6).clamp(0, 1));
+                return Stack(children: [
+                  Positioned.fill(child: ColoredBox(color: const Color(0xFF120A3A).withValues(alpha: (1 - open) * 0.95))),
+                  Center(
+                    child: ClipRect(
+                      child: Align(heightFactor: open.clamp(0.012, 1.0), child: child),
+                    ),
+                  ),
+                  if (open < 1)
+                    Positioned.fill(
+                      child: IgnorePointer(
+                        child: CustomPaint(painter: _ScanPainter(open, (t / 0.12).clamp(0, 1))),
+                      ),
+                    ),
+                ]);
+              },
+            );
+          },
+        );
+}
+
+class _ScanPainter extends CustomPainter {
+  final double open, flash;
+  _ScanPainter(this.open, this.flash);
+  @override
+  void paint(Canvas canvas, Size size) {
+    final h = size.height * open;
+    final top = (size.height - h) / 2;
+    // الخط الساطع على حافتي الفتحة
+    final glow = Paint()..color = Colors.white.withValues(alpha: 0.9 * (1 - open * 0.7));
+    canvas.drawRect(Rect.fromLTWH(size.width * (0.5 - 0.5 * flash), top - 2, size.width * flash, 4), glow);
+    canvas.drawRect(Rect.fromLTWH(size.width * (0.5 - 0.5 * flash), top + h - 2, size.width * flash, 4), glow);
+    final scan = Paint()..color = Colors.white.withValues(alpha: 0.06 * (1 - open));
+    for (var y = top; y < top + h; y += 4) {
+      canvas.drawRect(Rect.fromLTWH(0, y, size.width, 1.5), scan);
+    }
+  }
+
+  @override
+  bool shouldRepaint(covariant _ScanPainter o) => o.open != open || o.flash != flash;
+}
+
+/// فاصل المسرح: ستارتان حمراوان تنفتحان عن الصفحة. لصفحات المسابقات.
+class CurtainRoute<T> extends PageRouteBuilder<T> {
+  CurtainRoute({required WidgetBuilder builder})
+      : super(
+          transitionDuration: const Duration(milliseconds: 620),
+          reverseTransitionDuration: const Duration(milliseconds: 220),
+          pageBuilder: (context, _, __) => builder(context),
+          transitionsBuilder: (context, anim, _, child) {
+            if (A11y.reduceMotionOf(context) || anim.status == AnimationStatus.reverse) return FadeTransition(opacity: anim, child: child);
+            return AnimatedBuilder(
+              animation: anim,
+              child: child,
+              builder: (context, child) {
+                final t = Curves.easeInOutCubic.transform(anim.value);
+                return Stack(children: [
+                  child!,
+                  Positioned.fill(child: IgnorePointer(child: CustomPaint(painter: _CurtainPainter(t)))),
+                ]);
+              },
+            );
+          },
+        );
+}
+
+class _CurtainPainter extends CustomPainter {
+  final double t;
+  _CurtainPainter(this.t);
+  @override
+  void paint(Canvas canvas, Size size) {
+    if (t >= 1) return;
+    final half = size.width / 2 * (1 - t);
+    for (final left in [true, false]) {
+      final r = left ? Rect.fromLTWH(0, 0, half, size.height) : Rect.fromLTWH(size.width - half, 0, half, size.height);
+      canvas.drawRect(r, Paint()..shader = const LinearGradient(colors: [Color(0xFFB91C1C), Color(0xFFE11D48), Color(0xFF9F1239)]).createShader(r));
+      // طيات الستارة
+      for (var x = r.left + 14; x < r.right; x += 22) {
+        canvas.drawLine(Offset(x, 0), Offset(x, size.height), Paint()
+          ..color = Colors.black.withValues(alpha: 0.12)
+          ..strokeWidth = 5);
+      }
+    }
+    // كشكشة ذهبية في الأعلى
+    final band = Paint()..color = const Color(0xFFFFB020);
+    for (var x = 0.0; x < size.width; x += 26) {
+      canvas.drawArc(Rect.fromLTWH(x, -14, 26, 28), 0, 3.1416, true, band);
+    }
+  }
+
+  @override
+  bool shouldRepaint(covariant _CurtainPainter o) => o.t != t;
+}

@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:rawdah/core/design_system/components/cosmos.dart';
 import 'package:rawdah/core/design_system/components/live_scene.dart';
 import 'package:rawdah/core/design_system/components/studio_backdrop.dart';
+import 'package:rawdah/core/design_system/components/sparkles.dart';
 
 import 'package:rawdah/core/design_system/components/a11y.dart';
 import 'package:rawdah/core/design_system/components/kid_widgets.dart';
@@ -166,10 +167,11 @@ class ChildShell extends StatelessWidget {
     }
     final t = theme ?? SceneTheme.active;
     if (studio && !A11y.highContrastOf(context)) {
-      return Scaffold(body: StudioBackdrop(sky: ScenePainter.nightSky, child: SafeArea(child: NightScope(night: true, child: child))));
+      return Scaffold(body: TapSparkles(child: StudioBackdrop(sky: ScenePainter.nightSky, child: SafeArea(child: NightScope(night: true, child: child)))));
     }
     return Scaffold(
-      body: SceneBackground(
+      body: TapSparkles(
+        child: SceneBackground(
         night: night,
         theme: t,
         child: NightScope(
@@ -182,6 +184,7 @@ class ChildShell extends StatelessWidget {
             child: child,
           ),
         ),
+      ),
       ),
     );
   }
