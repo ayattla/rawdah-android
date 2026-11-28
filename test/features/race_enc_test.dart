@@ -14,8 +14,8 @@ void main() {
     expect(r.map((e) => e.nick).toList(), ['ج', 'ب', 'أ']);
   });
 
-  test('الموسوعة: أربعة رفوف بلا تكرار', () {
-    expect(kEncShelves.length, 4);
+  test('الموسوعة: ستة رفوف بلا تكرار', () {
+    expect(kEncShelves.length, 6);
     for (final s in kEncShelves) {
       expect(s.facts.toSet().length, s.facts.length, reason: s.id);
       expect(s.facts.length, 12);

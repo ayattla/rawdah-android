@@ -32,6 +32,7 @@ import 'package:rawdah/features/coding/coding_screen.dart';
 import 'package:rawdah/features/friday/friday.dart';
 import 'package:rawdah/features/race/daily_race.dart';
 import 'package:rawdah/features/encyclopedia/encyclopedia.dart';
+import 'package:rawdah/features/account/cloud_account.dart';
 import 'package:rawdah/features/family/family_league.dart';
 import 'package:rawdah/features/health/health_screen.dart';
 import 'package:rawdah/features/choices/choices_screen.dart';
@@ -88,7 +89,7 @@ class HomeMapScreen extends StatelessWidget {
       _Place('وش تسوي لو؟', 'مواقف وقرارات', Icons.alt_route_rounded, const Color(0xFFEF4444), (_) => const ChoicesScreen(), SceneTheme.journey),
       _Place('صحتي', 'الماء والطبق الصحي', Icons.favorite_rounded, const Color(0xFF10B981), (_) => const HealthScreen(), SceneTheme.garden),
       _Place('سباق اليوم أونلاين', 'تسابق مع أطفال من كل مكان', Icons.public_rounded, const Color(0xFFEF4444), (_) => const DailyRaceScreen(), SceneTheme.quiz),
-      _Place('موسوعة روضة', 'معلومات دينية وثقافية', Icons.local_library_rounded, const Color(0xFFFF9F1C), (_) => const EncyclopediaScreen(), SceneTheme.stories),
+      _Place('موسوعة روضة', '72 معلومة دينية وثقافية', Icons.local_library_rounded, const Color(0xFFFF9F1C), (_) => const EncyclopediaScreen(), SceneTheme.stories),
       _Place('بطولة الجمعة', 'كل جمعة جوائز كبيرة', Icons.emoji_events_rounded, const Color(0xFFFFC23F), (_) => const FridayScreen(), SceneTheme.quiz),
       _Place('المبرمج الصغير', 'أوامر توصل الصاروخ', Icons.code_rounded, const Color(0xFF0EA5E9), (_) => const CodingScreen(), SceneTheme.workshop),
       _Place('ألبوم المعرفة', '٤٠ بطاقة تجمعها', Icons.collections_bookmark_rounded, const Color(0xFF6366F1), (_) => const AlbumScreen(), SceneTheme.stories),
@@ -120,6 +121,7 @@ class HomeMapScreen extends StatelessWidget {
     final c = st.current;
     if (c == null) return const Scaffold(body: SizedBox());
     ScenePainter.nightSky = equippedSky(st);
+    if (!LiveScene.inTest) CloudAccount.instance.autoBackup(st);
     return PopScope(
       canPop: true,
       onPopInvokedWithResult: (didPop, _) {

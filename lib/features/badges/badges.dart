@@ -32,7 +32,7 @@ final kBadgeTracks = <BadgeTrack>[
   BadgeTrack('المبرمج', 'مستوى برمجة', Icons.code_rounded, const Color(0xFF0EA5E9), [5, 15, 35, 70], (c) => c.counters['code_lvl'] ?? 0),
   BadgeTrack('بطل الجمعة', 'بطولة جمعة', Icons.emoji_events_rounded, const Color(0xFFFFC23F), [1, 4, 12, 30], (c) => c.counters['fri_count'] ?? 0),
   BadgeTrack('متسابق عالمي', 'سباق أونلاين', Icons.public_rounded, const Color(0xFFEF4444), [1, 7, 30, 100], (c) => c.counters['race_count'] ?? 0),
-  BadgeTrack('قارئ الموسوعة', 'معلومة', Icons.local_library_rounded, const Color(0xFFFF9F1C), [10, 24, 36, 48], (c) => [for (final e in c.counters.entries) if (e.key.startsWith('enc_')) e.value].fold(0, (a, b) => a + b)),
+  BadgeTrack('قارئ الموسوعة', 'معلومة', Icons.local_library_rounded, const Color(0xFFFF9F1C), [12, 36, 54, 72], (c) => [for (final e in c.counters.entries) if (e.key.startsWith('enc_')) e.value].fold(0, (a, b) => a + b)),
   BadgeTrack('متسلق السلم', 'قمة سلم المعرفة', Icons.stairs_rounded, const Color(0xFF14B8A6), [1, 5, 20, 50], (c) => c.counters['ladder_top'] ?? 0),
 ];
 

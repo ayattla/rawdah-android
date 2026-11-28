@@ -1,4 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
 
@@ -40,6 +41,7 @@ class CloudAccount {
         await FirebaseAuth.instance.signInWithProvider(provider);
       }
       Online.instance.uid = FirebaseAuth.instance.currentUser?.uid;
+      (await SharedPreferences.getInstance()).setBool('cloud_linked', true);
       return null;
     } on FirebaseAuthException catch (e) {
       if (e.code == 'web-context-canceled' || e.code == 'canceled') return 'ألغيت تسجيل الدخول';
@@ -51,6 +53,7 @@ class CloudAccount {
   }
 
   Future<void> signOut() async {
+    (await SharedPreferences.getInstance()).remove('cloud_linked');
     await FirebaseAuth.instance.signOut();
     Online.instance.uid = null;
   }
@@ -65,6 +68,23 @@ class CloudAccount {
     } catch (_) {
       return 'تعذر الحفظ، تأكد من الاتصال';
     }
+  }
+
+  static bool _autoTried = false;
+
+  /// حفظ تلقائي مرة كل يوم تقريبا عند فتح التطبيق، فقط إذا ربط ولي الأمر حساب قوقل.
+  Future<void> autoBackup(AppState st) async {
+    if (_autoTried) return;
+    _autoTried = true;
+    try {
+      final p = await SharedPreferences.getInstance();
+      if (!(p.getBool('cloud_linked') ?? false)) return;
+      final last = p.getInt('cloud_last') ?? 0;
+      final now = DateTime.now().millisecondsSinceEpoch;
+      if (now - last < const Duration(hours: 20).inMilliseconds) return;
+      if (!await Online.instance.ensure() || !linked) return;
+      if (await backup(st) == null) await p.setInt('cloud_last', now);
+    } catch (_) {}
   }
 
   Future<String> restore(AppState st) async {
