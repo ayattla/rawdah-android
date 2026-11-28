@@ -119,6 +119,6 @@ class TvFrame extends StatelessWidget {
   @override
   Widget build(BuildContext context) => CustomPaint(
         painter: CandyTvPainter(variant: variant, body: body, screen: screen, flat: A11y.highContrastOf(context), inset: 0.12),
-        child: Padding(padding: const EdgeInsets.fromLTRB(46, 34, 46, 46), child: child),
+        child: Padding(padding: const EdgeInsets.fromLTRB(54, 44, 54, 62), child: child),
       );
 }
