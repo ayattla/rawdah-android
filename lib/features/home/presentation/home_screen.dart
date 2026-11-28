@@ -583,8 +583,10 @@ class _TvCard extends StatefulWidget {
   final Widget? art;
   final VoidCallback onTap;
   final int variant;
+  final int? channel;
   const _TvCard({
     this.variant = 0,
+    this.channel,
     required this.title,
     required this.hint,
     required this.icon,
@@ -684,6 +686,24 @@ class _TvCardState extends State<_TvCard> {
                         ),
                   ),
                 ),
+                // رقم القناة في زاوية التلفاز
+                if (widget.channel != null && !hc)
+                  Positioned(
+                    top: 2,
+                    right: 6,
+                    child: Transform.rotate(
+                      angle: 0.12,
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 1),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFFFF4D6D),
+                          borderRadius: BorderRadius.circular(10),
+                          border: Border.all(color: _outline, width: 2),
+                        ),
+                        child: Text('قناة ${widget.channel}', style: RT.display(11.5, color: Colors.white)),
+                      ),
+                    ),
+                  ),
                 // الهوائي
                 if (!hc)
                   Positioned(
@@ -754,6 +774,7 @@ class _ShelfRow extends StatelessWidget {
             screen: p.color,
             frame: frames[k],
             variant: (i * 7 + row) % 3,
+            channel: i + 1,
             tilt: ((i % 3) - 1) * 0.025,
             onTap: () => onOpen(p),
           ),

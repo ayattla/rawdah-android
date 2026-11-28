@@ -248,15 +248,21 @@ class _TowerPlayScreenState extends State<TowerPlayScreen> {
     ]);
   }
 
-  Widget _pill(String s, Color color) => Container(
-        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-        decoration: BoxDecoration(
-          color: color.withValues(alpha: 0.15),
-          borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: _outline, width: 2.5),
-        ),
-        child: Text(s, style: RT.display(24, color: RC.onDark)),
-      );
+  // مكعب حلوى لكل عنصر في اللغز، وعلامة السؤال ذهبية تلفت النظر
+  Widget _pill(String s, Color color) {
+    final q = s.contains('؟') || s.contains('?');
+    final c = q ? const Color(0xFFFFD43B) : color;
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+      decoration: BoxDecoration(
+        gradient: LinearGradient(begin: Alignment.topCenter, end: Alignment.bottomCenter, colors: [Color.lerp(c, Colors.white, 0.35)!, c]),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: _outline, width: 3),
+        boxShadow: const [BoxShadow(color: _outline, offset: Offset(0, 4))],
+      ),
+      child: Text(s, style: RT.display(24, color: q ? _outline : Colors.white).copyWith(shadows: q ? null : const [Shadow(color: Color(0x662A1A66), offset: Offset(0, 2))])),
+    );
+  }
 
   Widget _scrambleBody(Color color) {
     final p = _scr!;
