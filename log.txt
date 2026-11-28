@@ -1,0 +1,207 @@
+
+::group::✅ Passing tests
+✅ 01 الترحيب
+✅ 02 اختيار الطفل
+✅ 03 الرئيسية
+✅ 04 مسابقة
+✅ 05 مسابقة بعد الإجابة
+✅ 06 الألعاب
+✅ 07 القصص
+✅ 08 المدرسة
+✅ 09 الجائزة
+✅ 10 قصة desert
+✅ 10 قصة night
+✅ 10 قصة garden
+✅ 10 قصة city
+✅ 11 الرحلات
+✅ 12 خريطة رحلة
+✅ 13 حديقتي
+✅ 14 المنافسة
+✅ 15 رمضان
+✅ 16 لوحة الوالدين
+✅ 17 الرئيسية بتباين عالٍ
+::endgroup::
+::group::❌ 18 الرئيسية بخط أكبر (failed)
+══╡ EXCEPTION CAUGHT BY RENDERING LIBRARY ╞═════════════════════════════════════════════════════════
+The following assertion was thrown during layout:
+A RenderFlex overflowed by 10.0 pixels on the bottom.
+
+The relevant error-causing widget was:
+  Column
+  Column:file:///home/runner/work/rawdah-android/rawdah-android/lib/features/home/presentation/home_screen.dart:1143:26
+
+The overflowing RenderFlex has an orientation of Axis.vertical.
+The edge of the RenderFlex that is overflowing has been marked in the rendering with a yellow and
+black striped pattern. This is usually caused by the contents being too big for the RenderFlex.
+Consider applying a flex factor (e.g. using an Expanded widget) to force the children of the
+RenderFlex to fit within the available space instead of being sized to their natural size.
+This is considered an error condition because it indicates that there is content that cannot be
+seen. If the content is legitimately bigger than the available space, consider clipping it with a
+ClipRect widget before putting it in the flex, or using a scrollable container rather than a Flex,
+like a ListView.
+The specific RenderFlex in question is: RenderFlex#76694 relayoutBoundary=up9 OVERFLOWING:
+  creator: Column ← Expanded ← Row ← Stack ← SizedBox ← Column ← Padding ← DecoratedBox ← Padding ←
+    Container ← _MissionsCard ← SliverToBoxAdapter ← ⋯
+  parentData: offset=Offset(230.7, 0.0); flex=1; fit=FlexFit.tight (can use size)
+  constraints: BoxConstraints(w=115.3, 0.0<=h<=108.0)
+  size: Size(115.3, 108.0)
+  direction: vertical
+  mainAxisAlignment: start
+  mainAxisSize: max
+  crossAxisAlignment: center
+  verticalDirection: down
+  spacing: 0.0
+◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤
+════════════════════════════════════════════════════════════════════════════════════════════════════
+══╡ EXCEPTION CAUGHT BY RENDERING LIBRARY ╞═════════════════════════════════════════════════════════
+The following assertion was thrown during layout:
+A RenderFlex overflowed by 10.0 pixels on the bottom.
+
+The relevant error-causing widget was:
+  Column
+  Column:file:///home/runner/work/rawdah-android/rawdah-android/lib/features/home/presentation/home_screen.dart:1143:26
+
+The overflowing RenderFlex has an orientation of Axis.vertical.
+The edge of the RenderFlex that is overflowing has been marked in the rendering with a yellow and
+black striped pattern. This is usually caused by the contents being too big for the RenderFlex.
+Consider applying a flex factor (e.g. using an Expanded widget) to force the children of the
+RenderFlex to fit within the available space instead of being sized to their natural size.
+This is considered an error condition because it indicates that there is content that cannot be
+seen. If the content is legitimately bigger than the available space, consider clipping it with a
+ClipRect widget before putting it in the flex, or using a scrollable container rather than a Flex,
+like a ListView.
+The specific RenderFlex in question is: RenderFlex#a3f9f relayoutBoundary=up9 OVERFLOWING:
+  creator: Column ← Expanded ← Row ← Stack ← SizedBox ← Column ← Padding ← DecoratedBox ← Padding ←
+    Container ← _MissionsCard ← SliverToBoxAdapter ← ⋯
+  parentData: offset=Offset(115.3, 0.0); flex=1; fit=FlexFit.tight (can use size)
+  constraints: BoxConstraints(w=115.3, 0.0<=h<=108.0)
+  size: Size(115.3, 108.0)
+  direction: vertical
+  mainAxisAlignment: start
+  mainAxisSize: max
+  crossAxisAlignment: center
+  verticalDirection: down
+  spacing: 0.0
+◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤
+════════════════════════════════════════════════════════════════════════════════════════════════════
+══╡ EXCEPTION CAUGHT BY FLUTTER TEST FRAMEWORK ╞════════════════════════════════════════════════════
+The following message was thrown:
+Multiple exceptions (2) were detected during the running of the current test, and at least one was
+unexpected.
+════════════════════════════════════════════════════════════════════════════════════════════════════
+Test failed. See exception logs above.
+The test description was: 18 الرئيسية بخط أكبر
+
+::endgroup::
+::group::✅ Passing tests
+✅ 19 المسابقة بخط أكبر
+✅ 20 السورة مع التلاوة
+✅ 21 أثناء التلاوة
+✅ 22 مراجعة اليوم
+✅ 23 عالم العلوم
+✅ 24 بطاقة علمية
+✅ 25 حروفي وأرقامي
+✅ 26 مسار الحروف
+✅ 27 درس حرف
+✅ 28 كوّن الكلمة
+✅ 29 عدّ التمر
+✅ 30 اقرأ الساعة
+✅ 31 أول حرف
+✅ 32 أقرأ وأفهم
+✅ 33 ركن المسلم الصغير
+✅ 34 رتب
+✅ 35 ذاكرة الأذكار
+✅ 36 السيرة
+✅ 37 صح أم خطأ
+✅ 38 الأسماء الحسنى
+✅ 39 كواكب المعرفة
+✅ 40 كوكب تاريخ
+✅ 41 تمارين
+✅ 42 بون بون
+✅ 43 برج الألغاز
+✅ 44 سودوكو
+✅ 45 أكمل النمط
+✅ 46 رحلة اليوم
+✅ 47 إتقاني
+✅ 48 حلقة اليوم
+✅ 49 مختبر الكهرباء
+✅ 50 متجر الروضة
+✅ إرشادات الوصول: الرئيسية
+::endgroup::
+::group::❌ إرشادات الوصول: المسابقة (failed)
+══╡ EXCEPTION CAUGHT BY FLUTTER TEST FRAMEWORK ╞════════════════════════════════════════════════════
+The following TestFailure was thrown running a test:
+Expected: Tappable objects should be at least Size(48.0, 48.0)
+  Actual: <Instance of 'WidgetTester'>
+   Which: SemanticsNode#10(Rect.fromLTRB(122.6, 30.0, 166.6, 70.0), actions: [focus, tap], flags:
+[isButton, hasEnabledState, isEnabled, isFocusable], traversalParentIdentifier:
+_OverlayPortalState#a944f, tooltip: "استمع", textDirection: rtl): expected tap target size of at
+least Size(48.0, 48.0), but found Size(44.0, 40.0)
+          See also: https://support.google.com/accessibility/android/answer/7101858?hl=en
+
+When the exception was thrown, this was the stack:
+#0      fail (package:matcher/src/expect/expect.dart:187:31)
+#1      _expect.<anonymous closure> (package:matcher/src/expect/expect.dart:155:13)
+<asynchronous suspension>
+<asynchronous suspension>
+#6      expectLater.<anonymous closure> (package:flutter_test/src/widget_tester.dart:508:19)
+<asynchronous suspension>
+#7      main.<anonymous closure> (file:///home/runner/work/rawdah-android/rawdah-android/test_shots/shots_test.dart:501:7)
+<asynchronous suspension>
+#8      testWidgets.<anonymous closure>.<anonymous closure> (package:flutter_test/src/widget_tester.dart:192:15)
+<asynchronous suspension>
+#9      TestWidgetsFlutterBinding._runTestBody (package:flutter_test/src/binding.dart:1968:5)
+<asynchronous suspension>
+<asynchronous suspension>
+(elided 5 frames from package:stack_trace)
+
+The test description was:
+  إرشادات الوصول: المسابقة
+════════════════════════════════════════════════════════════════════════════════════════════════════
+Test failed. See exception logs above.
+The test description was: إرشادات الوصول: المسابقة
+
+::endgroup::
+::group::✅ Passing tests
+✅ إرشادات الوصول: المسابقات
+✅ إرشادات الوصول: العلوم
+::endgroup::
+::group::❌ إرشادات الوصول: السورة (failed)
+══╡ EXCEPTION CAUGHT BY FLUTTER TEST FRAMEWORK ╞════════════════════════════════════════════════════
+The following TestFailure was thrown running a test:
+Expected: Text contrast should follow WCAG guidelines
+  Actual: <Instance of 'WidgetTester'>
+   Which: SemanticsNode#12(Rect.fromLTRB(16.0, 16.0, 396.0, 58.0), tags: [RenderViewport.twoPane],
+label: "بِسۡمِ ٱللَّهِ ٱلرَّحۡمَٰنِ ٱلرَّحِيمِ", textDirection: rtl, indexInParent: 0):
+          Expected contrast ratio of at least 3.0 but found 0.90 for a font size of 24.0.
+          The computed colors was:
+          light - Color(alpha: 1.0000, red: 0.1137, green: 0.1686, blue: 0.3922, colorSpace:
+ColorSpace.sRGB), dark - Color(alpha: 1.0000, red: 0.0627, green: 0.2431, blue: 0.2078, colorSpace:
+ColorSpace.sRGB)
+          See also: https://www.w3.org/TR/UNDERSTANDING-WCAG20/visual-audio-contrast-contrast.html
+
+When the exception was thrown, this was the stack:
+#0      fail (package:matcher/src/expect/expect.dart:187:31)
+#1      _expect.<anonymous closure> (package:matcher/src/expect/expect.dart:155:13)
+<asynchronous suspension>
+<asynchronous suspension>
+#6      expectLater.<anonymous closure> (package:flutter_test/src/widget_tester.dart:508:19)
+<asynchronous suspension>
+#7      main.<anonymous closure> (file:///home/runner/work/rawdah-android/rawdah-android/test_shots/shots_test.dart:503:7)
+<asynchronous suspension>
+#8      testWidgets.<anonymous closure>.<anonymous closure> (package:flutter_test/src/widget_tester.dart:192:15)
+<asynchronous suspension>
+#9      TestWidgetsFlutterBinding._runTestBody (package:flutter_test/src/binding.dart:1968:5)
+<asynchronous suspension>
+<asynchronous suspension>
+(elided 5 frames from package:stack_trace)
+
+The test description was:
+  إرشادات الوصول: السورة
+════════════════════════════════════════════════════════════════════════════════════════════════════
+Test failed. See exception logs above.
+The test description was: إرشادات الوصول: السورة
+
+::endgroup::
+
+::error::55 tests passed, 3 failed.
