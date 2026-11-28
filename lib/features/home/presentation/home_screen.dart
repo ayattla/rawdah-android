@@ -241,7 +241,7 @@ class _ArchHeader extends StatelessWidget {
         aspectRatio: 1.55,
         child: LayoutBuilder(builder: (context, box) {
           return Stack(children: [
-            Positioned.fill(child: CustomPaint(painter: _ArchPainter())),
+            Positioned.fill(child: CustomPaint(painter: _ArchPainter(DateTime.now().hour))),
             // الفانوس معلّق من قمة القوس
             Positioned(
               top: box.maxHeight * 0.12,
@@ -310,6 +310,19 @@ class _LevelRing extends StatelessWidget {
 
 /// قوس مدبب كمحراب: إطار فيروزي مزخرف، وفي داخله سماء المغرب وقبة ومئذنتان.
 class _ArchPainter extends CustomPainter {
+  /// ساعة اليوم: سماء الشاشة تتبدل بين الصباح والظهر والمغرب والليل.
+  final int hour;
+  _ArchPainter(this.hour);
+
+  bool get _day => hour >= 5 && hour < 16;
+  List<Color> get _sky => hour >= 5 && hour < 11
+      ? const [Color(0xFF5AB4F0), Color(0xFF9AD8F5), Color(0xFFFFE3B3)]
+      : hour >= 11 && hour < 16
+          ? const [Color(0xFF2F8DE0), Color(0xFF6CC4F2), Color(0xFFBDE9FF)]
+          : hour >= 16 && hour < 19
+              ? const [Color(0xFF1D2B64), Color(0xFF6A5AE0), Color(0xFFF59E5B)]
+              : const [Color(0xFF0B1240), Color(0xFF1D2B64), Color(0xFF3B2A7A)];
+
   // صار القوس شاشة تلفاز عريضة منفوخة مثل شاشات فواصل القنوات
   Path _arch(Size s, double inset) {
     final r = Rect.fromLTWH(0, 0, s.width, s.height - 8);
@@ -340,23 +353,29 @@ class _ArchPainter extends CustomPainter {
     canvas.drawRect(
         rect,
         Paint()
-          ..shader = const LinearGradient(
+          ..shader = LinearGradient(
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
-            colors: [Color(0xFF1D2B64), Color(0xFF6A5AE0), Color(0xFFF59E5B)],
-            stops: [0.0, 0.55, 1.0],
+            colors: _sky,
+            stops: const [0.0, 0.55, 1.0],
           ).createShader(rect));
     // نجوم وهلال
     final r = math.Random(3);
     final star = Paint()..color = Colors.white;
-    for (var i = 0; i < 18; i++) {
+    for (var i = 0; i < (_day ? 0 : 18); i++) {
       canvas.drawCircle(Offset(r.nextDouble() * size.width, r.nextDouble() * size.height * 0.45),
           r.nextDouble() * 1.4 + 0.5, star);
     }
     final moon = Offset(size.width * 0.27, size.height * 0.3);
-    canvas.drawCircle(moon, size.height * 0.07, Paint()..color = const Color(0xFFFFE9A8));
-    canvas.drawCircle(moon + Offset(size.height * 0.03, -size.height * 0.018), size.height * 0.062,
-        Paint()..color = const Color(0xFF3B3E9A));
+    if (_day) {
+      // شمس الصباح والظهر بأشعة قصيرة
+      canvas.drawCircle(moon, size.height * 0.11, Paint()..color = const Color(0xFFFFE680).withValues(alpha: 0.35));
+      canvas.drawCircle(moon, size.height * 0.075, Paint()..color = const Color(0xFFFFD43B));
+    } else {
+      canvas.drawCircle(moon, size.height * 0.07, Paint()..color = const Color(0xFFFFE9A8));
+      canvas.drawCircle(moon + Offset(size.height * 0.03, -size.height * 0.018), size.height * 0.062,
+          Paint()..color = _sky.first);
+    }
     // قبة ومئذنتان على الأفق
     final sil = Paint()..color = const Color(0xFF14204F);
     final w = size.width, h = size.height;

@@ -1,3 +1,5 @@
+import 'dart:math' as math;
+
 import 'package:flutter/material.dart';
 
 import 'package:rawdah/core/design_system/components/a11y.dart';
@@ -60,7 +62,17 @@ class CandyAnswer extends StatelessWidget {
       _ => _cols[index % _cols.length],
     };
     final dim = state == 3;
-    return AnimatedScale(
+    final reduce = A11y.reduceMotionOf(context);
+    // الخطأ يهتز يمينا ويسارا، والصح تنطلق منه أشعة فرح
+    return TweenAnimationBuilder<double>(
+      key: ValueKey(state),
+      tween: Tween(begin: reduce || state == 0 || state == 3 ? 1 : 0, end: 1),
+      duration: const Duration(milliseconds: 520),
+      builder: (_, v, child) => Transform.translate(
+        offset: Offset(state == 2 ? math.sin(v * math.pi * 6) * 9 * (1 - v) : 0, 0),
+        child: CustomPaint(foregroundPainter: state == 1 && v < 1 ? _JoyPainter(v) : null, child: child),
+      ),
+      child: AnimatedScale(
       scale: state == 1 ? 1.03 : 1,
       duration: const Duration(milliseconds: 220),
       curve: Curves.easeOutBack,
@@ -103,8 +115,30 @@ class CandyAnswer extends StatelessWidget {
           ),
         ),
       ),
+      ),
     );
   }
+}
+
+class _JoyPainter extends CustomPainter {
+  final double v;
+  _JoyPainter(this.v);
+  static const _cols = [Color(0xFFFFD43B), Color(0xFF9DFF8A), Color(0xFF22D3EE), Color(0xFFFF8FC8)];
+  @override
+  void paint(Canvas canvas, Size size) {
+    final c = Offset(size.width * 0.88, size.height / 2);
+    for (var i = 0; i < 12; i++) {
+      final a = i * math.pi / 6;
+      final d0 = 26 + 30 * v, d1 = d0 + 12 * (1 - v);
+      canvas.drawLine(c + Offset(math.cos(a) * d0, math.sin(a) * d0), c + Offset(math.cos(a) * d1, math.sin(a) * d1), Paint()
+        ..color = _cols[i % 4].withValues(alpha: 1 - v)
+        ..strokeWidth = 4
+        ..strokeCap = StrokeCap.round);
+    }
+  }
+
+  @override
+  bool shouldRepaint(covariant _JoyPainter o) => o.v != v;
 }
 
 /// شاشة تلفاز كبيرة لعرض المحتوى (الحلقات والقصص): إطار مجسم بمقابض ولمبات
