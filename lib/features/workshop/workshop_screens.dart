@@ -10,7 +10,6 @@ import 'package:rawdah/features/science/presentation/science_screens.dart';
 import 'package:rawdah/features/workshop/workshop_domain.dart';
 
 const _outline = Color(0xFF2A1A66);
-const _teal = Color(0xFF0F766E);
 
 class WorkshopScreen extends StatelessWidget {
   const WorkshopScreen({super.key});
@@ -137,23 +136,20 @@ class _CircuitLabScreenState extends State<CircuitLabScreen> {
             const SizedBox(height: 14),
             Text(p.prompt, textAlign: TextAlign.center, style: RT.display(21, color: RC.onDark)),
             const SizedBox(height: 6),
-            Text(p.detail, textAlign: TextAlign.center, style: RT.display(18, color: _teal)),
+            Text(p.detail, textAlign: TextAlign.center, style: RT.display(18, color: const Color(0xFF5EEAD4))),
             const SizedBox(height: 16),
             for (var k = 0; k < p.options.length; k++)
               Padding(
                 padding: const EdgeInsets.only(bottom: 10),
-                child: Chunky(
+                child: CandyAnswer(
                   key: ValueKey('c_${_i}_$k'),
-                  color: _solved && k == p.answer ? const Color(0xFFD1FAE5) : (_wrong == k ? const Color(0xFFFDE2E0) : Colors.white),
-                  border: Border.all(color: _outline, width: 3),
-                  radius: 18,
-                  depth: 5,
-                  padding: const EdgeInsets.all(14),
+                  text: p.options[k],
+                  index: k,
+                  state: _solved && k == p.answer ? 1 : (_wrong == k ? 2 : (_solved ? 3 : 0)),
                   onTap: () => _tap(k),
-                  child: Center(child: Text(p.options[k], style: RT.display(18))),
                 ),
               ),
-            if (_solved) Text(p.why, textAlign: TextAlign.center, style: RT.body(16, color: RC.inkSoft)),
+            if (_solved) Text(p.why, textAlign: TextAlign.center, style: RT.body(16, color: RC.onDarkSoft)),
           ]),
         ),
       ]),

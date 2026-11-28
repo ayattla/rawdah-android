@@ -220,15 +220,14 @@ class _TowerPlayScreenState extends State<TowerPlayScreen> {
           if (widget.game == TowerGame.sequence) _pill('؟', const Color(0xFFFFC23F)),
         ]),
       const SizedBox(height: 20),
-      Wrap(alignment: WrapAlignment.center, spacing: 12, runSpacing: 12, children: [
-        for (var k = 0; k < p.options.length; k++)
-          Chunky(
+      for (var k = 0; k < p.options.length; k++)
+        Padding(
+          padding: const EdgeInsets.only(bottom: 10),
+          child: CandyAnswer(
             key: ValueKey('opt_${_i}_$k'),
-            color: _solved && k == p.answer ? const Color(0xFFD1FAE5) : (_wrong == k ? const Color(0xFFFDE2E0) : Colors.white),
-            border: Border.all(color: _outline, width: 3),
-            radius: 20,
-            depth: 5,
-            padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 14),
+            text: p.options[k],
+            index: k,
+            state: _solved && k == p.answer ? 1 : (_wrong == k ? 2 : (_solved ? 3 : 0)),
             onTap: () {
               if (_solved) return;
               if (k == p.answer) {
@@ -238,9 +237,8 @@ class _TowerPlayScreenState extends State<TowerPlayScreen> {
                 _miss(k);
               }
             },
-            child: Text(p.options[k], style: RT.display(22)),
           ),
-      ]),
+        ),
       if (_solved || _wrong != null) ...[
         const SizedBox(height: 16),
         Text(_solved ? p.why : 'فكر مرة ثانية', textAlign: TextAlign.center, style: RT.body(16, color: RC.onDarkSoft)),

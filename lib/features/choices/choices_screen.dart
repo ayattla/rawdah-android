@@ -101,12 +101,11 @@ class _SituationPlayScreenState extends State<SituationPlayScreen> {
             for (var k = 0; k < s.options.length; k++)
               Padding(
                 padding: const EdgeInsets.only(bottom: 10),
-                child: Chunky(
-                  color: _picked == null
-                      ? Colors.white
-                      : (k == s.answer ? const Color(0xFFD1FAE5) : (k == _picked ? const Color(0xFFFEE2E2) : Colors.white)),
+                child: CandyAnswer(
+                  text: s.options[k],
+                  index: k,
+                  state: _picked == null ? 0 : (k == s.answer ? 1 : (k == _picked ? 2 : 3)),
                   onTap: _picked == null ? () => _pick(k) : null,
-                  child: Text(s.options[k], textAlign: TextAlign.center, style: RT.display(18)),
                 ),
               ),
             if (_picked != null) ...[
