@@ -157,30 +157,17 @@ class HomeMapScreen extends StatelessWidget {
             ),
           ),
           SliverPadding(
-            padding: const EdgeInsets.fromLTRB(16, 14, 16, 8),
-            sliver: SliverGrid(
-              gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                crossAxisCount: 2,
-                mainAxisSpacing: 18,
-                crossAxisSpacing: 14,
-                mainAxisExtent: 172 * MediaQuery.textScalerOf(context).scale(1).clamp(1.0, 1.4),
-              ),
+            padding: const EdgeInsets.fromLTRB(0, 18, 0, 8),
+            sliver: SliverList(
               delegate: SliverChildBuilderDelegate(
                 childCount: _allPlaces.length,
-                (context, i) {
-                  final p = _allPlaces[i];
-                  return PopIn(
-                    child: _TvCard(
-                      title: p.title,
-                      hint: p.hint,
-                      icon: p.icon,
-                      screen: p.color,
-                      frame: equippedFrames(st)[i % 6],
-                      tilt: (i.isEven ? -1 : 1) * 0.022,
-                      onTap: () => _open(context, p),
-                    ),
-                  );
-                },
+                (context, i) => _PathRow(
+                  index: i,
+                  last: i == _allPlaces.length - 1,
+                  place: _allPlaces[i],
+                  frame: equippedFrames(st)[i % 6],
+                  onTap: () => _open(context, _allPlaces[i]),
+                ),
               ),
             ),
           ),
@@ -317,30 +304,29 @@ class _LevelRing extends StatelessWidget {
 
 /// قوس مدبب كمحراب: إطار فيروزي مزخرف، وفي داخله سماء المغرب وقبة ومئذنتان.
 class _ArchPainter extends CustomPainter {
+  // صار القوس شاشة تلفاز عريضة منفوخة مثل شاشات فواصل القنوات
   Path _arch(Size s, double inset) {
-    final w = s.width, h = s.height;
-    final l = inset, r = w - inset, b = h - inset * 0.4;
-    final spring = h * 0.42 + inset * 0.3; // بداية انحناء القوس
-    final apex = inset * 0.9;
-    return Path()
-      ..moveTo(l, b)
-      ..lineTo(l, spring)
-      ..cubicTo(l, spring - h * 0.2, w / 2 - w * 0.12, apex + h * 0.06, w / 2, apex)
-      ..cubicTo(w / 2 + w * 0.12, apex + h * 0.06, r, spring - h * 0.2, r, spring)
-      ..lineTo(r, b)
-      ..close();
+    final r = Rect.fromLTWH(0, 0, s.width, s.height - 8);
+    return inset == 0 ? tvShape(3, r) : tvShape(3, Rect.fromLTRB(r.width * 0.06, r.height * 0.09, r.width * 0.94, r.height * 0.88));
   }
 
   @override
   void paint(Canvas canvas, Size size) {
     final outer = _arch(size, 0);
     final inner = _arch(size, 12);
-    // الإطار
-    canvas.drawPath(outer, Paint()..color = RC.green);
-    canvas.save();
-    canvas.clipPath(outer);
-    ZellijPainter(color: Colors.white.withValues(alpha: 0.22), cell: 26).paint(canvas, size);
-    canvas.restore();
+    // الإطار البلاستيكي الوردي بظل صلب ولمعة
+    canvas.drawPath(outer.shift(const Offset(0, 7)), Paint()..color = _outline);
+    canvas.drawPath(
+      outer,
+      Paint()..shader = const LinearGradient(begin: Alignment.topCenter, end: Alignment.bottomCenter, colors: [Color(0xFFFF9FD0), Color(0xFFFF5DB1), Color(0xFFE0368F)]).createShader(outer.getBounds()),
+    );
+    canvas.drawPath(outer, Paint()
+      ..color = _outline
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 4);
+    final ob = outer.getBounds();
+    canvas.drawRRect(RRect.fromRectAndRadius(Rect.fromLTWH(ob.width * 0.14, ob.top + 6, ob.width * 0.36, 6), const Radius.circular(4)),
+        Paint()..color = Colors.white.withValues(alpha: 0.6));
     // السماء
     final rect = Offset.zero & size;
     canvas.save();
@@ -390,6 +376,21 @@ class _ArchPainter extends CustomPainter {
     }
     canvas.drawRect(Rect.fromLTWH(0, base, w, h - base), sil);
     canvas.restore();
+    canvas.drawPath(inner, Paint()
+      ..color = const Color(0xFFFFD43B)
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 9);
+    canvas.drawPath(inner, Paint()
+      ..color = _outline
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 3);
+    for (final (p, c) in [(Offset(w * 0.04, h * 0.12), const Color(0xFFFFD43B)), (Offset(w * 0.96, h * 0.1), const Color(0xFF22D3EE))]) {
+      canvas.drawCircle(p, 6, Paint()..color = c);
+      canvas.drawCircle(p, 6, Paint()
+        ..color = _outline
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = 2);
+    }
   }
 
   @override
@@ -449,7 +450,9 @@ class _TvCard extends StatefulWidget {
   final bool wide;
   final Widget? art;
   final VoidCallback onTap;
+  final int variant;
   const _TvCard({
+    this.variant = 0,
     required this.title,
     required this.hint,
     required this.icon,
@@ -496,21 +499,18 @@ class _TvCardState extends State<_TvCard> {
             angle: hc ? 0 : widget.tilt,
             child: LayoutBuilder(builder: (context, box) {
               final w = box.maxWidth, h = box.maxHeight;
-              final frameRect = Rect.fromLTWH(4, 10, w - 8, h - 30);
-              final screenRect = frameRect.deflate(11);
+              final tvSize = Size(w - 8, h - 26);
+              final painter = CandyTvPainter(
+                variant: widget.wide ? 3 : widget.variant,
+                body: widget.frame,
+                screen: widget.screen,
+                flat: hc,
+                pressed: _down,
+              );
+              final sr = painter.screenRect(Size(tvSize.width, tvSize.height - 6)).shift(const Offset(4, 10));
+              final screenRect = sr;
               return Stack(clipBehavior: Clip.none, children: [
-                Positioned.fill(
-                  child: CustomPaint(
-                    painter: _TvPainter(
-                      frame: wobblyFramePath(frameRect, radius: 26, amp: hc ? 0 : 2.2, wave: 90),
-                      screen: wobblyFramePath(screenRect, radius: 18, amp: hc ? 0 : 1.6, wave: 80),
-                      frameColor: widget.frame,
-                      screenColor: widget.screen,
-                      flat: hc,
-                      down: _down,
-                    ),
-                  ),
-                ),
+                Positioned(left: 4, top: 10, width: tvSize.width, height: tvSize.height, child: CustomPaint(painter: painter)),
                 Positioned.fromRect(
                   rect: screenRect,
                   child: Center(
@@ -566,103 +566,113 @@ class _TvCardState extends State<_TvCard> {
   }
 }
 
-class _TvPainter extends CustomPainter {
-  final Path frame;
-  final Path screen;
-  final Color frameColor;
-  final Color screenColor;
-  final bool flat;
-  final bool down;
-  _TvPainter({required this.frame, required this.screen, required this.frameColor, required this.screenColor, required this.flat, this.down = false});
+/// صف في مسار الأقسام: شاشة تلفاز على جانب، ولافتة معلقة على الجانب الآخر،
+/// وسلك متعرج يربط الشاشات مثل فواصل القنوات القديمة. الترتيب نفسه بلا تغيير.
+class _PathRow extends StatelessWidget {
+  final int index;
+  final bool last;
+  final _Place place;
+  final Color frame;
+  final VoidCallback onTap;
+  const _PathRow({required this.index, required this.last, required this.place, required this.frame, required this.onTap});
+
+  static const _tagColors = [Color(0xFFFFD43B), Color(0xFF22D3EE), Color(0xFFFF8FC8), Color(0xFF9DFF8A)];
+
+  @override
+  Widget build(BuildContext context) {
+    final scale = MediaQuery.textScalerOf(context).scale(1).clamp(1.0, 1.3);
+    final h = 196.0 * scale;
+    final right = index.isEven; // في الواجهة العربية نبدأ من اليمين
+    final hc = A11y.highContrastOf(context);
+    return SizedBox(
+      height: h,
+      child: LayoutBuilder(builder: (context, box) {
+        final w = box.maxWidth;
+        final tvW = w * 0.56;
+        final tvLeft = right ? w - tvW - 12 : 12.0;
+        final cx = tvLeft + tvW / 2;
+        final nextCx = right ? 12 + tvW / 2 : w - tvW / 2 - 12;
+        final tag = _tagColors[index % _tagColors.length];
+        return Stack(clipBehavior: Clip.none, children: [
+          if (!last && !hc)
+            Positioned.fill(child: CustomPaint(painter: _CablePainter(from: Offset(cx, h * 0.45), to: Offset(nextCx, h * 1.45), knob: tag))),
+          Positioned(
+            left: tvLeft,
+            top: 0,
+            width: tvW,
+            height: h - 8,
+            child: PopIn(
+              child: _TvCard(
+                title: place.title,
+                hint: place.hint,
+                icon: place.icon,
+                screen: place.color,
+                frame: frame,
+                variant: index % 3,
+                tilt: hc ? 0 : (right ? -1 : 1) * 0.035,
+                onTap: onTap,
+              ),
+            ),
+          ),
+          // لافتة جانبية معلقة بسلك
+          Positioned(
+            left: right ? 10 : null,
+            right: right ? null : 10,
+            top: h * 0.28,
+            width: w - tvW - 34,
+            child: ExcludeSemantics(
+              child: Column(crossAxisAlignment: right ? CrossAxisAlignment.start : CrossAxisAlignment.end, children: [
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                  decoration: BoxDecoration(
+                    color: _outline,
+                    borderRadius: BorderRadius.circular(14),
+                    border: Border.all(color: tag, width: 2.5),
+                    boxShadow: const [BoxShadow(color: Color(0x66000000), offset: Offset(0, 4))],
+                  ),
+                  child: Text(place.hint, maxLines: 3, textAlign: TextAlign.center, style: RT.body(12.5, color: tag, weight: FontWeight.w700)),
+                ),
+              ]),
+            ),
+          ),
+        ]);
+      }),
+    );
+  }
+}
+
+class _CablePainter extends CustomPainter {
+  final Offset from, to;
+  final Color knob;
+  _CablePainter({required this.from, required this.to, required this.knob});
 
   @override
   void paint(Canvas canvas, Size size) {
-    final hsl = HSLColor.fromColor(screenColor);
-    final dark = hsl.withLightness((hsl.lightness - 0.12).clamp(0.0, 1.0)).toColor();
-    final light = hsl.withLightness((hsl.lightness + 0.14).clamp(0.0, 1.0)).toColor();
-    final fh = HSLColor.fromColor(frameColor);
-    // حافة داخلية بلون مكمل مثل الإطارات البلاستيكية الملونة
-    final rim = fh.withHue((fh.hue + 150) % 360).withSaturation(0.85).withLightness(0.62).toColor();
-    final fb = frame.getBounds();
-    if (!flat && down) {
-      canvas.drawPath(frame, Paint()
-        ..color = frameColor.withValues(alpha: 0.75)
-        ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 14));
-    }
-    if (!flat) canvas.drawPath(frame.shift(Offset(0, down ? 3 : 6)), Paint()..color = _outline);
-    canvas.drawPath(
-      frame,
-      Paint()
-        ..shader = flat
-            ? null
-            : LinearGradient(begin: Alignment.topCenter, end: Alignment.bottomCenter, colors: [fh.withLightness((fh.lightness + 0.12).clamp(0.0, 1.0)).toColor(), frameColor, fh.withLightness((fh.lightness - 0.1).clamp(0.0, 1.0)).toColor()])
-                .createShader(fb)
-        ..color = frameColor,
-    );
-    canvas.drawPath(frame, Paint()
+    final mid = (from.dy + to.dy) / 2;
+    final path = Path()
+      ..moveTo(from.dx, from.dy)
+      ..cubicTo(from.dx, mid + 30, to.dx, mid - 30, to.dx, to.dy);
+    canvas.drawPath(path, Paint()
       ..color = _outline
       ..style = PaintingStyle.stroke
-      ..strokeWidth = 3);
-    if (!flat) {
-      // لمعة البلاستيك أعلى الإطار
-      canvas.save();
-      canvas.clipPath(frame);
-      canvas.drawRRect(
-        RRect.fromRectAndRadius(Rect.fromLTWH(fb.left + 14, fb.top + 3, fb.width * 0.45, 5), const Radius.circular(4)),
-        Paint()..color = Colors.white.withValues(alpha: 0.45),
-      );
-      canvas.restore();
-      // حافة ملونة حول الشاشة
-      canvas.drawPath(screen, Paint()
-        ..color = rim
-        ..style = PaintingStyle.stroke
-        ..strokeWidth = 9);
-      // براغي حلوى على الزوايا
-      for (final p in [fb.topLeft + const Offset(9, 9), fb.topRight + const Offset(-9, 9), fb.bottomLeft + const Offset(9, -9)]) {
-        canvas.drawCircle(p, 4.2, Paint()..color = rim);
-        canvas.drawCircle(p, 4.2, Paint()
-          ..color = _outline
-          ..style = PaintingStyle.stroke
-          ..strokeWidth = 1.6);
-        canvas.drawCircle(p - const Offset(1.3, 1.3), 1.2, Paint()..color = Colors.white.withValues(alpha: 0.8));
-      }
-    }
-    final sb = screen.getBounds();
-    canvas.drawPath(
-      screen,
-      Paint()..shader = LinearGradient(begin: Alignment.topCenter, end: Alignment.bottomCenter, colors: [light, screenColor, dark]).createShader(sb),
-    );
-    canvas.drawPath(screen, Paint()
+      ..strokeWidth = 12
+      ..strokeCap = StrokeCap.round);
+    canvas.drawPath(path, Paint()
+      ..color = const Color(0xFF7CFF6B)
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 5.5
+      ..strokeCap = StrokeCap.round);
+    final m = path.computeMetrics().first;
+    final t = m.getTangentForOffset(m.length / 2)!.position;
+    canvas.drawCircle(t, 8, Paint()..color = knob);
+    canvas.drawCircle(t, 8, Paint()
       ..color = _outline
       ..style = PaintingStyle.stroke
       ..strokeWidth = 2.5);
-    if (flat) return;
-    // لمعة الشاشة
-    canvas.save();
-    canvas.clipPath(screen);
-    canvas.drawPath(
-      Path()
-        ..moveTo(sb.left, sb.top)
-        ..lineTo(sb.left + sb.width * 0.55, sb.top)
-        ..lineTo(sb.left + sb.width * 0.25, sb.bottom)
-        ..lineTo(sb.left, sb.bottom)
-        ..close(),
-      Paint()..color = Colors.white.withValues(alpha: 0.10),
-    );
-    canvas.restore();
-    // زران على الإطار
-    for (final (dx, col) in [(sb.right - 14.0, const Color(0xFFFF5D8F)), (sb.right - 30.0, const Color(0xFF22D3EE))]) {
-      final p = Offset(dx, sb.bottom + 6);
-      canvas.drawCircle(p, 5, Paint()..color = col);
-      canvas.drawCircle(p, 5, Paint()
-        ..color = _outline
-        ..style = PaintingStyle.stroke
-        ..strokeWidth = 1.8);
-    }
   }
 
   @override
-  bool shouldRepaint(covariant _TvPainter old) => old.frameColor != frameColor || old.screenColor != screenColor || old.flat != flat || old.down != down;
+  bool shouldRepaint(covariant _CablePainter o) => o.from != from || o.to != to || o.knob != knob;
 }
 
 class _AntennaPainter extends CustomPainter {

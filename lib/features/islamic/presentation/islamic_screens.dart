@@ -16,6 +16,75 @@ const _gold = Color(0xFFC98A12);
 const _ink = Color(0xFF1F2A44);
 
 /// ركن المسلم الصغير: رتب، ذاكرة الأذكار، السيرة.
+/// باب بشكل محراب: لون الورق الدافئ، وخط ذهبي داخلي، وشارة القسم في الوسط.
+class _ArchDoor extends StatelessWidget {
+  final String title;
+  final String subtitle;
+  final IconData icon;
+  final Color color;
+  final bool done;
+  final VoidCallback onTap;
+  const _ArchDoor({required this.title, required this.subtitle, required this.icon, required this.color, required this.onTap, this.done = false});
+
+  @override
+  Widget build(BuildContext context) => Semantics(
+        button: true,
+        label: '$title، $subtitle${done ? '، مكتمل' : ''}',
+        excludeSemantics: true,
+        child: GestureDetector(
+          onTap: () {
+            Haptics.tap();
+            Voice.instance.say(title);
+            onTap();
+          },
+          child: CustomPaint(
+            painter: _ArchPainter(),
+            child: Padding(
+              padding: const EdgeInsets.fromLTRB(16, 30, 16, 18),
+              child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
+                KhatamBadge(icon: done ? Icons.check_rounded : icon, color: done ? const Color(0xFF16A34A) : color, size: 58),
+                const SizedBox(height: 8),
+                Text(title, textAlign: TextAlign.center, maxLines: 2, style: RT.display(18, color: const Color(0xFF2A1A66))),
+                Text(subtitle, textAlign: TextAlign.center, maxLines: 1, overflow: TextOverflow.ellipsis, style: RT.body(12.5, color: const Color(0xFF8A6A1A))),
+              ]),
+            ),
+          ),
+        ),
+      );
+}
+
+class _ArchPainter extends CustomPainter {
+  Path _arch(Rect r) {
+    final top = r.top, spring = r.top + r.width * 0.5;
+    return Path()
+      ..moveTo(r.left, r.bottom)
+      ..lineTo(r.left, spring)
+      ..quadraticBezierTo(r.left, top, r.center.dx, top)
+      ..quadraticBezierTo(r.right, top, r.right, spring)
+      ..lineTo(r.right, r.bottom)
+      ..close();
+  }
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    const ink = Color(0xFF2A1A66);
+    final outer = _arch(Rect.fromLTWH(0, 0, size.width, size.height - 6));
+    canvas.drawPath(outer.shift(const Offset(0, 6)), Paint()..color = ink);
+    canvas.drawPath(outer, Paint()..shader = const LinearGradient(begin: Alignment.topCenter, end: Alignment.bottomCenter, colors: [Color(0xFFFDF6E3), Color(0xFFF3E3BC)]).createShader(outer.getBounds()));
+    canvas.drawPath(outer, Paint()
+      ..color = ink
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 3.5);
+    canvas.drawPath(_arch(Rect.fromLTWH(10, 10, size.width - 20, size.height - 22)), Paint()
+      ..color = const Color(0xFFD4A537)
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 2.5);
+  }
+
+  @override
+  bool shouldRepaint(covariant CustomPainter old) => false;
+}
+
 class IslamicHubScreen extends StatelessWidget {
   const IslamicHubScreen({super.key});
 
@@ -30,38 +99,45 @@ class IslamicHubScreen extends StatelessWidget {
         const KidBar(title: 'ركن المسلم'),
         Expanded(
           child: ListView(padding: const EdgeInsets.all(16), children: [
-            BigTile(
-              title: 'السيرة النبوية',
-              subtitle: '${kSeerah.length} محطات من حياة النبي ﷺ',
-              icon: Icons.route_rounded,
-              color: _green,
-              done: c.completed.contains('seerah_quiz'),
-              onTap: () => open(const SeerahScreen()),
-            ),
-            const SizedBox(height: 12),
-            BigTile(
-              title: 'أسماء الله الحسنى',
-              subtitle: '${kGodNames.length} أسماء بمعانيها',
-              icon: Icons.auto_awesome_rounded,
-              color: const Color(0xFF2B3A67),
-              done: c.completed.contains('god_names'),
-              onTap: () => open(const GodNamesScreen()),
-            ),
-            const SizedBox(height: 12),
-            BigTile(
-              title: 'صح أم خطأ',
-              subtitle: 'آداب المسلم وسلامتي',
-              icon: Icons.rule_rounded,
-              color: const Color(0xFFB3412F),
-              onTap: () => open(const TrueFalseScreen()),
-            ),
-            const SizedBox(height: 12),
-            BigTile(
-              title: 'ذاكرة الأذكار',
-              subtitle: 'اقلب البطاقات وطابق الذكر بوقته',
-              icon: Icons.style_rounded,
-              color: _gold,
-              onTap: () => open(MemoryGameScreen(band: c.ageBand)),
+            GridView.count(
+              crossAxisCount: 2,
+              shrinkWrap: true,
+              physics: const NeverScrollableScrollPhysics(),
+              mainAxisSpacing: 14,
+              crossAxisSpacing: 14,
+              childAspectRatio: 0.82,
+              children: [
+                _ArchDoor(
+                  title: 'السيرة النبوية',
+                  subtitle: '${kSeerah.length} محطات',
+                  icon: Icons.route_rounded,
+                  color: _green,
+                  done: c.completed.contains('seerah_quiz'),
+                  onTap: () => open(const SeerahScreen()),
+                ),
+                _ArchDoor(
+                  title: 'أسماء الله الحسنى',
+                  subtitle: '${kGodNames.length} اسما بمعانيها',
+                  icon: Icons.auto_awesome_rounded,
+                  color: const Color(0xFF2B3A67),
+                  done: c.completed.contains('god_names'),
+                  onTap: () => open(const GodNamesScreen()),
+                ),
+                _ArchDoor(
+                  title: 'صح أم خطأ',
+                  subtitle: 'آداب المسلم',
+                  icon: Icons.rule_rounded,
+                  color: const Color(0xFFB3412F),
+                  onTap: () => open(const TrueFalseScreen()),
+                ),
+                _ArchDoor(
+                  title: 'ذاكرة الأذكار',
+                  subtitle: 'طابق الذكر بوقته',
+                  icon: Icons.style_rounded,
+                  color: _gold,
+                  onTap: () => open(MemoryGameScreen(band: c.ageBand)),
+                ),
+              ],
             ),
             Padding(
               padding: const EdgeInsets.fromLTRB(4, 20, 4, 8),

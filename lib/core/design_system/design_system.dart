@@ -10,6 +10,8 @@ export 'components/kid_widgets.dart';
 export 'components/lantern.dart';
 export 'components/reward.dart';
 export 'components/scene.dart';
+export 'components/studio.dart';
+export 'geometry/tv_shapes.dart';
 export 'geometry/zellij.dart';
 export 'theme/rawdah_theme.dart';
 export 'tokens/colors.dart';

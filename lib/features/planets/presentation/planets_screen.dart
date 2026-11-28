@@ -55,7 +55,7 @@ class PlanetsScreen extends StatelessWidget {
     Voice.instance.say(p.title);
     final back = SceneTheme.active;
     SceneTheme.active = p.theme;
-    await Navigator.of(context).push(MaterialPageRoute(builder: p.builder));
+    await Navigator.of(context).push(WarpRoute<void>(builder: p.builder, title: p.title, color: p.color, icon: p.icon));
     SceneTheme.active = back;
   }
 
@@ -88,7 +88,7 @@ class _PlanetMap extends StatefulWidget {
 
 class _PlanetMapState extends State<_PlanetMap> with SingleTickerProviderStateMixin {
   late final AnimationController _t = AnimationController(vsync: this, duration: const Duration(seconds: 6));
-  static const _rowH = 150.0;
+  static const _rowH = 175.0;
 
   /// ألوان كواكب زاهية تضيء على الفضاء الداكن (ألوان الأقسام الداكنة تختفي عليه).
   static const _vivid = [
@@ -131,7 +131,7 @@ class _PlanetMapState extends State<_PlanetMap> with SingleTickerProviderStateMi
           for (var i = 0; i < n; i++)
             Positioned(
               left: centers[i].dx - 80,
-              top: centers[i].dy - 56,
+              top: centers[i].dy - 80,
               width: 160,
               child: AnimatedBuilder(
                 animation: _t,
@@ -140,6 +140,7 @@ class _PlanetMapState extends State<_PlanetMap> with SingleTickerProviderStateMi
                   return Transform.translate(offset: Offset(0, math.sin(ph) * 4), child: child);
                 },
                 child: _PlanetButton(
+                  index: i,
                   place: widget.places[i],
                   color: _vivid[i % _vivid.length],
                   size: i == 0 ? 92 : 80,
@@ -168,10 +169,19 @@ class _OrbitPathPainter extends CustomPainter {
       final midY = (a.dy + b.dy) / 2;
       p.cubicTo(a.dx, midY, b.dx, midY, b.dx, b.dy);
     }
-    final dot = Paint()..color = const Color(0xFF8C7BEA).withValues(alpha: 0.7);
+    canvas.drawPath(p, Paint()
+      ..color = const Color(0xFF7C6BFF).withValues(alpha: 0.25)
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 14
+      ..strokeCap = StrokeCap.round);
+    final dot = Paint()
+      ..color = Colors.white.withValues(alpha: 0.75)
+      ..strokeWidth = 4
+      ..strokeCap = StrokeCap.round;
     for (final m in p.computeMetrics()) {
-      for (var d = 0.0; d < m.length; d += 16) {
-        canvas.drawCircle(m.getTangentForOffset(d)!.position, 2.4, dot);
+      for (var d = 0.0; d < m.length; d += 18) {
+        final a = m.getTangentForOffset(d)!.position, b = m.getTangentForOffset(d + 4)?.position ?? a;
+        canvas.drawLine(a, b, dot);
       }
     }
   }
@@ -182,13 +192,14 @@ class _OrbitPathPainter extends CustomPainter {
 
 /// كوكب القسم: كرة ملونة بحد غامق ولمعة، وحلقة تدور ببطء، والأيقونة في وسطه، والاسم تحته.
 class _PlanetButton extends StatefulWidget {
+  final int index;
   final PlanetDest place;
   final Color color;
   final double size;
   final bool ringed;
   final Animation<double> spin;
   final VoidCallback onTap;
-  const _PlanetButton({required this.place, required this.color, required this.size, required this.ringed, required this.spin, required this.onTap});
+  const _PlanetButton({required this.index, required this.place, required this.color, required this.size, required this.ringed, required this.spin, required this.onTap});
 
   @override
   State<_PlanetButton> createState() => _PlanetButtonState();
@@ -206,7 +217,10 @@ class _PlanetButtonState extends State<_PlanetButton> {
       label: '${p.title}، ${p.hint}',
       excludeSemantics: true,
       child: GestureDetector(
-        onTapDown: (_) => setState(() => _down = true),
+        onTapDown: (d) {
+          WarpRoute.lastTap = d.globalPosition;
+          setState(() => _down = true);
+        },
         onTapCancel: () => setState(() => _down = false),
         onTapUp: (_) => setState(() => _down = false),
         onTap: () {
@@ -220,35 +234,36 @@ class _PlanetButtonState extends State<_PlanetButton> {
           child: Column(mainAxisSize: MainAxisSize.min, children: [
             SizedBox(
               width: s * 1.5,
-              height: s,
+              height: s * 1.3,
               child: AnimatedBuilder(
                 animation: widget.spin,
                 builder: (_, __) => CustomPaint(
-                  painter: _PlanetBodyPainter(widget.color, widget.ringed, widget.spin.value),
-                  child: Center(child: Icon(p.icon, color: Colors.white, size: s * 0.40)),
+                  painter: _PlanetBodyPainter(widget.color, widget.ringed, widget.spin.value, widget.index),
+                  child: Align(alignment: const Alignment(0, 0.24), child: Icon(p.icon, color: Colors.white, size: s * 0.40)),
                 ),
               ),
             ),
             const SizedBox(height: 4),
             // لافتة الاسم تغطي المدار خلفها فلا يتداخل الخط مع النص
             Container(
-              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 3),
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 3),
               decoration: BoxDecoration(
-                color: const Color(0xFF221763),
-                borderRadius: BorderRadius.circular(14),
-                border: Border.all(color: widget.color.withValues(alpha: 0.7), width: 2),
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(16),
+                border: Border.all(color: const Color(0xFF2A1A66), width: 3),
+                boxShadow: const [BoxShadow(color: Color(0xFF2A1A66), offset: Offset(0, 3))],
               ),
               child: Column(mainAxisSize: MainAxisSize.min, children: [
                 Text(p.title,
                     textAlign: TextAlign.center,
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
-                    style: RT.display(16, color: Colors.white)),
+                    style: RT.display(16, color: const Color(0xFF2A1A66))),
                 Text(p.hint,
                     textAlign: TextAlign.center,
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
-                    style: RT.body(12, color: const Color(0xFFCFC6FF))),
+                    style: RT.body(12, color: const Color(0xFF5B4BA8))),
               ]),
             ),
           ]),
@@ -262,12 +277,96 @@ class _PlanetBodyPainter extends CustomPainter {
   final Color color;
   final bool ringed;
   final double t;
-  _PlanetBodyPainter(this.color, this.ringed, this.t);
+  final int index;
+  _PlanetBodyPainter(this.color, this.ringed, this.t, this.index);
+
+  static const _ink = Color(0xFF2A1A66);
+
+  /// مبان كرتونية صغيرة فوق كل كوكب: أبراج حروف، أعمدة، أعلام، مرصد، بلورات، ملاعب، حلوى.
+  void _buildings(Canvas canvas, Offset top, double r) {
+    final ink = Paint()
+      ..color = _ink
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 2.2
+      ..strokeJoin = StrokeJoin.round;
+    void box(Rect b, Color col) {
+      final rr = RRect.fromRectAndRadius(b, Radius.circular(b.width * 0.25));
+      canvas.drawRRect(rr, Paint()..color = col);
+      canvas.drawRRect(rr, ink);
+    }
+
+    final u = r * 0.22;
+    switch (index % 7) {
+      case 0: // أبراج ملونة
+        box(Rect.fromLTWH(top.dx - u * 1.6, top.dy - u * 1.4, u * 0.9, u * 1.6), const Color(0xFFFF4FA8));
+        box(Rect.fromLTWH(top.dx - u * 0.45, top.dy - u * 2.0, u * 0.9, u * 2.2), const Color(0xFF3A8BFF));
+        box(Rect.fromLTWH(top.dx + u * 0.7, top.dy - u * 1.2, u * 0.9, u * 1.4), const Color(0xFF34C759));
+      case 1: // أعمدة
+        final roof = Path()
+          ..moveTo(top.dx - u * 1.6, top.dy - u * 1.6)
+          ..lineTo(top.dx, top.dy - u * 2.3)
+          ..lineTo(top.dx + u * 1.6, top.dy - u * 1.6)
+          ..close();
+        for (final dx in [-1.2, -0.25, 0.7]) {
+          box(Rect.fromLTWH(top.dx + dx * u, top.dy - u * 1.6, u * 0.5, u * 1.8), Colors.white);
+        }
+        canvas.drawPath(roof, Paint()..color = const Color(0xFFFFD43B));
+        canvas.drawPath(roof, ink);
+      case 2: // أعلام
+        for (final (dx, col) in [(-0.6, const Color(0xFFFF4FA8)), (0.6, const Color(0xFFFFD43B))]) {
+          final x = top.dx + dx * u;
+          canvas.drawLine(Offset(x, top.dy + u * 0.2), Offset(x, top.dy - u * 2), ink);
+          final f = Path()
+            ..moveTo(x, top.dy - u * 2)
+            ..lineTo(x + u * 1.1, top.dy - u * 1.65)
+            ..lineTo(x, top.dy - u * 1.3)
+            ..close();
+          canvas.drawPath(f, Paint()..color = col);
+          canvas.drawPath(f, ink);
+        }
+      case 3: // ملعب: كرة على عمود
+        canvas.drawLine(Offset(top.dx, top.dy + u * 0.2), Offset(top.dx, top.dy - u * 1.2), ink);
+        canvas.drawCircle(Offset(top.dx, top.dy - u * 1.6), u * 0.6, Paint()..color = Colors.white);
+        canvas.drawCircle(Offset(top.dx, top.dy - u * 1.6), u * 0.6, ink);
+      case 4: // مرصد
+        final dome = Path()
+          ..moveTo(top.dx - u, top.dy + u * 0.2)
+          ..lineTo(top.dx - u, top.dy - u * 0.6)
+          ..arcToPoint(Offset(top.dx + u, top.dy - u * 0.6), radius: Radius.circular(u))
+          ..lineTo(top.dx + u, top.dy + u * 0.2)
+          ..close();
+        canvas.drawPath(dome, Paint()..color = Colors.white);
+        canvas.drawPath(dome, ink);
+        canvas.drawLine(Offset(top.dx + u * 0.2, top.dy - u * 1.2), Offset(top.dx + u * 1.4, top.dy - u * 2.1), ink..strokeWidth = 5);
+        ink.strokeWidth = 2.2;
+      case 5: // بلورات زمرد
+        for (final (dx, hgt) in [(-0.8, 1.4), (0.0, 2.0), (0.8, 1.2)]) {
+          final x = top.dx + dx * u;
+          final g = Path()
+            ..moveTo(x - u * 0.38, top.dy + u * 0.2)
+            ..lineTo(x - u * 0.38, top.dy - u * hgt * 0.7)
+            ..lineTo(x, top.dy - u * hgt)
+            ..lineTo(x + u * 0.38, top.dy - u * hgt * 0.7)
+            ..lineTo(x + u * 0.38, top.dy + u * 0.2)
+            ..close();
+          canvas.drawPath(g, Paint()..color = const Color(0xFF6EE7B7));
+          canvas.drawPath(g, ink);
+        }
+      default: // حلوى مستديرة على عود
+        for (final (dx, col) in [(-0.7, const Color(0xFFFFD43B)), (0.7, const Color(0xFF22D3EE))]) {
+          final x = top.dx + dx * u;
+          canvas.drawLine(Offset(x, top.dy + u * 0.2), Offset(x, top.dy - u), ink);
+          canvas.drawCircle(Offset(x, top.dy - u * 1.4), u * 0.55, Paint()..color = col);
+          canvas.drawCircle(Offset(x, top.dy - u * 1.4), u * 0.55, ink);
+        }
+    }
+  }
 
   @override
   void paint(Canvas canvas, Size size) {
-    final c = size.center(Offset.zero);
-    final r = size.height / 2 * 0.92;
+    final c = size.center(Offset.zero) + Offset(0, size.height * 0.12);
+    final r = size.height / 1.3 / 2 * 0.92;
+    _buildings(canvas, c - Offset(0, r * 0.92), r);
     final hsl = HSLColor.fromColor(color);
     final dark = hsl.withLightness((hsl.lightness - 0.25).clamp(0.0, 1.0)).toColor();
     final light = hsl.withLightness((hsl.lightness + 0.15).clamp(0.0, 1.0)).toColor();
@@ -292,9 +391,19 @@ class _PlanetBodyPainter extends CustomPainter {
     canvas.drawCircle(c + Offset(0, r * 0.08), r, Paint()..color = dark);
     canvas.drawCircle(c, r, Paint()..shader = RadialGradient(center: const Alignment(-0.4, -0.5), colors: [light, color, dark]).createShader(Rect.fromCircle(center: c, radius: r)));
     canvas.drawCircle(c, r, Paint()
-      ..color = dark
+      ..color = _ink
       ..style = PaintingStyle.stroke
-      ..strokeWidth = 3);
+      ..strokeWidth = 3.5);
+    // قمر صغير يدور حول الكوكب
+    final ma = t * 2 * math.pi + index;
+    final mp = c + Offset(math.cos(ma) * r * 1.35, math.sin(ma) * r * 0.45);
+    if (math.sin(ma) > -0.2) {
+      canvas.drawCircle(mp, r * 0.14, Paint()..color = const Color(0xFFE9E4FF));
+      canvas.drawCircle(mp, r * 0.14, Paint()
+        ..color = _ink
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = 2);
+    }
     // فوهتان صغيرتان ولمعة
     canvas.drawCircle(c + Offset(r * 0.42, r * 0.38), r * 0.13, Paint()..color = dark.withValues(alpha: 0.35));
     canvas.drawCircle(c + Offset(-r * 0.5, r * 0.45), r * 0.08, Paint()..color = dark.withValues(alpha: 0.3));
@@ -311,7 +420,7 @@ class _PlanetBodyPainter extends CustomPainter {
   }
 
   @override
-  bool shouldRepaint(covariant _PlanetBodyPainter old) => old.t != t || old.color != color;
+  bool shouldRepaint(covariant _PlanetBodyPainter old) => old.t != t || old.color != color || old.index != index;
 }
 
 

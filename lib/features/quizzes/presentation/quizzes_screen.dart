@@ -200,28 +200,16 @@ class _QuizRunnerState extends ConsumerState<QuizRunner> {
         ),
         Expanded(
           child: ListView(padding: const EdgeInsets.all(18), children: [
-            Container(
-              padding: const EdgeInsets.fromLTRB(20, 16, 10, 20),
-              decoration: BoxDecoration(color: RC.ink, borderRadius: BorderRadius.circular(28)),
-              child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                Row(children: [
-                  Text('السؤال ${s.index + 1} من ${s.total}',
-                      style: RT.display(15, color: RC.gold, weight: FontWeight.w700)),
-                  const Spacer(),
-                  IconButton(
-                    tooltip: 'استمع',
-                    icon: const Icon(Icons.volume_up_rounded, color: RC.gold, size: 30),
-                    onPressed: () => Voice.instance.say(q.text),
-                  ),
-                ]),
-                Text(q.text, style: RT.display(26, color: Colors.white, weight: FontWeight.w700)),
-              ]),
+            StudioQuestion(
+              text: q.text,
+              label: 'السؤال ${s.index + 1} من ${s.total}',
+              onListen: () => Voice.instance.say(q.text),
             ),
             const SizedBox(height: 16),
             for (var k = 0; k < q.options.length; k++)
               Padding(
                 padding: const EdgeInsets.only(bottom: 12),
-                child: _OptionButton(text: q.options[k], state: s.optionState(k), onTap: () => _answer(k)),
+                child: _OptionButton(index: k, text: q.options[k], state: s.optionState(k), onTap: () => _answer(k)),
               ),
             if (s.answered) ...[
               Container(
@@ -253,48 +241,14 @@ class _QuizRunnerState extends ConsumerState<QuizRunner> {
 }
 
 class _OptionButton extends StatelessWidget {
+  final int index;
   final String text;
   final int state; // 0 عادي، 1 صحيح، 2 خطأ
   final VoidCallback onTap;
-  const _OptionButton({required this.text, required this.state, required this.onTap});
+  const _OptionButton({required this.index, required this.text, required this.state, required this.onTap});
 
   @override
-  Widget build(BuildContext context) {
-    final bg = state == 1
-        ? RC.green
-        : state == 2
-            ? RC.coral
-            : Colors.white;
-    return Chunky(
-      color: bg,
-      edge: state == 0 ? RC.sandDark : null,
-      border: state == 0 ? Border.all(color: RC.sandDark, width: 2) : null,
-      radius: 22,
-      depth: 5,
-      onTap: onTap,
-      semanticLabel: switch (state) {
-        1 => '$text، الإجابة الصحيحة',
-        2 => '$text، إجابتك، خطأ',
-        _ => text,
-      },
-      child: Container(
-        constraints: const BoxConstraints(minHeight: 68),
-        alignment: Alignment.center,
-        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-        child: Row(children: [
-          if (state != 0) ...[
-            Icon(state == 1 ? Icons.check_circle_rounded : Icons.cancel_rounded, color: Colors.white, size: 28),
-            const SizedBox(width: 8),
-          ],
-          Expanded(
-            child: Text(text,
-                textAlign: TextAlign.center, style: RT.display(23, color: state == 0 ? RC.ink : Colors.white)),
-          ),
-          if (state != 0) const SizedBox(width: 36),
-        ]),
-      ),
-    );
-  }
+  Widget build(BuildContext context) => CandyAnswer(text: text, index: index, state: state, onTap: onTap);
 }
 
 /// سباق الدقيقة: أسئلة متتالية سريعة، بلا شرح، والنتيجة عدد الإجابات الصحيحة.
@@ -430,6 +384,7 @@ class _RaceScreenState extends State<RaceScreen> {
                 Padding(
                   padding: const EdgeInsets.only(bottom: 12),
                   child: _OptionButton(
+                    index: k,
                     text: q.options[k],
                     state: _flash == null ? 0 : (k == q.answer ? 1 : 0),
                     onTap: () => _answer(k),
