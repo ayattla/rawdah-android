@@ -504,6 +504,19 @@ class AppState extends ChangeNotifier {
     save();
   }
 
+  /// نسخة احتياطية سحابية: ملفات الأطفال وتقدمهم كاملة.
+  String exportBackup() => jsonEncode({'v': 1, 'children': [for (final c in children) c.toJson()]});
+
+  /// استرجاع النسخة: يستبدل ملفات الأطفال بما في النسخة. يعيد عدد الأطفال المسترجعين.
+  int importBackup(String raw) {
+    final j = jsonDecode(raw) as Map<String, dynamic>;
+    final list = ((j['children'] as List?) ?? const []).map((e) => ChildProfile.fromJson(Map<String, dynamic>.from(e as Map))).toList();
+    if (list.isEmpty) return 0;
+    children = list;
+    _changed();
+    return list.length;
+  }
+
   void setAccessibility({bool? highContrast, bool? reduceMotion, double? textScale}) {
     if (highContrast != null) this.highContrast = highContrast;
     if (reduceMotion != null) this.reduceMotion = reduceMotion;

@@ -15,6 +15,7 @@ import 'package:rawdah/core/parental/parent_pin.dart';
 import 'package:rawdah/features/profiles/presentation/add_child_screen.dart';
 import 'package:rawdah/features/circles/presentation/circles_screen.dart';
 import 'package:rawdah/features/garden/presentation/garden_screen.dart';
+import 'package:rawdah/features/account/cloud_account.dart';
 
 class ParentDashboard extends StatelessWidget {
   const ParentDashboard({super.key});
@@ -49,6 +50,7 @@ class ParentDashboard extends StatelessWidget {
           onPressed: () => Navigator.of(context).push(MaterialPageRoute(builder: (_) => const CirclesScreen())),
         ),
         const SizedBox(height: 18),
+        const _CloudPanel(),
         const _ProtectionPanel(),
         _Panel(title: 'الإعدادات', children: [
           SwitchListTile(
@@ -683,5 +685,111 @@ class _ProtectionPanelState extends State<_ProtectionPanel> {
             'للأمان الكامل فعّل في إعدادات الجهاز: الأمان ← تثبيت التطبيق ← طلب رمز القفل قبل إلغاء التثبيت.'),
       ),
     ]);
+  }
+}
+
+
+/// حساب قوقل وحفظ التقدم: للوالدين فقط داخل لوحة الوالدين.
+class _CloudPanel extends StatefulWidget {
+  const _CloudPanel();
+  @override
+  State<_CloudPanel> createState() => _CloudPanelState();
+}
+
+class _CloudPanelState extends State<_CloudPanel> {
+  bool _busy = false;
+  String? _msg;
+
+  Future<void> _run(Future<String?> Function() f, String ok) async {
+    setState(() {
+      _busy = true;
+      _msg = null;
+    });
+    final err = await f();
+    if (!mounted) return;
+    setState(() {
+      _busy = false;
+      _msg = err ?? ok;
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final st = AppScope.of(context);
+    final acc = CloudAccount.instance;
+    final linked = acc.linked;
+    return Card(
+      margin: const EdgeInsets.only(bottom: 16),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(22), side: const BorderSide(color: Color(0xFF2A1A66), width: 2)),
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+          Row(children: [
+            const Icon(Icons.cloud_done_rounded, color: Color(0xFF3B82F6), size: 28),
+            const SizedBox(width: 8),
+            Expanded(child: Text('حساب قوقل وحفظ التقدم', style: RT.display(19))),
+          ]),
+          const SizedBox(height: 6),
+          Text(
+            linked
+                ? 'مسجل الدخول${acc.email != null ? ' بـ ${acc.email}' : ''}. احفظ تقدم الأطفال في السحابة، واسترجعه على أي جهاز بنفس الحساب.'
+                : 'سجل الدخول بحساب قوقل (لولي الأمر) لحفظ تقدم الأطفال ونجومهم وأوسمتهم، واسترجاعها لو غيرت الجهاز. لا نشارك البريد مع أي أحد.',
+            style: RT.body(14.5, color: RC.inkSoft),
+          ),
+          const SizedBox(height: 12),
+          if (_busy) const Center(child: CircularProgressIndicator()),
+          if (!_busy && !linked)
+            FilledButton.icon(
+              icon: const Icon(Icons.login_rounded),
+              label: const Text('تسجيل الدخول بقوقل'),
+              onPressed: () => _run(acc.signIn, 'تم تسجيل الدخول'),
+            ),
+          if (!_busy && linked) ...[
+            FilledButton.icon(
+              icon: const Icon(Icons.cloud_upload_rounded),
+              label: const Text('احفظ التقدم الآن'),
+              onPressed: () => _run(() => acc.backup(st), 'حفظنا تقدم الأطفال في السحابة'),
+            ),
+            const SizedBox(height: 8),
+            OutlinedButton.icon(
+              icon: const Icon(Icons.cloud_download_rounded),
+              label: const Text('استرجع التقدم المحفوظ'),
+              onPressed: () async {
+                final ok = await showDialog<bool>(
+                  context: context,
+                  builder: (ctx) => AlertDialog(
+                    title: const Text('استرجاع التقدم'),
+                    content: const Text('سيستبدل التقدم الحالي على هذا الجهاز بالنسخة المحفوظة. متأكد؟'),
+                    actions: [
+                      TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('إلغاء')),
+                      FilledButton(onPressed: () => Navigator.pop(ctx, true), child: const Text('استرجع')),
+                    ],
+                  ),
+                );
+                if (ok == true) {
+                  setState(() => _busy = true);
+                  final m = await acc.restore(st);
+                  if (mounted) {
+                    setState(() {
+                      _busy = false;
+                      _msg = m;
+                    });
+                  }
+                }
+              },
+            ),
+            const SizedBox(height: 8),
+            TextButton(
+              onPressed: () => _run(() async {
+                await acc.signOut();
+                return null;
+              }, 'سجلت الخروج'),
+              child: const Text('تسجيل الخروج'),
+            ),
+          ],
+          if (_msg != null) Padding(padding: const EdgeInsets.only(top: 8), child: Text(_msg!, textAlign: TextAlign.center, style: RT.display(15, color: const Color(0xFF3B82F6)))),
+        ]),
+      ),
+    );
   }
 }

@@ -83,6 +83,28 @@ service cloud.firestore {
       allow delete: if owns(pid);
     }
 
+    // ------------------------------------------------------------ سباق اليوم أونلاين
+    // محاولة واحدة لكل طفل في اليوم: إنشاء فقط بلا تعديل، والدرجة من 0 إلى 10.
+    match /races/{day}/entries/{pid} {
+      allow read: if signedIn();
+      allow create: if owns(pid) && day.matches('d[0-9]{8}_b[0-2]')
+        && data().keys().hasOnly(['nick', 'na', 'nb', 'symbol', 'score', 'ms', 'updatedAt'])
+        && okIdentity() && stamped('updatedAt')
+        && data().score is int && data().score >= 0 && data().score <= 10
+        && data().ms is int && data().ms >= 5000 && data().ms <= 600000;
+      allow delete: if owns(pid);
+    }
+
+    // ------------------------------------------------------------ النسخ الاحتياطي لحساب قوقل
+    // لا يقرأ النسخة ولا يكتبها إلا صاحب الحساب المسجل بقوقل.
+    match /backups/{uid} {
+      function google() { return 'google.com' in request.auth.token.firebase.identities; }
+      allow read: if isUid(uid) && google();
+      allow write: if isUid(uid) && google()
+        && data().keys().hasOnly(['state', 'updatedAt']) && data().state is string
+        && data().state.size() < 900000 && stamped('updatedAt');
+    }
+
     // ------------------------------------------------------------ حلقات المعلم
     // لا يمكن سرد الحلقات؛ لا يصل إلى الحلقة إلا من يعرف رمزها.
     match /circles/{code} {
