@@ -100,6 +100,7 @@ class _ChallengeScreenState extends State<ChallengeScreen> {
     final c = AppScope.of(context).current;
     if (c == null) return const SizedBox.shrink();
     return ChildShell(
+      theme: SceneTheme.quiz,
       child: Column(children: [
         const KidBar(title: 'تحدي صديق'),
         Expanded(

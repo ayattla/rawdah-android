@@ -358,6 +358,7 @@ class _LiveJoinScreenState extends State<LiveJoinScreen> {
     final c = AppScope.of(context).current;
     if (c == null) return const SizedBox.shrink();
     return ChildShell(
+      theme: SceneTheme.quiz,
       child: Column(children: [
         const KidBar(title: 'مسابقة مباشرة'),
         Expanded(child: _code == null ? _entry() : _room(c)),

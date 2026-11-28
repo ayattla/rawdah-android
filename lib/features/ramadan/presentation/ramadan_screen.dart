@@ -113,6 +113,7 @@ class RamadanScreen extends StatelessWidget {
                 }
                 Navigator.of(context).push(MaterialPageRoute(
                   builder: (_) => ChildShell(
+      theme: SceneTheme.islamic,
                     child: Column(children: [
                       const KidBar(title: 'كأس رمضان'),
                       Expanded(

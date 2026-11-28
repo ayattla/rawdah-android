@@ -76,6 +76,7 @@ class _MemoryGameState extends State<MemoryGame> {
   Widget build(BuildContext context) {
     final cols = _cards.length <= 8 ? 2 : 3;
     return ChildShell(
+      theme: SceneTheme.play,
       child: Column(children: [
         KidBar(title: 'بطاقات الذاكرة', trailing: Text('$_moves  ', style: const TextStyle(fontSize: 20))),
         Expanded(
@@ -177,6 +178,7 @@ class _MosqueBuilderGameState extends State<MosqueBuilderGame> {
   Widget build(BuildContext context) {
     final q = _q;
     return ChildShell(
+      theme: SceneTheme.play,
       child: Column(children: [
         const KidBar(title: 'ابنِ المسجد'),
         SizedBox(height: 200, child: CustomPaint(size: Size.infinite, painter: MosquePainter(_built))),

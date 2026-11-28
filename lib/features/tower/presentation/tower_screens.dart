@@ -43,6 +43,7 @@ class TowerScreen extends StatelessWidget {
     if (st.current == null) return const SizedBox.shrink();
     final total = TowerGame.values.fold<int>(0, (n, g) => n + st.counter(g.key));
     return ChildShell(
+      theme: SceneTheme.play,
       child: Column(children: [
         const KidBar(title: 'برج الألغاز'),
         Expanded(
@@ -172,6 +173,7 @@ class _TowerPlayScreenState extends State<TowerPlayScreen> {
   Widget build(BuildContext context) {
     final color = _gameColors[widget.game]!;
     return ChildShell(
+      theme: SceneTheme.play,
       child: Column(children: [
         KidBar(title: '${widget.game.title} • مستوى $_level'),
         Padding(

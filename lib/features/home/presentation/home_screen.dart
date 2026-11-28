@@ -78,22 +78,22 @@ class HomeMapScreen extends StatelessWidget {
       _Place('حديقتي', 'نخلتي وعادات الخير', Icons.park_rounded, RC.garden, (_) => const GardenScreen(), SceneTheme.garden),
     ]),
     ('ألعب وأنافس', [
-      _Place('برج الألغاز', 'ألغاز لا تنتهي', Icons.extension_rounded, const Color(0xFF8B5CF6), (_) => const TowerScreen()),
-      _Place('دوري العائلة', 'بطولة البيت الشهرية', Icons.emoji_events_rounded, const Color(0xFFFF5D8F), (_) => const FamilyLeagueScreen()),
+      _Place('برج الألغاز', 'ألغاز لا تنتهي', Icons.extension_rounded, const Color(0xFF8B5CF6), (_) => const TowerScreen(), SceneTheme.play),
+      _Place('دوري العائلة', 'بطولة البيت الشهرية', Icons.emoji_events_rounded, const Color(0xFFFF5D8F), (_) => const FamilyLeagueScreen(), SceneTheme.quiz),
       _Place('ميدان الحساب', 'تحدي الدقيقة وجدول الضرب', Icons.calculate_rounded, const Color(0xFFEF4444), (_) => const SpeedHubScreen(), SceneTheme.school),
       _Place('سلم المعرفة', '١٠ درجات ونجوم أكثر', Icons.stairs_rounded, const Color(0xFF14B8A6), (_) => const LadderScreen(), SceneTheme.quiz),
-      _Place('أوسمتي', 'برونزي وفضي وذهبي وماسي', Icons.military_tech_rounded, const Color(0xFFFFC23F), (_) => const BadgesScreen()),
+      _Place('أوسمتي', 'برونزي وفضي وذهبي وماسي', Icons.military_tech_rounded, const Color(0xFFFFC23F), (_) => const BadgesScreen(), SceneTheme.quiz),
       _Place('وش تسوي لو؟', 'مواقف وقرارات', Icons.alt_route_rounded, const Color(0xFFEF4444), (_) => const ChoicesScreen(), SceneTheme.journey),
       _Place('صحتي', 'الماء والطبق الصحي', Icons.favorite_rounded, const Color(0xFF10B981), (_) => const HealthScreen(), SceneTheme.garden),
       _Place('بطولة الجمعة', 'كل جمعة جوائز كبيرة', Icons.emoji_events_rounded, const Color(0xFFFFC23F), (_) => const FridayScreen(), SceneTheme.quiz),
       _Place('المبرمج الصغير', 'أوامر توصل الصاروخ', Icons.code_rounded, const Color(0xFF0EA5E9), (_) => const CodingScreen(), SceneTheme.workshop),
       _Place('ألبوم المعرفة', '٤٠ بطاقة تجمعها', Icons.collections_bookmark_rounded, const Color(0xFF6366F1), (_) => const AlbumScreen(), SceneTheme.stories),
       _Place('مدينتي', 'ابن مدينتك بنجومك', Icons.location_city_rounded, const Color(0xFF10B981), (_) => const CityScreen(), SceneTheme.garden),
-      _Place('كنز النجوم', 'مكافآت يومية وتحديات الأسبوع', Icons.diamond_rounded, const Color(0xFF8B5CF6), (_) => const TreasureScreen()),
-      _Place('متجر الروضة', 'ألوان وألقاب بنجومك', Icons.storefront_rounded, const Color(0xFFF59E0B), (_) => const ShopScreen()),
-      _Place('إتقاني', 'أتقن كل الأسئلة', Icons.psychology_rounded, const Color(0xFF10B981), (_) => const MasteryScreen()),
+      _Place('كنز النجوم', 'مكافآت يومية وتحديات الأسبوع', Icons.diamond_rounded, const Color(0xFF8B5CF6), (_) => const TreasureScreen(), SceneTheme.play),
+      _Place('متجر الروضة', 'ألوان وألقاب بنجومك', Icons.storefront_rounded, const Color(0xFFF59E0B), (_) => const ShopScreen(), SceneTheme.play),
+      _Place('إتقاني', 'أتقن كل الأسئلة', Icons.psychology_rounded, const Color(0xFF10B981), (_) => const MasteryScreen(), SceneTheme.journey),
       _Place('المسابقات', 'أجب واجمع النجوم', Icons.emoji_events_rounded, RC.goldDark, (_) => const QuizHubScreen(), SceneTheme.quiz),
-      _Place('ساحة الألعاب', 'نلعب ونتعلم', Icons.extension_rounded, RC.plum, (_) => const GamesHubScreen()),
+      _Place('ساحة الألعاب', 'نلعب ونتعلم', Icons.extension_rounded, RC.plum, (_) => const GamesHubScreen(), SceneTheme.play),
       _Place('ميدان المنافسة', 'نافس واصعد', Icons.leaderboard_rounded, RC.green, (_) => const CompetitionScreen(), SceneTheme.quiz),
       _Place('مجلس العائلة', 'مسابقة مع أهلي', Icons.chair_rounded, RC.rose, (_) => const FamilyQuizScreen(), SceneTheme.stories),
       _Place('رمضان', 'فانوس لكل يوم', Icons.nightlight_round, RC.night, (_) => const RamadanScreen(), SceneTheme.islamic),
@@ -408,20 +408,21 @@ class _HeroTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => Chunky(
-        color: place.color,
+        color: const Color(0xFF3B2A99),
+        edge: _outline,
+        border: Border.all(color: const Color(0xFFFFB020), width: 3.5),
         radius: 26,
         depth: 6,
         onTap: onTap,
         semanticLabel: '${place.title}، ${place.hint}',
         child: ClipRRect(
-          borderRadius: BorderRadius.circular(26),
+          borderRadius: BorderRadius.circular(22),
           child: CustomPaint(
-            painter: ZellijPainter(
-                color: RC.gold.withValues(alpha: A11y.highContrastOf(context) ? 0 : 0.22), cell: 44),
+            painter: A11y.highContrastOf(context) ? null : _TrailPainter(),
             child: Padding(
               padding: const EdgeInsets.fromLTRB(16, 16, 16, 16),
               child: Row(children: [
-                KhatamBadge(icon: place.icon, color: RC.gold, size: 72, iconColor: RC.ink),
+                MiniTv(icon: place.icon, color: const Color(0xFFFF8A3D), size: 78, seed: 1),
                 const SizedBox(width: 14),
                 Expanded(
                   child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
@@ -438,6 +439,42 @@ class _HeroTile extends StatelessWidget {
 }
 
 const _outline = Color(0xFF2A1A66);
+
+/// خلفية بطاقة رحلاتي: طريق مغامرة متعرج بخط متقطع وأعلام صغيرة.
+class _TrailPainter extends CustomPainter {
+  @override
+  void paint(Canvas canvas, Size size) {
+    final w = size.width, h = size.height;
+    final road = Path()
+      ..moveTo(-10, h * 0.9)
+      ..cubicTo(w * 0.25, h * 0.4, w * 0.45, h * 1.1, w * 0.7, h * 0.55)
+      ..cubicTo(w * 0.82, h * 0.3, w * 0.95, h * 0.5, w + 10, h * 0.2);
+    canvas.drawPath(road, Paint()
+      ..color = const Color(0xFF5A4AA8)
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 18
+      ..strokeCap = StrokeCap.round);
+    final dash = Paint()
+      ..color = const Color(0xFFFFD43B).withValues(alpha: 0.7)
+      ..strokeWidth = 3
+      ..strokeCap = StrokeCap.round;
+    for (final m in road.computeMetrics()) {
+      for (var d = 0.0; d < m.length; d += 16) {
+        canvas.drawLine(m.getTangentForOffset(d)!.position, m.getTangentForOffset(d + 7)?.position ?? Offset.zero, dash);
+      }
+    }
+    for (final (x, y, c) in [(0.12, 0.62, const Color(0xFFFF5D8F)), (0.9, 0.3, const Color(0xFF34D399))]) {
+      final b = Offset(w * x, h * y);
+      canvas.drawLine(b, b - const Offset(0, 22), Paint()
+        ..color = Colors.white70
+        ..strokeWidth = 2);
+      canvas.drawPath(Path()..moveTo(b.dx, b.dy - 22)..lineTo(b.dx + 14, b.dy - 17)..lineTo(b.dx, b.dy - 12)..close(), Paint()..color = c);
+    }
+  }
+
+  @override
+  bool shouldRepaint(covariant CustomPainter old) => false;
+}
 
 /// بطاقة «تلفاز كرتوني»: إطار حلوى متموج بحد غامق، وشاشة ملونة فيها الأيقونة،
 /// وهوائي وزران، ولافتة الاسم معلقة أسفل الإطار. تميل قليلًا وتقفز عند اللمس.
@@ -858,24 +895,23 @@ class _CandyWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final hsl = HSLColor.fromColor(color);
     final body = Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
+      padding: const EdgeInsets.fromLTRB(8, 10, 8, 10),
       decoration: BoxDecoration(
-        color: Colors.white,
+        gradient: LinearGradient(begin: Alignment.topCenter, end: Alignment.bottomCenter, colors: [
+          hsl.withLightness((hsl.lightness + 0.18).clamp(0.0, 0.92)).toColor(),
+          color,
+        ]),
         borderRadius: BorderRadius.circular(22),
         border: Border.all(color: _outline, width: 3),
-        boxShadow: [BoxShadow(color: color, offset: const Offset(0, 5))],
+        boxShadow: const [BoxShadow(color: _outline, offset: Offset(0, 5))],
       ),
       child: Column(children: [
-        Container(
-          width: 40,
-          height: 40,
-          decoration: BoxDecoration(color: color, shape: BoxShape.circle, border: Border.all(color: _outline, width: 2.5)),
-          child: Icon(icon, color: _outline, size: 24),
-        ),
-        const SizedBox(height: 6),
-        Text(title, textAlign: TextAlign.center, style: RT.display(16, color: RC.ink)),
-        FittedBox(fit: BoxFit.scaleDown, child: Text(line, textAlign: TextAlign.center, style: RT.body(12.5, color: RC.inkSoft))),
+        MiniTv(icon: icon, color: _outline, size: 58, seed: title.length),
+        const SizedBox(height: 4),
+        Text(title, textAlign: TextAlign.center, style: RT.display(17, color: _outline)),
+        FittedBox(fit: BoxFit.scaleDown, child: Text(line, textAlign: TextAlign.center, style: RT.body(12.5, color: _outline, weight: FontWeight.w600))),
       ]),
     );
     if (onTap == null) return Semantics(label: '$title، $line', child: body);
@@ -941,15 +977,16 @@ class _MissionsCard extends StatelessWidget {
       margin: const EdgeInsets.fromLTRB(16, 14, 16, 12),
       padding: const EdgeInsets.fromLTRB(14, 12, 14, 14),
       decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(24),
-        border: Border.all(color: RC.sandDark, width: 2),
+        color: _outline,
+        borderRadius: BorderRadius.circular(26),
+        border: Border.all(color: const Color(0xFF22D3EE), width: 3),
+        boxShadow: const [BoxShadow(color: Color(0x99000000), offset: Offset(0, 6))],
       ),
       child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
         Row(children: [
-          Expanded(child: Text('مهام اليوم', style: RT.display(20))),
+          Expanded(child: Text('لوحة مغامرة اليوم', style: RT.display(20, color: const Color(0xFFFFD43B)))),
           if (claimed)
-            Text('أنجزتها، بارك الله فيك', style: RT.display(15, color: RC.green, weight: FontWeight.w700))
+            Text('أنجزتها، بارك الله فيك', style: RT.display(15, color: const Color(0xFF9DFFB8), weight: FontWeight.w700))
           else if (st.missionsDone)
             Chunky(
               color: RC.gold,
@@ -963,38 +1000,82 @@ class _MissionsCard extends StatelessWidget {
             )
           else
             Row(children: [
-              const Icon(Icons.star_rounded, color: RC.goldDark, size: 20),
-              Text(' 10 عند الإتمام', style: RT.body(14, color: RC.inkSoft)),
+              const Icon(Icons.star_rounded, color: Color(0xFFFFD43B), size: 20),
+              Text(' 10 عند الإتمام', style: RT.body(14, color: RC.onDarkSoft, weight: FontWeight.w600)),
             ]),
         ]),
-        const SizedBox(height: 10),
-        Row(children: [
-          for (final m in items)
-            Expanded(
-              child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 4),
-                child: Column(children: [
-                  SizedBox(
-                    width: 52,
-                    height: 52,
-                    child: Stack(alignment: Alignment.center, children: [
-                      SizedBox.expand(
-                        child: CircularProgressIndicator(
-                          value: m.$3,
-                          strokeWidth: 5,
-                          color: m.$3 >= 1 ? RC.green : RC.gold,
-                          backgroundColor: RC.sandDark,
-                        ),
-                      ),
-                      Icon(m.$3 >= 1 ? Icons.check_rounded : m.$1, color: m.$3 >= 1 ? RC.green : RC.ink, size: 24),
-                    ]),
-                  ),
-                  const SizedBox(height: 6),
-                  Text(m.$2, textAlign: TextAlign.center, style: RT.body(13, color: RC.onDark, weight: FontWeight.w500)),
-                ]),
-              ),
+        const SizedBox(height: 12),
+        SizedBox(
+          height: 108,
+          child: Stack(children: [
+            // سكة المغامرة خلف المحطات
+            Positioned(
+              left: 30,
+              right: 30,
+              top: 26,
+              height: 8,
+              child: CustomPaint(painter: _DottedTrack(items.where((m) => m.$3 >= 1).length / items.length)),
             ),
-        ]),
+            Row(children: [
+              for (final m in items)
+                Expanded(
+                  child: Column(children: [
+                    _MissionOrb(icon: m.$1, progress: m.$3),
+                    const SizedBox(height: 8),
+                    Text(m.$2, textAlign: TextAlign.center, maxLines: 2, style: RT.body(13, color: RC.onDark, weight: FontWeight.w600)),
+                  ]),
+                ),
+            ]),
+          ]),
+        ),
+      ]),
+    );
+  }
+}
+
+class _DottedTrack extends CustomPainter {
+  final double done;
+  _DottedTrack(this.done);
+  @override
+  void paint(Canvas canvas, Size size) {
+    for (var x = 0.0; x < size.width; x += 14) {
+      // المسار يمتلئ من اليمين حسب الإنجاز
+      final filled = x >= size.width * (1 - done);
+      canvas.drawCircle(Offset(x, size.height / 2), 3.5, Paint()..color = filled ? const Color(0xFF9DFFB8) : const Color(0xFF22D3EE).withValues(alpha: 0.6));
+    }
+  }
+
+  @override
+  bool shouldRepaint(covariant _DottedTrack o) => o.done != done;
+}
+
+/// محطة مهمة: كرة حلوى بحلقة تقدم؛ خضراء بعلامة صح عند الإنجاز.
+class _MissionOrb extends StatelessWidget {
+  final IconData icon;
+  final double progress;
+  const _MissionOrb({required this.icon, required this.progress});
+
+  @override
+  Widget build(BuildContext context) {
+    final done = progress >= 1;
+    final col = done ? const Color(0xFF34D399) : (progress > 0 ? const Color(0xFFFFC23F) : const Color(0xFF8B5CF6));
+    return SizedBox(
+      width: 60,
+      height: 60,
+      child: Stack(alignment: Alignment.center, children: [
+        SizedBox.expand(
+          child: CircularProgressIndicator(value: progress, strokeWidth: 5, color: const Color(0xFF9DFFB8), backgroundColor: Colors.white24),
+        ),
+        Container(
+          width: 46,
+          height: 46,
+          decoration: BoxDecoration(
+            shape: BoxShape.circle,
+            gradient: RadialGradient(center: const Alignment(-0.35, -0.4), colors: [Color.lerp(col, Colors.white, 0.4)!, col]),
+            border: Border.all(color: Colors.white, width: 2.5),
+          ),
+          child: Icon(done ? Icons.check_rounded : icon, color: _outline, size: 24),
+        ),
       ]),
     );
   }

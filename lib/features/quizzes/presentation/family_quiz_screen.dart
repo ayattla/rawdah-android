@@ -79,6 +79,7 @@ class _FamilyQuizScreenState extends State<FamilyQuizScreen> {
   @override
   Widget build(BuildContext context) {
     return ChildShell(
+      theme: SceneTheme.stories,
       child: Column(children: [
         const KidBar(title: 'مجلس العائلة'),
         Expanded(child: _started ? _game() : _setup()),

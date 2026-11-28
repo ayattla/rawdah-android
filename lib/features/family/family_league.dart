@@ -21,6 +21,7 @@ class FamilyLeagueScreen extends StatelessWidget {
     const outline = Color(0xFF2A1A66);
     const medals = [Color(0xFFFFC23F), Color(0xFFCBD5E1), Color(0xFFF59E0B)];
     return ChildShell(
+      theme: SceneTheme.quiz,
       child: Column(children: [
         const KidBar(title: 'دوري العائلة'),
         Expanded(

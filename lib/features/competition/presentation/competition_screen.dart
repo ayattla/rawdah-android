@@ -25,6 +25,7 @@ class _CompetitionScreenState extends State<CompetitionScreen> {
     final c = st.current;
     if (c == null) return const SizedBox.shrink();
     return ChildShell(
+      theme: SceneTheme.quiz,
       child: Column(children: [
         const KidBar(title: 'ميدان المنافسة'),
         if (!c.onlineEnabled)

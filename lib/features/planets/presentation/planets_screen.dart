@@ -447,6 +447,7 @@ class TopicHubScreen extends StatelessWidget {
     if (c == null) return const SizedBox.shrink();
     void open(Widget w) => Navigator.of(context).push(MaterialPageRoute(builder: (_) => w));
     return ChildShell(
+      night: true,
       child: Column(children: [
         KidBar(title: title),
         Expanded(
@@ -483,6 +484,7 @@ class SportsScreen extends StatelessWidget {
     if (c == null) return const SizedBox.shrink();
     void open(Widget w) => Navigator.of(context).push(MaterialPageRoute(builder: (_) => w));
     return ChildShell(
+      night: true,
       child: Column(children: [
         const KidBar(title: 'كوكب رياضة'),
         Expanded(
@@ -584,6 +586,7 @@ class _ExerciseScreenState extends State<ExerciseScreen> {
     final e = _e;
     final total = e.seconds;
     return ChildShell(
+      night: true,
       child: Column(children: [
         KidBar(title: 'تمرين ${_i + 1} من ${widget.exercises.length}'),
         Expanded(
@@ -689,6 +692,7 @@ class _BonBonScreenState extends State<BonBonScreen> {
   @override
   Widget build(BuildContext context) {
     return ChildShell(
+      night: true,
       child: Column(children: [
         KidBar(title: 'كوكب بون بون ${_i + 1} / $_rounds'),
         Padding(

@@ -19,6 +19,7 @@ class GamesHubScreen extends StatelessWidget {
     final c = AppScope.of(context).current;
     if (c == null) return const SizedBox.shrink();
     return ChildShell(
+      theme: SceneTheme.play,
       child: Column(children: [
         const KidBar(title: 'ساحة الألعاب'),
         Expanded(
@@ -292,6 +293,7 @@ class _WuduOrderGameState extends State<WuduOrderGame> {
   @override
   Widget build(BuildContext context) {
     return ChildShell(
+      theme: SceneTheme.play,
       child: Column(children: [
         KidBar(title: widget.title),
         const Padding(
@@ -409,6 +411,7 @@ class _MatchGameState extends State<MatchGame> {
     final matchedRights =
         kMatchPairs.where((p) => _matched.contains(p.left)).map((p) => p.right).toSet();
     return ChildShell(
+      theme: SceneTheme.play,
       child: Column(children: [
         const KidBar(title: 'وصّل الذكر بوقته'),
         Expanded(

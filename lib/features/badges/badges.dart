@@ -50,6 +50,7 @@ class BadgesScreen extends StatelessWidget {
     final c = AppScope.of(context).current!;
     const outline = Color(0xFF2A1A66);
     return ChildShell(
+      theme: SceneTheme.quiz,
       child: Column(children: [
         const KidBar(title: 'أوسمتي'),
         Expanded(
