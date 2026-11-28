@@ -328,10 +328,10 @@ class _DecorPainter extends CustomPainter {
 
   void _lanterns(Canvas canvas, Size size) {
     final w = size.width;
-    final moon = Offset(w * 0.8, 104);
+    final moon = Offset(w * 0.86, size.height * 0.93);
     canvas.drawCircle(moon, 22, Paint()..color = const Color(0xFFFFE9A8));
     canvas.drawCircle(moon + const Offset(9, -6), 19, Paint()..color = theme.sky.first);
-    for (final (x, len, ph) in [(0.06, 96.0, 0.0), (0.2, 80.0, 1.7), (0.94, 88.0, 3.1)]) {
+    for (final (x, len, ph) in [(0.035, 118.0, 0.0), (0.965, 104.0, 3.1)]) {
       final sway = math.sin(t * math.pi * 4 + ph) * 0.12;
       canvas.save();
       canvas.translate(w * x, 0);
