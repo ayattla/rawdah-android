@@ -140,10 +140,7 @@ class IslamicHubScreen extends StatelessWidget {
                 ),
               ],
             ),
-            Padding(
-              padding: const EdgeInsets.fromLTRB(4, 20, 4, 8),
-              child: Text('رتب', style: RT.display(19, color: RC.onDarkSoft)),
-            ),
+            const SectionRibbon('رتب', color: Color(0xFFD4A537)),
             Wrap(spacing: 10, runSpacing: 10, children: [
               for (final s in sets)
                 _OrderChip(set: s, done: c.completed.contains(s.completionId), onTap: () => open(OrderGameScreen(set: s))),

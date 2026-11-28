@@ -94,21 +94,37 @@ class StarCount extends StatelessWidget {
     return Semantics(
       label: 'نجومك: $stars',
       excludeSemantics: true,
-      child: Container(
-      padding: const EdgeInsetsDirectional.fromSTEB(8, 3, 12, 3),
-      decoration: BoxDecoration(
-        color: const Color(0xFFFFF3D1),
-        borderRadius: BorderRadius.circular(30),
-        border: Border.all(color: RC.gold, width: 2),
-      ),
       child: Row(mainAxisSize: MainAxisSize.min, children: [
-        const Icon(Icons.star_rounded, color: RC.goldDark, size: 24),
-        const SizedBox(width: 3),
-        Text('$stars', style: RT.display(19, color: RC.ink)),
-      ]),
-    ),
+        Container(
+          padding: const EdgeInsetsDirectional.fromSTEB(30, 3, 12, 3),
+          margin: const EdgeInsetsDirectional.only(start: 0),
+          decoration: BoxDecoration(
+            color: const Color(0xFF2A1A66),
+            borderRadius: BorderRadius.circular(30),
+            border: Border.all(color: const Color(0xFFFFD43B), width: 2.5),
+          ),
+          child: Text('$stars', style: RT.display(18, color: const Color(0xFFFFE48A))),
+        ),
+      ]).let((pill) => Stack(clipBehavior: Clip.none, alignment: AlignmentDirectional.centerStart, children: [
+            Padding(padding: const EdgeInsetsDirectional.only(start: 8), child: pill),
+            // عملة ذهبية مجسمة
+            Container(
+              width: 34,
+              height: 34,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                gradient: const RadialGradient(center: Alignment(-0.35, -0.35), colors: [Color(0xFFFFF6B0), Color(0xFFFFC21F), Color(0xFFD98A00)]),
+                border: Border.all(color: const Color(0xFF2A1A66), width: 2.5),
+              ),
+              child: const Icon(Icons.star_rounded, color: Color(0xFF2A1A66), size: 20),
+            ),
+          ])),
     );
   }
+}
+
+extension _Let<T> on T {
+  R let<R>(R Function(T) f) => f(this);
 }
 
 class RoundIcon extends StatelessWidget {
@@ -127,7 +143,15 @@ class RoundIcon extends StatelessWidget {
       depth: 4,
       onTap: onTap,
       semanticLabel: tooltip,
-      child: SizedBox(width: size, height: size - 4, child: Icon(icon, color: Colors.white, size: size * 0.5)),
+      border: Border.all(color: const Color(0xFF2A1A66), width: 2.5),
+      child: SizedBox(
+        width: size,
+        height: size - 4,
+        child: Stack(alignment: Alignment.center, children: [
+          Positioned(top: 5, left: size * 0.2, child: Container(width: size * 0.3, height: 4, decoration: BoxDecoration(color: Colors.white.withValues(alpha: 0.5), borderRadius: BorderRadius.circular(3)))),
+          Icon(icon, color: Colors.white, size: size * 0.5),
+        ]),
+      ),
     );
   }
 }
@@ -242,11 +266,18 @@ class PrimaryButton extends StatelessWidget {
   Widget build(BuildContext context) {
     return Chunky(
       color: color,
-      radius: 20,
+      radius: 30,
       depth: 6,
       onTap: onTap,
       semanticLabel: label,
-      child: ConstrainedBox(
+      border: Border.all(color: const Color(0xFF2A1A66), width: 3),
+      edge: const Color(0xFF2A1A66),
+      child: Container(
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(27),
+          gradient: LinearGradient(begin: Alignment.topCenter, end: Alignment.center, colors: [Colors.white.withValues(alpha: 0.3), Colors.white.withValues(alpha: 0)]),
+        ),
+        child: ConstrainedBox(
         // ارتفاع أدنى لا ثابت: يكبر مع تكبير الخط دون قص
         constraints: const BoxConstraints(minHeight: 60),
         child: Padding(
@@ -260,12 +291,73 @@ class PrimaryButton extends StatelessWidget {
         ]),
         ),
       ),
+      ),
     );
   }
 }
 
 /// نافذة الجائزة: ليل لازوردي، نجمة ثمانية تدور ببطء خلف فانوس مضيء.
 
+
+/// شريط عنوان قسم: شريط حلوى ملون بطرفين مشقوقين مثل لافتات البرامج.
+class SectionRibbon extends StatelessWidget {
+  final String text;
+  final Color color;
+  const SectionRibbon(this.text, {super.key, this.color = const Color(0xFFFF5DB1)});
+
+  @override
+  Widget build(BuildContext context) => Padding(
+        padding: const EdgeInsets.fromLTRB(4, 18, 4, 10),
+        child: Center(
+          child: CustomPaint(
+            painter: _RibbonPainter(color),
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 34, vertical: 6),
+              child: Text(text, textAlign: TextAlign.center, style: RT.display(19, color: Colors.white).copyWith(shadows: const [Shadow(color: Color(0x662A1A66), offset: Offset(0, 2))])),
+            ),
+          ),
+        ),
+      );
+}
+
+class _RibbonPainter extends CustomPainter {
+  final Color color;
+  _RibbonPainter(this.color);
+  @override
+  void paint(Canvas canvas, Size size) {
+    const ink = Color(0xFF2A1A66);
+    final w = size.width, h = size.height;
+    final dark = HSLColor.fromColor(color).withLightness((HSLColor.fromColor(color).lightness - 0.18).clamp(0.0, 1.0)).toColor();
+    // الطرفان الخلفيان المشقوقان
+    for (final left in [true, false]) {
+      final x = left ? 0.0 : w;
+      final d = left ? 1.0 : -1.0;
+      final tail = Path()
+        ..moveTo(x + d * 14, 6)
+        ..lineTo(x - d * 12, 6)
+        ..lineTo(x - d * 2, h / 2 + 3)
+        ..lineTo(x - d * 12, h)
+        ..lineTo(x + d * 14, h)
+        ..close();
+      canvas.drawPath(tail.shift(const Offset(0, 4)), Paint()..color = dark);
+      canvas.drawPath(tail.shift(const Offset(0, 4)), Paint()
+        ..color = ink
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = 2.5);
+    }
+    final body = RRect.fromRectAndRadius(Rect.fromLTWH(8, 0, w - 16, h), const Radius.circular(10));
+    canvas.drawRRect(body.shift(const Offset(0, 4)), Paint()..color = ink);
+    canvas.drawRRect(body, Paint()..color = color);
+    canvas.drawRRect(body, Paint()
+      ..color = ink
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 3);
+    canvas.drawRRect(RRect.fromRectAndRadius(Rect.fromLTWH(16, 4, (w - 32) * 0.5, 4), const Radius.circular(2)), Paint()..color = Colors.white.withValues(alpha: 0.45));
+  }
+
+  @override
+  bool shouldRepaint(covariant _RibbonPainter o) => o.color != color;
+}
 
 /// ظهور منبثق مرن كألعاب الأطفال: يكبر العنصر من ٨٥٪ مع ارتداد خفيف.
 class PopIn extends StatelessWidget {

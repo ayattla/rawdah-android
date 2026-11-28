@@ -27,7 +27,7 @@ class SchoolScreen extends StatelessWidget {
         Expanded(
           child: ListView(padding: const EdgeInsets.all(16), children: [
             if (st.hifzDue().isNotEmpty) ...[
-              const _Section('مراجعة اليوم'),
+              const SectionRibbon('مراجعة اليوم', color: Color(0xFFFF9F1C)),
               for (final e in st.hifzDue())
                 if (surahByNumber(e.surah) case final s?)
                   Padding(
@@ -43,7 +43,7 @@ class SchoolScreen extends StatelessWidget {
                     ),
                   ),
             ],
-            const _Section('القرآن الكريم'),
+            const SectionRibbon('القرآن الكريم', color: Color(0xFF10B981)),
             for (final s in kSurahs)
               Padding(
                 padding: const EdgeInsets.only(bottom: 10),
@@ -57,7 +57,7 @@ class SchoolScreen extends StatelessWidget {
                   onTap: () => Navigator.of(context).push(MaterialPageRoute(builder: (_) => SurahScreen(surah: s))),
                 ),
               ),
-            const _Section('دروسي'),
+            SectionRibbon('دروسي', color: const Color(0xFF8B5CF6)),
             for (final l in lessons)
               Padding(
                 padding: const EdgeInsets.only(bottom: 10),
@@ -70,7 +70,7 @@ class SchoolScreen extends StatelessWidget {
                   onTap: () => Navigator.of(context).push(MaterialPageRoute(builder: (_) => LessonScreen(lesson: l))),
                 ),
               ),
-            const _Section('أذكاري'),
+            SectionRibbon('أذكاري', color: const Color(0xFF0EA5E9)),
             BigTile(
               title: 'أذكار اليوم',
               subtitle: 'ماذا أقول؟ ومتى؟',
@@ -93,16 +93,6 @@ String _surahSubtitle(Surah s, HifzEntry? e) {
   return '$n • محفوظة، ${nextReviewLabel(e, dayNumber(DateTime.now()))}';
 }
 
-class _Section extends StatelessWidget {
-  final String text;
-  const _Section(this.text);
-
-  @override
-  Widget build(BuildContext context) => Padding(
-        padding: const EdgeInsets.fromLTRB(4, 10, 4, 10),
-        child: Text(text, style: const TextStyle(fontSize: 22, fontWeight: FontWeight.w700, color: Color(0xFF9DFFB8))),
-      );
-}
 
 /// صفحة السورة: قراءة كاملة مع تلاوة الشيخ، أو وضع «أختبر حفظي» الذي يُخفي الآيات ويكشفها واحدة واحدة.
 class SurahScreen extends ConsumerStatefulWidget {
