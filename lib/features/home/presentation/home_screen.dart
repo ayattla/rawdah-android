@@ -730,10 +730,10 @@ class _TickerState extends State<_Ticker> with SingleTickerProviderStateMixin {
               child: LayoutBuilder(builder: (context, box) {
                 return AnimatedBuilder(
                   animation: _c,
-                  builder: (_, child) => Transform.translate(offset: Offset((_c.value * 2 - 1) * box.maxWidth * 1.6, 0), child: child),
+                  builder: (_, child) => Transform.translate(offset: Offset(_c.isAnimating ? (_c.value * 2 - 1) * box.maxWidth * 1.6 : 0, 0), child: child),
                   child: OverflowBox(
                     maxWidth: double.infinity,
-                    alignment: Alignment.center,
+                    alignment: _c.isAnimating ? Alignment.center : AlignmentDirectional.centerStart,
                     child: Text(msgs, maxLines: 1, softWrap: false, style: RT.body(14, color: const Color(0xFFFFE48A), weight: FontWeight.w700)),
                   ),
                 );
