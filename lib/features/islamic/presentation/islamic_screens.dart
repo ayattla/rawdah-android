@@ -355,7 +355,7 @@ class _MemoryGameScreenState extends State<MemoryGameScreen> {
         ),
         Padding(
           padding: const EdgeInsets.only(bottom: 14),
-          child: Text('المحاولات: ${_g.moves}', style: RT.body(15, color: RC.inkSoft)),
+          child: Text('المحاولات: ${_g.moves}', style: RT.body(15, color: RC.onDarkSoft)),
         ),
       ]),
     );

@@ -296,10 +296,10 @@ class _MeetStep extends StatelessWidget {
       const SizedBox(height: 14),
       Text('حرف ${letter.name}', textAlign: TextAlign.center, style: RT.display(28)),
       const SizedBox(height: 6),
-      Text(_dotsSentence(letter), textAlign: TextAlign.center, style: RT.body(18, color: RC.inkSoft)),
+      Text(_dotsSentence(letter), textAlign: TextAlign.center, style: RT.body(18, color: RC.onDarkSoft)),
       if (siblings.isNotEmpty) ...[
         const SizedBox(height: 22),
-        Text('إخوته في العائلة', textAlign: TextAlign.center, style: RT.display(17, color: RC.inkSoft)),
+        Text('إخوته في العائلة', textAlign: TextAlign.center, style: RT.display(17, color: RC.onDarkSoft)),
         const SizedBox(height: 8),
         Row(mainAxisAlignment: MainAxisAlignment.center, children: [
           for (final s in siblings)

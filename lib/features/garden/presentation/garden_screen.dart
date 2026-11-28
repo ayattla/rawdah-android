@@ -85,12 +85,12 @@ class GardenScreen extends StatelessWidget {
             Text(
               next == null ? 'نخلتك أثمرت بالكامل، ما شاء الله' : 'بقي ${next - c.stars} نجمة لتكبر نخلتك',
               textAlign: TextAlign.center,
-              style: const TextStyle(fontSize: 19, fontWeight: FontWeight.w600, color: RC.greenDark),
+              style: const TextStyle(fontSize: 19, fontWeight: FontWeight.w600, color: Color(0xFF9DFFB8)),
             ),
             const SizedBox(height: 18),
             Row(children: [
               const Expanded(
-                child: Text('متجر الحديقة', style: TextStyle(fontSize: 22, fontWeight: FontWeight.w700, color: RC.ink)),
+                child: Text('متجر الحديقة', style: TextStyle(fontSize: 22, fontWeight: FontWeight.w700, color: RC.onDark)),
               ),
               const Icon(Icons.star_rounded, color: RC.gold),
               Text(' رصيدك ${c.balance}', style: const TextStyle(fontSize: 17, fontWeight: FontWeight.w600)),
@@ -137,7 +137,7 @@ class GardenScreen extends StatelessWidget {
               ],
             ),
             const SizedBox(height: 18),
-            const Text('عادات الخير اليوم', style: TextStyle(fontSize: 22, fontWeight: FontWeight.w700, color: RC.ink)),
+            const Text('عادات الخير اليوم', style: TextStyle(fontSize: 22, fontWeight: FontWeight.w700, color: RC.onDark)),
             const Text('افعلها في بيتك، ثم اضغط «فعلتها»، وسيعتمدها والداك.',
                 style: TextStyle(fontSize: 15, color: Colors.black54)),
             const SizedBox(height: 10),
@@ -165,7 +165,7 @@ class GardenScreen extends StatelessWidget {
                 ),
               ),
             const SizedBox(height: 14),
-            const Text('أوسمتي', style: TextStyle(fontSize: 22, fontWeight: FontWeight.w700, color: RC.ink)),
+            const Text('أوسمتي', style: TextStyle(fontSize: 22, fontWeight: FontWeight.w700, color: RC.onDark)),
             const SizedBox(height: 10),
             GridView.count(
               shrinkWrap: true,

@@ -296,7 +296,7 @@ class _WuduOrderGameState extends State<WuduOrderGame> {
         KidBar(title: widget.title),
         const Padding(
           padding: EdgeInsets.symmetric(horizontal: 16),
-          child: Text('اضغط مطوّلًا على البطاقة واسحبها إلى مكانها', style: TextStyle(fontSize: 17, color: RC.ink)),
+          child: Text('اضغط مطوّلًا على البطاقة واسحبها إلى مكانها', style: TextStyle(fontSize: 17, color: RC.onDark)),
         ),
         Expanded(
           child: ReorderableListView.builder(

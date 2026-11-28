@@ -48,7 +48,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
           ),
         ),
         const SizedBox(height: 14),
-        Text('روضة', textAlign: TextAlign.center, style: RT.display(52, color: RC.ink)),
+        Text('روضة', textAlign: TextAlign.center, style: RT.display(52, color: RC.onDark)),
         Text('قصص ودروس وألعاب ومسابقات لأطفالنا',
             textAlign: TextAlign.center, style: RT.display(20, weight: FontWeight.w500)),
         const SizedBox(height: 26),

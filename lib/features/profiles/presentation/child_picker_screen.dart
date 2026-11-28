@@ -26,7 +26,7 @@ class ChildPickerScreen extends StatelessWidget {
                 const SizedBox(width: 12),
                 Expanded(
                   child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                    Text('روضة', style: RT.display(36, color: RC.green)),
+                    Text('روضة', style: RT.display(36, color: Color(0xFF9DFFB8))),
                     Text('من سيتعلم اليوم؟', style: RT.display(22, weight: FontWeight.w700)),
                   ]),
                 ),

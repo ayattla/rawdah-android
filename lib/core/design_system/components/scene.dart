@@ -181,7 +181,22 @@ class ChildShell extends StatelessWidget {
     if (studio && !A11y.highContrastOf(context)) {
       return Scaffold(body: StudioBackdrop(sky: ScenePainter.nightSky, child: SafeArea(child: NightScope(night: true, child: child))));
     }
-    return Scaffold(body: SceneBackground(night: night, theme: t, child: NightScope(night: true, child: child)));
+    return Scaffold(
+      body: SceneBackground(
+        night: night,
+        theme: t,
+        child: NightScope(
+          night: true,
+          // أزرار النص والروابط تقرأ على خلفيات العوالم الداكنة
+          child: Theme(
+            data: Theme.of(context).copyWith(
+              textButtonTheme: TextButtonThemeData(style: TextButton.styleFrom(foregroundColor: const Color(0xFFFFE48A))),
+            ),
+            child: child,
+          ),
+        ),
+      ),
+    );
   }
 }
 

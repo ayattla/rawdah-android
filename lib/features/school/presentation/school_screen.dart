@@ -99,7 +99,7 @@ class _Section extends StatelessWidget {
   @override
   Widget build(BuildContext context) => Padding(
         padding: const EdgeInsets.fromLTRB(4, 10, 4, 10),
-        child: Text(text, style: const TextStyle(fontSize: 22, fontWeight: FontWeight.w700, color: RC.greenDark)),
+        child: Text(text, style: const TextStyle(fontSize: 22, fontWeight: FontWeight.w700, color: Color(0xFF9DFFB8))),
       );
 }
 

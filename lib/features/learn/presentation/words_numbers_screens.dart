@@ -271,7 +271,7 @@ class _WordBuilderScreenState extends State<WordBuilderScreen> {
               ])
             else
               Column(children: [
-                Text('أحسنت! ${g.target.word}', style: RT.display(24, color: const Color(0xFF2E6B4F))),
+                Text('أحسنت! ${g.target.word}', style: RT.display(24, color: const Color(0xFF9DFFB8))),
                 const SizedBox(height: 12),
                 PrimaryButton(label: _i + 1 >= _words.length ? 'إنهاء' : 'الكلمة التالية', icon: Icons.arrow_forward_rounded, onTap: _next),
               ]),
