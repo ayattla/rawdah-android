@@ -339,14 +339,34 @@ class _MemoryGameScreenState extends State<MemoryGameScreen> {
                   color: !up ? _green : (card.matched ? const Color(0xFFE6F2EA) : (card.isOccasion ? const Color(0xFFDDEFE6) : const Color(0xFFFFF3D6))),
                   radius: 18,
                   depth: 4,
+                  border: Border.all(color: const Color(0xFF2A1A66), width: 2.5),
                   padding: const EdgeInsets.all(8),
                   onTap: () => _flip(i),
-                  child: Center(
-                    child: up
-                        ? Text(card.text,
-                            textAlign: TextAlign.center,
-                            style: RT.display(card.text.length > 22 ? 13 : 16, color: card.isOccasion ? _green : const Color(0xFF7A5200)))
-                        : const Icon(Icons.auto_awesome_mosaic_rounded, color: Colors.white54, size: 34),
+                  // البطاقة تنقلب على محورها عند كشفها
+                  child: AnimatedSwitcher(
+                    duration: const Duration(milliseconds: 320),
+                    transitionBuilder: (child, a) => AnimatedBuilder(
+                      animation: a,
+                      child: child,
+                      builder: (_, c) => Transform(alignment: Alignment.center, transform: Matrix4.diagonal3Values(a.value, 1, 1), child: c),
+                    ),
+                    child: Center(
+                      key: ValueKey(up),
+                      child: up
+                          ? Text(card.text,
+                              textAlign: TextAlign.center,
+                              style: RT.display(card.text.length > 22 ? 13 : 16, color: card.isOccasion ? _green : const Color(0xFF7A5200)))
+                          : Container(
+                              width: 44,
+                              height: 44,
+                              decoration: BoxDecoration(
+                                shape: BoxShape.circle,
+                                color: const Color(0xFF0F3D5C),
+                                border: Border.all(color: const Color(0xFFD4A537), width: 2.5),
+                              ),
+                              child: const Icon(Icons.nightlight_round, color: Color(0xFFFFE9A8), size: 24),
+                            ),
+                    ),
                   ),
                 ),
               );

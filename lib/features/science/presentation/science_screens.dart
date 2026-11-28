@@ -150,15 +150,18 @@ class _CardPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return ListView(padding: const EdgeInsets.fromLTRB(20, 12, 20, 12), children: [
-      Container(
-        height: 150,
-        decoration: BoxDecoration(color: color.withValues(alpha: 0.12), borderRadius: BorderRadius.circular(28)),
-        child: Center(child: Icon(card.icon, size: 92, color: color)),
+      TvFrame(
+        body: const Color(0xFF7FD6FF),
+        screen: const Color(0xFF13307E),
+        variant: 0,
+        child: Column(children: [
+          MiniTv(icon: card.icon, color: color, size: 84, seed: card.title.length),
+          const SizedBox(height: 10),
+          Text(card.title, textAlign: TextAlign.center, style: RT.display(24, color: RC.onDark)),
+          const SizedBox(height: 8),
+          Text(card.body, textAlign: TextAlign.center, style: RT.body(17, color: RC.onDark, weight: FontWeight.w500)),
+        ]),
       ),
-      const SizedBox(height: 18),
-      Text(card.title, textAlign: TextAlign.center, style: RT.display(26, color: RC.onDark)),
-      const SizedBox(height: 10),
-      Text(card.body, textAlign: TextAlign.center, style: RT.body(19, color: RC.onDark, weight: FontWeight.w500)),
       const SizedBox(height: 18),
       Container(
         padding: const EdgeInsets.all(16),
