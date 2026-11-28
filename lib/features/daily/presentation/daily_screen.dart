@@ -178,7 +178,7 @@ class _QuestRow extends StatelessWidget {
               const SizedBox(height: 6),
               ClipRRect(
                 borderRadius: BorderRadius.circular(6),
-                child: LinearProgressIndicator(
+                child: CandyProgress(
                   value: (have / q.goal).clamp(0.0, 1.0),
                   minHeight: 9,
                   color: ok ? const Color(0xFF10B981) : const Color(0xFF8B5CF6),
@@ -255,7 +255,7 @@ class MasteryScreen extends StatelessWidget {
                     const SizedBox(height: 6),
                     ClipRRect(
                       borderRadius: BorderRadius.circular(6),
-                      child: LinearProgressIndicator(value: masteryRatio(pool, c.mastery), minHeight: 10, color: col, backgroundColor: RC.sandDark),
+                      child: CandyProgress(value: masteryRatio(pool, c.mastery), minHeight: 10, color: col, backgroundColor: RC.sandDark),
                     ),
                   ]),
                 ),

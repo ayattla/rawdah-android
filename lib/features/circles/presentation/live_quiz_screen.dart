@@ -174,7 +174,7 @@ class _HostRoom extends StatelessWidget {
         ]),
       ),
       const SizedBox(height: 10),
-      LinearProgressIndicator(
+      CandyProgress(
         value: players.isEmpty ? 0 : answered / players.length,
         minHeight: 10,
         color: RC.green,

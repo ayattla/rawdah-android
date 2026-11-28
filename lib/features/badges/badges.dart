@@ -75,7 +75,7 @@ class BadgesScreen extends StatelessWidget {
                         const SizedBox(height: 4),
                         ClipRRect(
                           borderRadius: BorderRadius.circular(6),
-                          child: LinearProgressIndicator(value: (v / next).clamp(0, 1).toDouble(), minHeight: 10, color: t.color, backgroundColor: RC.sand),
+                          child: CandyProgress(value: (v / next).clamp(0, 1).toDouble(), minHeight: 10, color: t.color, backgroundColor: RC.sand),
                         ),
                         const SizedBox(height: 3),
                         Text(tier == 4 ? 'وصلت الماسي! $v ${t.unit}' : '$v من $next ${t.unit}', style: RT.body(13, color: RC.inkSoft)),

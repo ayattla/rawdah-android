@@ -2,6 +2,7 @@
 library;
 
 export 'components/a11y.dart';
+export 'components/candy_progress.dart';
 export 'components/chunky.dart';
 export 'components/cosmos.dart';
 export 'components/warp.dart';

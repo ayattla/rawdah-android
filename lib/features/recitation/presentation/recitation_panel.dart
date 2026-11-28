@@ -238,7 +238,7 @@ class _OfflineRow extends StatelessWidget {
         const SizedBox(height: RS.xs),
         ClipRRect(
           borderRadius: BorderRadius.circular(8),
-          child: LinearProgressIndicator(value: p, minHeight: 10, color: RC.green, backgroundColor: RC.sand),
+          child: CandyProgress(value: p, minHeight: 10, color: RC.green, backgroundColor: RC.sand),
         ),
       ]);
     }

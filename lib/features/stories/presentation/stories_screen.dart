@@ -97,7 +97,7 @@ class _StoryReaderState extends State<StoryReader> {
     final s = widget.story;
     final last = _page == s.pages.length - 1;
     return ChildShell(
-      night: s.scene == 'night',
+      theme: SceneTheme.stories,
       child: Column(children: [
         KidBar(title: s.title),
         Expanded(
@@ -113,7 +113,11 @@ class _StoryReaderState extends State<StoryReader> {
               return SingleChildScrollView(
                 padding: const EdgeInsets.all(20),
                 child: Column(children: [
-                  StoryScene(scene: s.scene, page: i),
+                  TvFrame(
+                    body: const Color(0xFFFFB45C),
+                    variant: i % 3 == 0 ? 3 : 0,
+                    child: ClipRRect(borderRadius: BorderRadius.circular(18), child: StoryScene(scene: s.scene, page: i)),
+                  ),
                   const SizedBox(height: 14),
                   Container(
                     width: double.infinity,

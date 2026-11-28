@@ -360,7 +360,7 @@ class _RaceScreenState extends State<RaceScreen> {
               Text('$_right', style: const TextStyle(fontSize: 24, fontWeight: FontWeight.w700, color: RC.green)),
             ]),
           ),
-          LinearProgressIndicator(
+          CandyProgress(
             value: _left / _total,
             minHeight: 8,
             color: _left > 10 ? RC.plum : RC.coral,
@@ -377,8 +377,7 @@ class _RaceScreenState extends State<RaceScreen> {
                       : _flash == 2
                           ? const Color(0xFFFFE3DA)
                           : Colors.white,
-                  borderRadius: BorderRadius.circular(26),
-                ),
+                  ),
                 child: Text(q.text,
                     style: const TextStyle(fontSize: 24, fontWeight: FontWeight.w700, color: RC.ink, height: 1.5)),
               ),

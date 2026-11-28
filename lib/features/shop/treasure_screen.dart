@@ -142,7 +142,7 @@ class _TreasureScreenState extends State<TreasureScreen> {
             const SizedBox(height: 4),
             ClipRRect(
               borderRadius: BorderRadius.circular(6),
-              child: LinearProgressIndicator(value: (n / w.target).clamp(0, 1).toDouble(), minHeight: 9, color: const Color(0xFF8B5CF6), backgroundColor: RC.sand),
+              child: CandyProgress(value: (n / w.target).clamp(0, 1).toDouble(), minHeight: 9, color: const Color(0xFF8B5CF6), backgroundColor: RC.sand),
             ),
             Text('${n.clamp(0, w.target)} من ${w.target} • الجائزة ${w.reward} نجمة', style: RT.body(12.5, color: RC.inkSoft)),
           ]),

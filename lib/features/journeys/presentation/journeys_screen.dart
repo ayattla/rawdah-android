@@ -71,7 +71,7 @@ class JourneysScreen extends StatelessWidget {
                       const SizedBox(height: 8),
                       ClipRRect(
                         borderRadius: BorderRadius.circular(8),
-                        child: LinearProgressIndicator(
+                        child: CandyProgress(
                           value: ratio,
                           minHeight: 10,
                           color: j.color,
