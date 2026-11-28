@@ -1,3 +1,5 @@
+import 'dart:math' as math;
+
 import 'package:flutter/material.dart';
 
 /// أشكال شاشات التلفاز الكرتونية المستوحاة من فواصل القنوات القديمة.
@@ -42,7 +44,8 @@ class CandyTvPainter extends CustomPainter {
   final bool flat;
   final bool pressed;
   final double inset; // سماكة الإطار
-  CandyTvPainter({required this.variant, required this.body, required this.screen, this.rim, this.flat = false, this.pressed = false, this.inset = 0.15});
+  final bool details; // مقابض ولمبات وأرجل
+  CandyTvPainter({required this.variant, required this.body, required this.screen, this.rim, this.flat = false, this.pressed = false, this.inset = 0.15, this.details = true});
 
   static Color rimFor(Color c) {
     final h = HSLColor.fromColor(c);
@@ -62,8 +65,19 @@ class CandyTvPainter extends CustomPainter {
         ..color = body.withValues(alpha: 0.8)
         ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 16));
     }
-    if (!flat) canvas.drawPath(outer.shift(Offset(0, pressed ? 3 : 6)), Paint()..color = _ink);
     final ob = outer.getBounds();
+    if (!flat && details && size.width > 90) {
+      // أرجل قصيرة تجعل التلفاز مجسما واقفا
+      for (final fx in [0.24, 0.72]) {
+        final f = RRect.fromRectAndRadius(Rect.fromLTWH(ob.left + ob.width * fx, ob.bottom - 4, ob.width * 0.06, 10), const Radius.circular(4));
+        canvas.drawRRect(f, Paint()..color = rimFor(body));
+        canvas.drawRRect(f, Paint()
+          ..color = _ink
+          ..style = PaintingStyle.stroke
+          ..strokeWidth = 2.5);
+      }
+    }
+    if (!flat) canvas.drawPath(outer.shift(Offset(0, pressed ? 3 : 6)), Paint()..color = _ink);
     canvas.drawPath(
       outer,
       flat
@@ -79,6 +93,14 @@ class CandyTvPainter extends CustomPainter {
       ..color = _ink
       ..style = PaintingStyle.stroke
       ..strokeWidth = 3.5);
+    if (!flat) {
+      // طبقة ثانية داخل الإطار تعطيه سماكة البلاستيك
+      final innerBezel = tvShape(variant, ob.deflate(ob.width * 0.035));
+      canvas.drawPath(innerBezel, Paint()
+        ..color = Colors.white.withValues(alpha: 0.28)
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = 2.2);
+    }
     final sb = scr.getBounds();
     final sh = HSLColor.fromColor(screen);
     canvas.drawPath(
@@ -128,6 +150,33 @@ class CandyTvPainter extends CustomPainter {
         ..style = PaintingStyle.stroke
         ..strokeWidth = 1.8);
       canvas.drawCircle(p - const Offset(1.4, 1.4), 1.3, Paint()..color = Colors.white.withValues(alpha: 0.85));
+    }
+    if (!details || size.width < 90) return;
+    // مقبضان على الجانب بعلامة اتجاه
+    final kr = (ob.width * 0.032).clamp(4.0, 9.0);
+    final kx = sb.right + (ob.right - sb.right) / 2;
+    for (final (ky, ang) in [(0.46, 0.6), (0.64, -0.9)]) {
+      final kc = Offset(kx, ob.top + ob.height * ky);
+      canvas.drawCircle(kc + const Offset(0, 2), kr, Paint()..color = _ink);
+      canvas.drawCircle(kc, kr, Paint()..color = Colors.white);
+      canvas.drawCircle(kc, kr, Paint()
+        ..color = _ink
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = 2);
+      canvas.drawLine(kc, kc + Offset(kr * 0.75 * math.cos(ang), kr * 0.75 * math.sin(ang)), Paint()
+        ..color = _ink
+        ..strokeWidth = 2
+        ..strokeCap = StrokeCap.round);
+    }
+    // لمبات صغيرة أعلى الإطار
+    final by = ob.top + (sb.top - ob.top) * 0.5;
+    for (final (i, c) in [(0, const Color(0xFFFF4D6D)), (1, const Color(0xFFFFD43B)), (2, const Color(0xFF34D399))]) {
+      final bc = Offset(ob.left + ob.width * (0.58 + i * 0.06), by);
+      canvas.drawCircle(bc, 3.4, Paint()..color = c);
+      canvas.drawCircle(bc, 3.4, Paint()
+        ..color = _ink
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = 1.4);
     }
   }
 

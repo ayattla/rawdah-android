@@ -18,6 +18,7 @@ class StoriesScreen extends StatelessWidget {
     if (c == null) return const SizedBox.shrink();
     final list = kStories.where((s) => s.minBand <= c.ageBand).toList();
     return ChildShell(
+      theme: SceneTheme.stories,
       child: Column(children: [
         const KidBar(title: 'بيت القصص'),
         Expanded(

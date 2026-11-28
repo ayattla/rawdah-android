@@ -67,6 +67,7 @@ class GardenScreen extends StatelessWidget {
     final stage = palmStage(c.stars);
     final next = stage < kPalmStages.length - 1 ? kPalmStages[stage + 1] : null;
     return ChildShell(
+      theme: SceneTheme.garden,
       child: Column(children: [
         const KidBar(title: 'حديقتي'),
         Expanded(

@@ -95,6 +95,7 @@ class IslamicHubScreen extends StatelessWidget {
     void open(Widget w) => Navigator.of(context).push(MaterialPageRoute(builder: (_) => w));
     final sets = kOrderSets.where((s) => s.minBand <= c.ageBand).toList();
     return ChildShell(
+      theme: SceneTheme.islamic,
       child: Column(children: [
         const KidBar(title: 'ركن المسلم'),
         Expanded(
@@ -218,6 +219,7 @@ class _OrderGameScreenState extends State<OrderGameScreen> {
   Widget build(BuildContext context) {
     final s = widget.set;
     return ChildShell(
+      theme: SceneTheme.islamic,
       child: Column(children: [
         KidBar(title: s.title),
         Expanded(
@@ -315,6 +317,7 @@ class _MemoryGameScreenState extends State<MemoryGameScreen> {
   @override
   Widget build(BuildContext context) {
     return ChildShell(
+      theme: SceneTheme.islamic,
       child: Column(children: [
         const KidBar(title: 'ذاكرة الأذكار'),
         Padding(
@@ -370,6 +373,7 @@ class SeerahScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     final band = AppScope.of(context).current?.ageBand ?? 2;
     return ChildShell(
+      theme: SceneTheme.islamic,
       child: Column(children: [
         const KidBar(title: 'السيرة النبوية'),
         Expanded(
@@ -444,6 +448,7 @@ class _GodNamesScreenState extends State<GodNamesScreen> {
   @override
   Widget build(BuildContext context) {
     return ChildShell(
+      theme: SceneTheme.islamic,
       child: Column(children: [
         const KidBar(title: 'أسماء الله الحسنى'),
         Padding(
@@ -532,6 +537,7 @@ class _TrueFalseScreenState extends State<TrueFalseScreen> {
   Widget build(BuildContext context) {
     final t = _items[_i];
     return ChildShell(
+      theme: SceneTheme.islamic,
       child: Column(children: [
         KidBar(title: 'صح أم خطأ ${_i + 1} / ${_items.length}'),
         Expanded(

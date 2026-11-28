@@ -42,6 +42,7 @@ class _TreasureScreenState extends State<TreasureScreen> {
     final day = calendarDayToClaim(c, now);
     final shownDay = day < 0 ? ((c.counters['cal_day'] ?? 1) - 1) % 7 : day;
     return ChildShell(
+      theme: SceneTheme.play,
       child: Column(children: [
         const KidBar(title: 'كنز النجوم'),
         Expanded(

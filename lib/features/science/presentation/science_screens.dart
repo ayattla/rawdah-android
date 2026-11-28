@@ -19,6 +19,7 @@ class ScienceHubScreen extends StatelessWidget {
     if (c == null) return const SizedBox.shrink();
     final done = kScienceTopics.where((t) => c.completed.contains(t.completionId)).length;
     return ChildShell(
+      theme: SceneTheme.science,
       child: Column(children: [
         const KidBar(title: 'عالم العلوم'),
         Expanded(
@@ -88,6 +89,7 @@ class _ScienceTopicScreenState extends State<ScienceTopicScreen> {
     final total = t.cards.length + 1;
     final qs = t.questions.where((q) => q.band <= (c?.ageBand ?? 2)).toList();
     return ChildShell(
+      theme: SceneTheme.science,
       child: Column(children: [
         KidBar(title: t.title),
         Padding(

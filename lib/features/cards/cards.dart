@@ -148,6 +148,7 @@ class AlbumScreen extends StatelessWidget {
     }
 
     return ChildShell(
+      theme: SceneTheme.stories,
       child: Column(children: [
         const KidBar(title: 'ألبوم المعرفة'),
         Expanded(

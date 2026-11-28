@@ -28,6 +28,7 @@ class DailyScreen extends StatelessWidget {
     final all = done == qs.length;
     final claimed = st.counter('chest_${todayKey()}') > 0;
     return ChildShell(
+      theme: SceneTheme.journey,
       child: Column(children: [
         const KidBar(title: 'رحلة اليوم'),
         Expanded(
@@ -216,6 +217,7 @@ class MasteryScreen extends StatelessWidget {
     final today = dayNumber(DateTime.now());
     final due = all.where((q) => (c.mastery[q.id]?[1] ?? 1 << 30) <= today && !isMastered(c.mastery[q.id])).length;
     return ChildShell(
+      theme: SceneTheme.journey,
       child: Column(children: [
         const KidBar(title: 'إتقاني'),
         Expanded(

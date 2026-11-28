@@ -20,6 +20,7 @@ class ReadingListScreen extends StatelessWidget {
     if (c == null) return const SizedBox.shrink();
     final list = passagesForBand(c.ageBand);
     return ChildShell(
+      theme: SceneTheme.learn,
       child: Column(children: [
         const KidBar(title: 'أقرأ وأفهم'),
         Expanded(
@@ -64,6 +65,7 @@ class _ReadingScreenState extends State<ReadingScreen> {
   Widget build(BuildContext context) {
     final p = widget.passage;
     return ChildShell(
+      theme: SceneTheme.learn,
       child: Column(children: [
         KidBar(title: p.title),
         Expanded(

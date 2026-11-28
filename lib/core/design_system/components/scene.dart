@@ -25,7 +25,13 @@ enum SceneTheme {
   islamic([Color(0xFF0B2A4A), Color(0xFF0F3D5C), Color(0xFF0A2236)], Color(0xFF1F8A5B), Color(0xFFE0A21B), Color(0xFF14B8A6), Color(0xFFE0A21B)),
   learn([Color(0xFF3A0F5C), Color(0xFF55197A), Color(0xFF2A0B45)], Color(0xFFA855F7), Color(0xFFFF5D8F), Color(0xFFFFC23F), Color(0xFF8B5CF6)),
   science([Color(0xFF0B1E5C), Color(0xFF13307E), Color(0xFF0A1640)], Color(0xFF2563EB), Color(0xFF22D3EE), Color(0xFF8B5CF6), Color(0xFF22D3EE)),
-  play([Color(0xFF3B0A6B), Color(0xFF2A0A5A), Color(0xFF160636)], Color(0xFFFF7A3D), Color(0xFFFFC23F), Color(0xFF3B9BFF), Color(0xFFFF5D8F));
+  play([Color(0xFF3B0A6B), Color(0xFF2A0A5A), Color(0xFF160636)], Color(0xFFFF7A3D), Color(0xFFFFC23F), Color(0xFF3B9BFF), Color(0xFFFF5D8F)),
+  stories([Color(0xFF3A1F4A), Color(0xFF5A2E4F), Color(0xFF2A1530)], Color(0xFFFF9F1C), Color(0xFFFFD43B), Color(0xFFFF5D8F), Color(0xFFFFD43B)),
+  school([Color(0xFF0F3B33), Color(0xFF14503F), Color(0xFF0B2E27)], Color(0xFF34D399), Color(0xFFFFD43B), Color(0xFF7FD6FF), Color(0xFFFFD43B)),
+  workshop([Color(0xFF0C2A3A), Color(0xFF123E52), Color(0xFF081E2A)], Color(0xFF22D3EE), Color(0xFFFFB020), Color(0xFF94A3B8), Color(0xFFFFB020)),
+  garden([Color(0xFF0E3B2E), Color(0xFF1B5E3F), Color(0xFF0A2E22)], Color(0xFF86EFAC), Color(0xFFFFD43B), Color(0xFFFF8FC8), Color(0xFFFFD43B)),
+  quiz([Color(0xFF4A0A5E), Color(0xFF2A0A5A), Color(0xFF160636)], Color(0xFFFF9F1C), Color(0xFFFFD43B), Color(0xFF22D3EE), Color(0xFFFF5D8F)),
+  journey([Color(0xFF231A5E), Color(0xFF3B2A6E), Color(0xFF5A2F4E)], Color(0xFFFFB020), Color(0xFF34D399), Color(0xFFFF5D8F), Color(0xFF22D3EE));
 
   final List<Color> sky;
   final Color planet1, ring1, planet2, ring2;
@@ -78,26 +84,7 @@ class ScenePainter extends CustomPainter {
         ..shader = LinearGradient(begin: Alignment.topCenter, end: Alignment.bottomCenter, colors: theme.sky, stops: const [0, 0.55, 1])
             .createShader(rect),
     );
-    if (theme == SceneTheme.islamic || theme == SceneTheme.quran || theme == SceneTheme.learn || theme == SceneTheme.play) return;
-    _planet(canvas, Offset(w * 0.92, h * 0.06), w * 0.22, theme.planet1.withValues(alpha: 0.22), theme.ring1.withValues(alpha: 0.30));
-    canvas.drawCircle(Offset(w * 0.62, h * 0.035), w * 0.03, Paint()..color = theme.planet2.withValues(alpha: 0.25));
-  }
-
-  void _planet(Canvas canvas, Offset c, double r, Color body, Color ring) {
-    final ringPaint = Paint()
-      ..color = ring
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = r * 0.14;
-    final oval = Rect.fromCenter(center: c, width: r * 3.0, height: r * 0.9);
-    canvas.save();
-    canvas.translate(c.dx, c.dy);
-    canvas.rotate(-0.4);
-    canvas.translate(-c.dx, -c.dy);
-    canvas.drawArc(oval, math.pi, math.pi, false, ringPaint);
-    canvas.drawCircle(c, r, Paint()..color = body);
-    canvas.drawCircle(c + Offset(-r * 0.35, -r * 0.35), r * 0.28, Paint()..color = Colors.white.withValues(alpha: 0.18));
-    canvas.drawArc(oval, 0, math.pi, false, ringPaint);
-    canvas.restore();
+    // الكواكب صارت خاصة بقسم كواكب المعرفة؛ بقية العوالم زينتها في LiveScene
   }
 
   @override

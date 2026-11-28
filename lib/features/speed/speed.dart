@@ -58,6 +58,7 @@ class SpeedHubScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     final st = AppScope.of(context);
     return ChildShell(
+      theme: SceneTheme.school,
       child: Column(children: [
         const KidBar(title: 'ميدان الحساب'),
         Expanded(
@@ -181,6 +182,7 @@ class _SpeedPlayScreenState extends State<SpeedPlayScreen> {
   @override
   Widget build(BuildContext context) {
     return ChildShell(
+      theme: SceneTheme.school,
       child: Column(children: [
         KidBar(title: _timed ? 'تحدي الدقيقة' : 'جدول ${widget.table}'),
         Expanded(

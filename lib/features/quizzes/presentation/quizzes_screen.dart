@@ -29,6 +29,7 @@ class QuizHubScreen extends ConsumerWidget {
     void open(String title, List<Question> qs, {String? completionId}) => Navigator.of(context).push(
         MaterialPageRoute(builder: (_) => QuizRunner(title: title, questions: qs, completionId: completionId)));
     return ChildShell(
+      theme: SceneTheme.quiz,
       child: Column(children: [
         const KidBar(title: 'المسابقات'),
         Expanded(
@@ -172,6 +173,7 @@ class _QuizRunnerState extends ConsumerState<QuizRunner> {
     final s = ref.watch(quizControllerProvider(_args));
     final q = s.current;
     return ChildShell(
+      theme: SceneTheme.quiz,
       child: Column(children: [
         KidBar(title: widget.title),
         // شريط التقدم: خانة لكل سؤال، تتلون بنتيجته
@@ -325,6 +327,7 @@ class _RaceScreenState extends State<RaceScreen> {
   Widget build(BuildContext context) {
     final q = _qs[_i % _qs.length];
     return ChildShell(
+      theme: SceneTheme.quiz,
       child: Column(children: [
         const KidBar(title: 'سباق الدقيقة'),
         if (!_started)

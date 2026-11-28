@@ -29,6 +29,7 @@ class LearnHubScreen extends StatelessWidget {
     final letters = kLetters.where((l) => c.completed.contains(l.id)).length;
     void open(Widget w) => Navigator.of(context).push(MaterialPageRoute(builder: (_) => w));
     return ChildShell(
+      theme: SceneTheme.learn,
       child: Column(children: [
         const KidBar(title: 'حروفي وأرقامي'),
         Expanded(
@@ -209,6 +210,7 @@ class _WordBuilderScreenState extends State<WordBuilderScreen> {
   Widget build(BuildContext context) {
     final g = _game;
     return ChildShell(
+      theme: SceneTheme.learn,
       child: Column(children: [
         KidBar(title: 'كلماتي ${_ar(_i + 1)} / ${_ar(_words.length)}'),
         Expanded(
@@ -430,6 +432,7 @@ class _CountGameScreenState extends State<CountGameScreen> {
   Widget build(BuildContext context) {
     final size = _r.count > 20 ? 34.0 : (_r.count > 10 ? 40.0 : 50.0);
     return ChildShell(
+      theme: SceneTheme.learn,
       child: Column(children: [
         KidBar(title: 'عد التمر ${_ar(_i + 1)} / ${_ar(_rounds.length)}'),
         Padding(
@@ -557,6 +560,7 @@ class _CompareGameScreenState extends State<CompareGameScreen> {
   Widget build(BuildContext context) {
     final r = _rounds[_i];
     return ChildShell(
+      theme: SceneTheme.learn,
       child: Column(children: [
         KidBar(title: 'أيهما أكثر؟ ${_ar(_i + 1)} / ${_ar(_rounds.length)}'),
         Text('المس الصحن الذي فيه تمر أكثر', textAlign: TextAlign.center, style: RT.display(19, color: RC.onDark)),

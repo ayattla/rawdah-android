@@ -73,6 +73,7 @@ class CityScreen extends StatelessWidget {
     const outline = Color(0xFF2A1A66);
     final lv = cityLevel(c);
     return ChildShell(
+      theme: SceneTheme.garden,
       child: Column(children: [
         const KidBar(title: 'مدينتي'),
         Expanded(

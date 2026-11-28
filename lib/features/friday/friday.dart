@@ -88,7 +88,8 @@ class _FridayScreenState extends State<FridayScreen> {
           ),
       ]);
     }
-    return ChildShell(child: Column(children: [const KidBar(title: 'بطولة الجمعة'), Expanded(child: body)]));
+    return ChildShell(
+      theme: SceneTheme.quiz,child: Column(children: [const KidBar(title: 'بطولة الجمعة'), Expanded(child: body)]));
   }
 
   Future<void> _pick(int k) async {

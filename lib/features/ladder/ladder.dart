@@ -103,6 +103,7 @@ class _LadderScreenState extends State<LadderScreen> {
     const outline = Color(0xFF2A1A66);
     final q = _q;
     return ChildShell(
+      theme: SceneTheme.quiz,
       child: Column(children: [
         KidBar(title: 'سلم المعرفة • درجة ${_step + 1}'),
         SizedBox(

@@ -59,44 +59,44 @@ class HomeMapScreen extends StatelessWidget {
   const HomeMapScreen({super.key});
 
   static final _journeys =
-      _Place('رحلاتي', 'محطات تصل بك إلى الشهادة', Icons.route_rounded, RC.ink, (_) => const JourneysScreen());
+      _Place('رحلاتي', 'محطات تصل بك إلى الشهادة', Icons.route_rounded, RC.ink, (_) => const JourneysScreen(), SceneTheme.journey);
 
   /// الأقسام مجمعة حسب ما يريده الطفل: أول بلاطة في كل جناح عريضة، والباقي صغيرة.
   static List<_Place> get _allPlaces => [for (final w in _wings) ...w.$2];
 
   static final List<(String, List<_Place>)> _wings = [
     ('قرآني وديني', [
-      _Place('المدرسة', 'قرآن وأذكار ودروس', Icons.school_rounded, RC.sea, (_) => const SchoolScreen(), SceneTheme.quran),
+      _Place('المدرسة', 'قرآن وأذكار ودروس', Icons.school_rounded, RC.sea, (_) => const SchoolScreen(), SceneTheme.school),
       _Place('ركن المسلم', 'السيرة والأذكار ورتب', Icons.mosque_rounded, const Color(0xFF1F5E4A), (_) => const IslamicHubScreen(), SceneTheme.islamic),
-      _Place('بيت القصص', 'قصص نتعلم منها', Icons.auto_stories_rounded, RC.coral, (_) => const StoriesScreen(), SceneTheme.islamic),
+      _Place('بيت القصص', 'قصص نتعلم منها', Icons.auto_stories_rounded, RC.coral, (_) => const StoriesScreen(), SceneTheme.stories),
     ]),
     ('أتعلم وأكتشف', [
-      _Place('حلقة اليوم', 'حلقة جديدة كل يوم', Icons.live_tv_rounded, const Color(0xFFFF5D8F), (_) => const EpisodesScreen(), SceneTheme.islamic),
-      _Place('ورشة المخترع', 'كهرباء وآلات وأفكار', Icons.construction_rounded, const Color(0xFF0F766E), (_) => const WorkshopScreen(), SceneTheme.science),
+      _Place('حلقة اليوم', 'حلقة جديدة كل يوم', Icons.live_tv_rounded, const Color(0xFFFF5D8F), (_) => const EpisodesScreen(), SceneTheme.quiz),
+      _Place('ورشة المخترع', 'كهرباء وآلات وأفكار', Icons.construction_rounded, const Color(0xFF0F766E), (_) => const WorkshopScreen(), SceneTheme.workshop),
       _Place('حروفي وأرقامي', 'حروف وكلمات وعد وقراءة', Icons.abc_rounded, const Color(0xFF1F2A44), (_) => const LearnHubScreen(), SceneTheme.learn),
       _Place('عالم العلوم', 'الفضاء والماء وبلادي', Icons.science_rounded, RC.night, (_) => const ScienceHubScreen(), SceneTheme.science),
-      _Place('حديقتي', 'نخلتي وعادات الخير', Icons.park_rounded, RC.garden, (_) => const GardenScreen(), SceneTheme.islamic),
+      _Place('حديقتي', 'نخلتي وعادات الخير', Icons.park_rounded, RC.garden, (_) => const GardenScreen(), SceneTheme.garden),
     ]),
     ('ألعب وأنافس', [
       _Place('برج الألغاز', 'ألغاز لا تنتهي', Icons.extension_rounded, const Color(0xFF8B5CF6), (_) => const TowerScreen()),
       _Place('دوري العائلة', 'بطولة البيت الشهرية', Icons.emoji_events_rounded, const Color(0xFFFF5D8F), (_) => const FamilyLeagueScreen()),
-      _Place('ميدان الحساب', 'تحدي الدقيقة وجدول الضرب', Icons.calculate_rounded, const Color(0xFFEF4444), (_) => const SpeedHubScreen()),
-      _Place('سلم المعرفة', '١٠ درجات ونجوم أكثر', Icons.stairs_rounded, const Color(0xFF14B8A6), (_) => const LadderScreen()),
+      _Place('ميدان الحساب', 'تحدي الدقيقة وجدول الضرب', Icons.calculate_rounded, const Color(0xFFEF4444), (_) => const SpeedHubScreen(), SceneTheme.school),
+      _Place('سلم المعرفة', '١٠ درجات ونجوم أكثر', Icons.stairs_rounded, const Color(0xFF14B8A6), (_) => const LadderScreen(), SceneTheme.quiz),
       _Place('أوسمتي', 'برونزي وفضي وذهبي وماسي', Icons.military_tech_rounded, const Color(0xFFFFC23F), (_) => const BadgesScreen()),
-      _Place('وش تسوي لو؟', 'مواقف وقرارات', Icons.alt_route_rounded, const Color(0xFFEF4444), (_) => const ChoicesScreen()),
-      _Place('صحتي', 'الماء والطبق الصحي', Icons.favorite_rounded, const Color(0xFF10B981), (_) => const HealthScreen()),
-      _Place('بطولة الجمعة', 'كل جمعة جوائز كبيرة', Icons.emoji_events_rounded, const Color(0xFFFFC23F), (_) => const FridayScreen()),
-      _Place('المبرمج الصغير', 'أوامر توصل الصاروخ', Icons.code_rounded, const Color(0xFF0EA5E9), (_) => const CodingScreen()),
-      _Place('ألبوم المعرفة', '٤٠ بطاقة تجمعها', Icons.collections_bookmark_rounded, const Color(0xFF6366F1), (_) => const AlbumScreen()),
-      _Place('مدينتي', 'ابن مدينتك بنجومك', Icons.location_city_rounded, const Color(0xFF10B981), (_) => const CityScreen()),
+      _Place('وش تسوي لو؟', 'مواقف وقرارات', Icons.alt_route_rounded, const Color(0xFFEF4444), (_) => const ChoicesScreen(), SceneTheme.journey),
+      _Place('صحتي', 'الماء والطبق الصحي', Icons.favorite_rounded, const Color(0xFF10B981), (_) => const HealthScreen(), SceneTheme.garden),
+      _Place('بطولة الجمعة', 'كل جمعة جوائز كبيرة', Icons.emoji_events_rounded, const Color(0xFFFFC23F), (_) => const FridayScreen(), SceneTheme.quiz),
+      _Place('المبرمج الصغير', 'أوامر توصل الصاروخ', Icons.code_rounded, const Color(0xFF0EA5E9), (_) => const CodingScreen(), SceneTheme.workshop),
+      _Place('ألبوم المعرفة', '٤٠ بطاقة تجمعها', Icons.collections_bookmark_rounded, const Color(0xFF6366F1), (_) => const AlbumScreen(), SceneTheme.stories),
+      _Place('مدينتي', 'ابن مدينتك بنجومك', Icons.location_city_rounded, const Color(0xFF10B981), (_) => const CityScreen(), SceneTheme.garden),
       _Place('كنز النجوم', 'مكافآت يومية وتحديات الأسبوع', Icons.diamond_rounded, const Color(0xFF8B5CF6), (_) => const TreasureScreen()),
       _Place('متجر الروضة', 'ألوان وألقاب بنجومك', Icons.storefront_rounded, const Color(0xFFF59E0B), (_) => const ShopScreen()),
       _Place('إتقاني', 'أتقن كل الأسئلة', Icons.psychology_rounded, const Color(0xFF10B981), (_) => const MasteryScreen()),
-      _Place('المسابقات', 'أجب واجمع النجوم', Icons.emoji_events_rounded, RC.goldDark, (_) => const QuizHubScreen()),
+      _Place('المسابقات', 'أجب واجمع النجوم', Icons.emoji_events_rounded, RC.goldDark, (_) => const QuizHubScreen(), SceneTheme.quiz),
       _Place('ساحة الألعاب', 'نلعب ونتعلم', Icons.extension_rounded, RC.plum, (_) => const GamesHubScreen()),
-      _Place('ميدان المنافسة', 'نافس واصعد', Icons.leaderboard_rounded, RC.green, (_) => const CompetitionScreen()),
-      _Place('مجلس العائلة', 'مسابقة مع أهلي', Icons.chair_rounded, RC.rose, (_) => const FamilyQuizScreen()),
-      _Place('رمضان', 'فانوس لكل يوم', Icons.nightlight_round, RC.night, (_) => const RamadanScreen()),
+      _Place('ميدان المنافسة', 'نافس واصعد', Icons.leaderboard_rounded, RC.green, (_) => const CompetitionScreen(), SceneTheme.quiz),
+      _Place('مجلس العائلة', 'مسابقة مع أهلي', Icons.chair_rounded, RC.rose, (_) => const FamilyQuizScreen(), SceneTheme.stories),
+      _Place('رمضان', 'فانوس لكل يوم', Icons.nightlight_round, RC.night, (_) => const RamadanScreen(), SceneTheme.islamic),
     ]),
   ];
 
@@ -125,8 +125,8 @@ class HomeMapScreen extends StatelessWidget {
         theme: SceneTheme.home,
         child: CustomScrollView(slivers: [
           SliverToBoxAdapter(child: _TopBar(child: c)),
-          SliverToBoxAdapter(child: _Ticker(child: c)),
           SliverToBoxAdapter(child: _ArchHeader(child: c)),
+          SliverToBoxAdapter(child: _TodayWindow(child: c, onOpen: (p) => _open(context, p), places: _allPlaces)),
           SliverPadding(
             padding: const EdgeInsets.fromLTRB(16, 14, 16, 0),
             sliver: SliverToBoxAdapter(child: _HeroTile(place: _journeys, onTap: () => _open(context, _journeys))),
@@ -671,76 +671,54 @@ class _ShelfRow extends StatelessWidget {
   }
 }
 
-/// شريط البث: كبسولة تتحرك فيها رسائل اليوم مثل شريط القنوات القديمة.
-class _Ticker extends StatefulWidget {
+/// نافذة اليوم: تلفاز صغير يعرض اقتراح اليوم ولافتة ترحيب، بدل شريط الأخبار.
+/// الاقتراح يتغير كل يوم بين أقسام المغامرة، والضغط يفتحه مباشرة.
+class _TodayWindow extends StatelessWidget {
   final ChildProfile child;
-  const _Ticker({required this.child});
-  @override
-  State<_Ticker> createState() => _TickerState();
-}
+  final List<_Place> places;
+  final void Function(_Place) onOpen;
+  const _TodayWindow({required this.child, required this.places, required this.onOpen});
 
-class _TickerState extends State<_Ticker> with SingleTickerProviderStateMixin {
-  late final AnimationController _c = AnimationController(vsync: this, duration: const Duration(seconds: 22));
-
-  @override
-  void didChangeDependencies() {
-    super.didChangeDependencies();
-    if (A11y.reduceMotionOf(context) || LiveScene.inTest) {
-      _c.stop();
-    } else if (!_c.isAnimating) {
-      _c.repeat();
-    }
-  }
-
-  @override
-  void dispose() {
-    _c.dispose();
-    super.dispose();
-  }
+  static const _picks = ['حلقة اليوم', 'برج الألغاز', 'المبرمج الصغير', 'وش تسوي لو؟', 'ألبوم المعرفة', 'سلم المعرفة', 'ورشة المخترع'];
 
   @override
   Widget build(BuildContext context) {
-    final c = widget.child;
-    final msgs = [
-      'أهلا ${c.name}، يومك مليء بالمغامرات',
-      'مهام اليوم تنتظرك',
-      c.streak > 1 ? 'سلسلتك ${c.streak} أيام، استمر' : 'ابدأ سلسلتك اليوم',
-      'جرب لعبة جديدة في برج الألغاز',
-    ].join('   ◆   ');
+    final day = DateTime.now().difference(DateTime(2026)).inDays;
+    final name = _picks[day % _picks.length];
+    final p = places.firstWhere((x) => x.title == name, orElse: () => places.first);
     return Padding(
-      padding: const EdgeInsets.fromLTRB(16, 0, 16, 10),
-      child: Container(
-        height: 38,
-        decoration: BoxDecoration(
-          color: _outline,
-          borderRadius: BorderRadius.circular(20),
-          border: Border.all(color: const Color(0xFFFFD43B), width: 3),
-          boxShadow: const [BoxShadow(color: Color(0x66000000), offset: Offset(0, 4))],
-        ),
-        child: Row(children: [
-          Container(
-            margin: const EdgeInsets.all(4),
-            padding: const EdgeInsets.symmetric(horizontal: 10),
-            alignment: Alignment.center,
-            decoration: BoxDecoration(color: const Color(0xFFFF4D6D), borderRadius: BorderRadius.circular(14)),
-            child: Text('على الهواء', style: RT.display(13, color: Colors.white)),
-          ),
-          Expanded(
-            child: ClipRect(
-              child: LayoutBuilder(builder: (context, box) {
-                return AnimatedBuilder(
-                  animation: _c,
-                  builder: (_, child) => Transform.translate(offset: Offset(_c.isAnimating ? (_c.value * 2 - 1) * box.maxWidth * 1.6 : 0, 0), child: child),
-                  child: OverflowBox(
-                    maxWidth: double.infinity,
-                    alignment: _c.isAnimating ? Alignment.center : AlignmentDirectional.centerStart,
-                    child: Text(msgs, maxLines: 1, softWrap: false, style: RT.body(14, color: const Color(0xFFFFE48A), weight: FontWeight.w700)),
-                  ),
-                );
-              }),
+      padding: const EdgeInsets.fromLTRB(16, 14, 16, 4),
+      child: GestureDetector(
+        onTapDown: (d) => WarpRoute.lastTap = d.globalPosition,
+        onTap: () {
+          Haptics.tap();
+          onOpen(p);
+        },
+        child: Semantics(
+          button: true,
+          label: 'اقتراح اليوم: ${p.title}',
+          excludeSemantics: true,
+          child: Row(children: [
+            MiniTv(icon: p.icon, color: p.color, size: 96, seed: day),
+            const SizedBox(width: 10),
+            Expanded(
+              child: Container(
+                padding: const EdgeInsets.fromLTRB(14, 10, 14, 12),
+                decoration: BoxDecoration(
+                  color: const Color(0xFFFFF7E0),
+                  borderRadius: const BorderRadius.only(topLeft: Radius.circular(22), topRight: Radius.circular(22), bottomLeft: Radius.circular(22), bottomRight: Radius.circular(6)),
+                  border: Border.all(color: _outline, width: 3),
+                  boxShadow: const [BoxShadow(color: _outline, offset: Offset(0, 5))],
+                ),
+                child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                  Text('مغامرة اليوم يا ${child.name}', style: RT.body(13.5, color: const Color(0xFFB45309), weight: FontWeight.w700)),
+                  Text(p.title, style: RT.display(21, color: _outline)),
+                  Text(p.hint, maxLines: 1, overflow: TextOverflow.ellipsis, style: RT.body(13, color: const Color(0xFF5B4BA8))),
+                ]),
+              ),
             ),
-          ),
-        ]),
+          ]),
+        ),
       ),
     );
   }

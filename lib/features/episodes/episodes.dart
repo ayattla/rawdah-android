@@ -63,6 +63,7 @@ class EpisodesScreen extends StatelessWidget {
     final today = dayNumber(DateTime.now());
     final open = nextEpisodeOpen(done, st.counter('ep_last_day'), today);
     return ChildShell(
+      theme: SceneTheme.quiz,
       child: Column(children: [
         const KidBar(title: 'حلقة اليوم'),
         Expanded(
@@ -110,17 +111,23 @@ class EpisodeScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     final e = kEpisodes[index];
     return ChildShell(
+      theme: SceneTheme.quiz,
       child: Column(children: [
         KidBar(title: 'الحلقة ${index + 1}'),
         Expanded(
           child: ListView(padding: const EdgeInsets.all(20), children: [
-            Text(e.season, textAlign: TextAlign.center, style: RT.body(14, color: RC.onDarkSoft)),
-            const SizedBox(height: 10),
-            Center(child: KhatamBadge(icon: e.icon, color: e.color, size: 110)),
-            const SizedBox(height: 14),
-            Text(e.title, textAlign: TextAlign.center, style: RT.display(26, color: RC.onDark)),
-            const SizedBox(height: 10),
-            Text(e.body, textAlign: TextAlign.center, style: RT.body(19, color: RC.onDark, weight: FontWeight.w500)),
+            TvFrame(
+              body: e.color,
+              child: Column(children: [
+                Text(e.season, textAlign: TextAlign.center, style: RT.body(14, color: const Color(0xFFFFE48A))),
+                const SizedBox(height: 8),
+                MiniTv(icon: e.icon, color: e.color, size: 92, seed: index),
+                const SizedBox(height: 10),
+                Text(e.title, textAlign: TextAlign.center, style: RT.display(25, color: RC.onDark)),
+                const SizedBox(height: 8),
+                Text(e.body, textAlign: TextAlign.center, style: RT.body(18, color: RC.onDark, weight: FontWeight.w500)),
+              ]),
+            ),
             const SizedBox(height: 14),
             Container(
               padding: const EdgeInsets.all(14),

@@ -23,6 +23,7 @@ class LettersPathScreen extends StatelessWidget {
     if (c == null) return const SizedBox.shrink();
     final done = kLetters.where((l) => c.completed.contains(l.id)).length;
     return ChildShell(
+      theme: SceneTheme.learn,
       child: Column(children: [
         const KidBar(title: 'حروفي'),
         Expanded(
@@ -211,6 +212,7 @@ class _LetterLessonScreenState extends State<LetterLessonScreen> {
   Widget build(BuildContext context) {
     final l = widget.letter;
     return ChildShell(
+      theme: SceneTheme.learn,
       child: Column(children: [
         KidBar(title: 'حرف ${l.name}'),
         _StepRail(steps: _steps, current: _page, onTap: _go),

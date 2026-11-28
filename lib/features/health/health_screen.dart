@@ -17,6 +17,7 @@ class HealthScreen extends StatelessWidget {
     final key = 'water_${todayKey()}';
     final cups = st.counter(key);
     return ChildShell(
+      theme: SceneTheme.garden,
       child: Column(children: [
         const KidBar(title: 'صحتي'),
         Expanded(
@@ -112,6 +113,7 @@ class _PlateGameScreenState extends State<PlateGameScreen> {
   Widget build(BuildContext context) {
     final f = _round[_i];
     return ChildShell(
+      theme: SceneTheme.garden,
       child: Column(children: [
         const KidBar(title: 'الطبق الصحي'),
         Expanded(

@@ -91,6 +91,7 @@ class _CodingScreenState extends State<CodingScreen> {
     const names = {Cmd.forward: 'تقدم', Cmd.left: 'لف يسار', Cmd.right: 'لف يمين'};
     const icons = {Cmd.forward: Icons.arrow_upward_rounded, Cmd.left: Icons.turn_left_rounded, Cmd.right: Icons.turn_right_rounded};
     return ChildShell(
+      theme: SceneTheme.workshop,
       child: Column(children: [
         KidBar(title: 'المبرمج الصغير • مستوى $_n'),
         Expanded(

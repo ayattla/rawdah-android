@@ -84,6 +84,7 @@ class ShopScreen extends StatelessWidget {
     }
 
     return ChildShell(
+      theme: SceneTheme.play,
       child: Column(children: [
         const KidBar(title: 'متجر الروضة'),
         Expanded(

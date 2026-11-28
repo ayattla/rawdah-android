@@ -81,6 +81,7 @@ class _FirstLetterScreenState extends State<FirstLetterScreen> with _Rounds {
   Widget build(BuildContext context) {
     final r = rounds[i];
     return ChildShell(
+      theme: SceneTheme.learn,
       child: Column(children: [
         KidBar(title: 'أول حرف ${i + 1} / $total'),
         Expanded(
@@ -155,6 +156,7 @@ class _ClockGameScreenState extends State<ClockGameScreen> with _Rounds {
   Widget build(BuildContext context) {
     final r = rounds[i];
     return ChildShell(
+      theme: SceneTheme.learn,
       child: Column(children: [
         KidBar(title: 'اقرأ الساعة ${i + 1} / $total'),
         Expanded(

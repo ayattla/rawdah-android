@@ -22,6 +22,7 @@ class ChoicesScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return ChildShell(
+      theme: SceneTheme.journey,
       child: Column(children: [
         const KidBar(title: 'وش تسوي لو؟'),
         Expanded(
@@ -86,6 +87,7 @@ class _SituationPlayScreenState extends State<SituationPlayScreen> {
     final s = _round[_i];
     final c = _topicColors[s.topic]!;
     return ChildShell(
+      theme: SceneTheme.journey,
       child: Column(children: [
         KidBar(title: 'موقف ${_i + 1} من ${_round.length}'),
         Expanded(

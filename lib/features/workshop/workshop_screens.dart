@@ -22,6 +22,7 @@ class WorkshopScreen extends StatelessWidget {
     if (c == null) return const SizedBox.shrink();
     void open(Widget w) => Navigator.of(context).push(MaterialPageRoute(builder: (_) => w));
     return ChildShell(
+      theme: SceneTheme.workshop,
       child: Column(children: [
         const KidBar(title: 'ورشة المخترع'),
         Expanded(
@@ -121,6 +122,7 @@ class _CircuitLabScreenState extends State<CircuitLabScreen> {
   Widget build(BuildContext context) {
     final p = _p!;
     return ChildShell(
+      theme: SceneTheme.workshop,
       child: Column(children: [
         KidBar(title: 'مختبر الكهرباء • مستوى $_level'),
         Expanded(
@@ -223,6 +225,7 @@ class _SketchScreenState extends State<SketchScreen> {
   Widget build(BuildContext context) {
     final prompt = promptOfDay(DateTime.now());
     return ChildShell(
+      theme: SceneTheme.workshop,
       child: Column(children: [
         const KidBar(title: 'دفتر أفكاري'),
         Padding(

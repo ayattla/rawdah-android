@@ -21,6 +21,7 @@ class SchoolScreen extends StatelessWidget {
     if (c == null) return const SizedBox.shrink();
     final lessons = kLessons.where((l) => l.minBand <= c.ageBand).toList();
     return ChildShell(
+      theme: SceneTheme.school,
       child: Column(children: [
         const KidBar(title: 'المدرسة'),
         Expanded(
@@ -126,6 +127,7 @@ class _SurahScreenState extends ConsumerState<SurahScreen> {
     final basmalaLit = rec.status == RecitationStatus.playing && rec.highlight == null;
     final lit = rec.highlight == null ? null : rec.highlight! - 1;
     return ChildShell(
+      theme: SceneTheme.school,
       child: Column(children: [
         KidBar(title: 'سورة ${s.name}'),
         Padding(
@@ -295,6 +297,7 @@ class LessonScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return ChildShell(
+      theme: SceneTheme.school,
       child: Column(children: [
         KidBar(title: lesson.title),
         Expanded(
@@ -357,6 +360,7 @@ class AdhkarScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return ChildShell(
+      theme: SceneTheme.school,
       child: Column(children: [
         const KidBar(title: 'أذكار اليوم'),
         Expanded(

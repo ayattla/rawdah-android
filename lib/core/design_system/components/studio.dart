@@ -106,3 +106,19 @@ class CandyAnswer extends StatelessWidget {
     );
   }
 }
+
+/// شاشة تلفاز كبيرة لعرض المحتوى (الحلقات والقصص): إطار مجسم بمقابض ولمبات
+/// والمحتوى على شاشة داكنة بإضاءة.
+class TvFrame extends StatelessWidget {
+  final Widget child;
+  final Color body;
+  final Color screen;
+  final int variant;
+  const TvFrame({super.key, required this.child, this.body = const Color(0xFFFF5DB1), this.screen = const Color(0xFF2B1B7A), this.variant = 3});
+
+  @override
+  Widget build(BuildContext context) => CustomPaint(
+        painter: CandyTvPainter(variant: variant, body: body, screen: screen, flat: A11y.highContrastOf(context), inset: 0.12),
+        child: Padding(padding: const EdgeInsets.fromLTRB(46, 34, 46, 46), child: child),
+      );
+}
