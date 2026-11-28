@@ -3,6 +3,8 @@ import 'dart:math' as math;
 import 'package:flutter/material.dart';
 
 import 'package:rawdah/core/design_system/components/cosmos.dart';
+import 'package:rawdah/core/design_system/components/live_scene.dart';
+import 'package:rawdah/core/design_system/components/studio_backdrop.dart';
 
 import 'package:rawdah/core/design_system/components/a11y.dart';
 import 'package:rawdah/core/design_system/components/kid_widgets.dart';
@@ -76,61 +78,9 @@ class ScenePainter extends CustomPainter {
         ..shader = LinearGradient(begin: Alignment.topCenter, end: Alignment.bottomCenter, colors: theme.sky, stops: const [0, 0.55, 1])
             .createShader(rect),
     );
-    if (theme == SceneTheme.islamic || theme == SceneTheme.quran) {
-      _islamicDecor(canvas, size);
-      return;
-    }
-    if (theme == SceneTheme.play) _confetti(canvas, size);
+    if (theme == SceneTheme.islamic || theme == SceneTheme.quran || theme == SceneTheme.learn || theme == SceneTheme.play) return;
     _planet(canvas, Offset(w * 0.92, h * 0.06), w * 0.22, theme.planet1.withValues(alpha: 0.22), theme.ring1.withValues(alpha: 0.30));
     canvas.drawCircle(Offset(w * 0.62, h * 0.035), w * 0.03, Paint()..color = theme.planet2.withValues(alpha: 0.25));
-  }
-
-  /// عالم ركن المسلم: هلال هادئ وفوانيس معلقة بخيوط ذهبية في أعلى الشاشة فقط.
-  void _islamicDecor(Canvas canvas, Size size) {
-    final w = size.width;
-    final moon = Offset(w * 0.86, 46);
-    canvas.drawCircle(moon, 24, Paint()..color = const Color(0xFFFFE9A8));
-    canvas.drawCircle(moon + const Offset(10, -7), 21, Paint()..color = theme.sky.first);
-    final thread = Paint()
-      ..color = const Color(0xFFD4A537).withValues(alpha: 0.7)
-      ..strokeWidth = 1.6;
-    for (final (x, len) in [(0.1, 40.0), (0.26, 22.0), (0.62, 30.0)]) {
-      final top = Offset(w * x, 0);
-      final at = Offset(w * x, len);
-      canvas.drawLine(top, at, thread);
-      canvas.drawCircle(at + const Offset(0, 14), 22, Paint()..color = const Color(0xFFFFD56A).withValues(alpha: 0.18));
-      final body = Path()
-        ..moveTo(at.dx - 7, at.dy)
-        ..lineTo(at.dx + 7, at.dy)
-        ..lineTo(at.dx + 10, at.dy + 6)
-        ..lineTo(at.dx + 10, at.dy + 20)
-        ..lineTo(at.dx + 5, at.dy + 26)
-        ..lineTo(at.dx - 5, at.dy + 26)
-        ..lineTo(at.dx - 10, at.dy + 20)
-        ..lineTo(at.dx - 10, at.dy + 6)
-        ..close();
-      canvas.drawPath(body, Paint()..color = const Color(0xFFF5B83D));
-      canvas.drawPath(body, Paint()
-        ..color = const Color(0xFF7A4B00)
-        ..style = PaintingStyle.stroke
-        ..strokeWidth = 1.6);
-      canvas.drawRect(Rect.fromLTWH(at.dx - 4, at.dy + 8, 8, 11), Paint()..color = const Color(0xFFFFF7D1));
-    }
-  }
-
-  /// ساحة الألعاب: قصاصات ملونة خفيفة في الأطراف.
-  void _confetti(Canvas canvas, Size size) {
-    final r = math.Random(9);
-    const cols = [Color(0xFFFF5D8F), Color(0xFF22D3EE), Color(0xFFFFC23F), Color(0xFF8B5CF6), Color(0xFF34D399)];
-    for (var i = 0; i < 26; i++) {
-      final x = r.nextBool() ? r.nextDouble() * size.width * 0.18 : size.width * (0.82 + r.nextDouble() * 0.18);
-      final y = r.nextDouble() * size.height;
-      canvas.save();
-      canvas.translate(x, y);
-      canvas.rotate(r.nextDouble() * 3);
-      canvas.drawRRect(RRect.fromRectAndRadius(const Rect.fromLTWH(-5, -2.5, 10, 5), const Radius.circular(2)), Paint()..color = cols[i % cols.length].withValues(alpha: 0.45));
-      canvas.restore();
-    }
   }
 
   void _planet(Canvas canvas, Offset c, double r, Color body, Color ring) {
@@ -164,6 +114,7 @@ class SceneBackground extends StatelessWidget {
   Widget build(BuildContext context) {
     final plain = A11y.highContrastOf(context);
     if (night && !plain) return CosmosBackground(sky: ScenePainter.nightSky, child: SafeArea(child: child));
+    if (!night && !plain) return LiveScene(theme: theme ?? SceneTheme.active, child: SafeArea(child: child));
     return CustomPaint(painter: ScenePainter(night: night, plain: plain, theme: theme ?? SceneTheme.active), child: SafeArea(child: child));
   }
 }
@@ -186,7 +137,10 @@ class ChildShell extends StatelessWidget {
   final Widget child;
   final bool night;
   final SceneTheme? theme;
-  const ChildShell({super.key, required this.child, this.night = false, this.theme});
+
+  /// خلفية استوديو البث (للرئيسية فقط).
+  final bool studio;
+  const ChildShell({super.key, required this.child, this.night = false, this.theme, this.studio = false});
 
   @override
   Widget build(BuildContext context) {
@@ -224,6 +178,9 @@ class ChildShell extends StatelessWidget {
       );
     }
     final t = theme ?? SceneTheme.active;
+    if (studio && !A11y.highContrastOf(context)) {
+      return Scaffold(body: StudioBackdrop(sky: ScenePainter.nightSky, child: SafeArea(child: NightScope(night: true, child: child))));
+    }
     return Scaffold(body: SceneBackground(night: night, theme: t, child: NightScope(night: night, child: child)));
   }
 }

@@ -121,9 +121,11 @@ class HomeMapScreen extends StatelessWidget {
       },
       child: ChildShell(
         night: true,
+        studio: true,
         theme: SceneTheme.home,
         child: CustomScrollView(slivers: [
           SliverToBoxAdapter(child: _TopBar(child: c)),
+          SliverToBoxAdapter(child: _Ticker(child: c)),
           SliverToBoxAdapter(child: _ArchHeader(child: c)),
           SliverPadding(
             padding: const EdgeInsets.fromLTRB(16, 14, 16, 0),
@@ -160,13 +162,12 @@ class HomeMapScreen extends StatelessWidget {
             padding: const EdgeInsets.fromLTRB(0, 18, 0, 8),
             sliver: SliverList(
               delegate: SliverChildBuilderDelegate(
-                childCount: _allPlaces.length,
-                (context, i) => _PathRow(
-                  index: i,
-                  last: i == _allPlaces.length - 1,
-                  place: _allPlaces[i],
-                  frame: equippedFrames(st)[i % 6],
-                  onTap: () => _open(context, _allPlaces[i]),
+                childCount: (_allPlaces.length + 1) ~/ 2,
+                (context, r) => _ShelfRow(
+                  row: r,
+                  places: _allPlaces.skip(r * 2).take(2).toList(),
+                  frames: [equippedFrames(st)[(r * 2) % 6], equippedFrames(st)[(r * 2 + 1) % 6]],
+                  onOpen: (p) => _open(context, p),
                 ),
               ),
             ),
@@ -470,6 +471,7 @@ class _TvCard extends StatefulWidget {
 
 class _TvCardState extends State<_TvCard> {
   bool _down = false;
+  bool _on = false;
   int _wiggle = 0;
 
   @override
@@ -486,10 +488,18 @@ class _TvCardState extends State<_TvCard> {
         },
         onTapCancel: () => setState(() => _down = false),
         onTapUp: (_) => setState(() => _down = false),
-        onTap: () {
+        onTap: () async {
           Haptics.tap();
-          setState(() => _wiggle++);
+          setState(() {
+            _wiggle++;
+            _on = true;
+          });
+          // الشاشة تنطفئ وتشتغل مثل التلفاز القديم قبل السفر
+          await Future<void>.delayed(Duration(milliseconds: A11y.reduceMotionOf(context) ? 0 : 230));
+          if (!mounted) return;
           widget.onTap();
+          await Future<void>.delayed(const Duration(milliseconds: 600));
+          if (mounted) setState(() => _on = false);
         },
         child: AnimatedScale(
           scale: _down ? 0.92 : 1,
@@ -511,6 +521,23 @@ class _TvCardState extends State<_TvCard> {
               final screenRect = sr;
               return Stack(clipBehavior: Clip.none, children: [
                 Positioned(left: 4, top: 10, width: tvSize.width, height: tvSize.height, child: CustomPaint(painter: painter)),
+                if (_on && !hc)
+                  Positioned.fromRect(
+                    rect: screenRect.deflate(6),
+                    child: IgnorePointer(
+                      child: TweenAnimationBuilder<double>(
+                        tween: Tween(begin: 0, end: 1),
+                        duration: const Duration(milliseconds: 230),
+                        builder: (_, v, __) => Center(
+                          child: Container(
+                            width: screenRect.width * (0.2 + 0.8 * v),
+                            height: 4 + screenRect.height * 0.7 * (1 - (2 * v - 1).abs()),
+                            decoration: BoxDecoration(color: Colors.white.withValues(alpha: 0.85), borderRadius: BorderRadius.circular(8)),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
                 Positioned.fromRect(
                   rect: screenRect,
                   child: Center(
@@ -566,113 +593,157 @@ class _TvCardState extends State<_TvCard> {
   }
 }
 
-/// صف في مسار الأقسام: شاشة تلفاز على جانب، ولافتة معلقة على الجانب الآخر،
-/// وسلك متعرج يربط الشاشات مثل فواصل القنوات القديمة. الترتيب نفسه بلا تغيير.
-class _PathRow extends StatelessWidget {
-  final int index;
-  final bool last;
-  final _Place place;
-  final Color frame;
-  final VoidCallback onTap;
-  const _PathRow({required this.index, required this.last, required this.place, required this.frame, required this.onTap});
+/// جدار الشاشات: كل رف عليه شاشتان بحجمين مختلفين يتبادلان كل صف،
+/// والرف لوح حلوى بظل صلب. الترتيب نفسه بلا تغيير.
+class _ShelfRow extends StatelessWidget {
+  final int row;
+  final List<_Place> places;
+  final List<Color> frames;
+  final void Function(_Place) onOpen;
+  const _ShelfRow({required this.row, required this.places, required this.frames, required this.onOpen});
 
-  static const _tagColors = [Color(0xFFFFD43B), Color(0xFF22D3EE), Color(0xFFFF8FC8), Color(0xFF9DFF8A)];
+  static const _planks = [Color(0xFFFF5DB1), Color(0xFF22D3EE), Color(0xFFFFD43B), Color(0xFF9DFF8A)];
 
   @override
   Widget build(BuildContext context) {
     final scale = MediaQuery.textScalerOf(context).scale(1).clamp(1.0, 1.3);
-    final h = 196.0 * scale;
-    final right = index.isEven; // في الواجهة العربية نبدأ من اليمين
-    final hc = A11y.highContrastOf(context);
-    return SizedBox(
-      height: h,
-      child: LayoutBuilder(builder: (context, box) {
-        final w = box.maxWidth;
-        final tvW = w * 0.56;
-        final tvLeft = right ? w - tvW - 12 : 12.0;
-        final cx = tvLeft + tvW / 2;
-        final nextCx = right ? 12 + tvW / 2 : w - tvW / 2 - 12;
-        final tag = _tagColors[index % _tagColors.length];
-        return Stack(clipBehavior: Clip.none, children: [
-          if (!last && !hc)
-            Positioned.fill(child: CustomPaint(painter: _CablePainter(from: Offset(cx, h * 0.45), to: Offset(nextCx, h * 1.45), knob: tag))),
+    final h = 186.0 * scale;
+    final bigFirst = row.isEven;
+    final plank = _planks[row % _planks.length];
+    Widget tv(int k, int flex) {
+      final p = places[k];
+      final i = row * 2 + k;
+      return Expanded(
+        flex: flex,
+        child: PopIn(
+          child: _TvCard(
+            title: p.title,
+            hint: p.hint,
+            icon: p.icon,
+            screen: p.color,
+            frame: frames[k],
+            variant: (i * 7 + row) % 3,
+            tilt: ((i % 3) - 1) * 0.025,
+            onTap: () => onOpen(p),
+          ),
+        ),
+      );
+    }
+
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(12, 0, 12, 18),
+      child: SizedBox(
+        height: h + 22,
+        child: Stack(clipBehavior: Clip.none, children: [
+          // الرف
           Positioned(
-            left: tvLeft,
-            top: 0,
-            width: tvW,
-            height: h - 8,
-            child: PopIn(
-              child: _TvCard(
-                title: place.title,
-                hint: place.hint,
-                icon: place.icon,
-                screen: place.color,
-                frame: frame,
-                variant: index % 3,
-                tilt: hc ? 0 : (right ? -1 : 1) * 0.035,
-                onTap: onTap,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            height: 20,
+            child: Container(
+              decoration: BoxDecoration(
+                color: plank,
+                borderRadius: BorderRadius.circular(10),
+                border: Border.all(color: _outline, width: 3),
+                boxShadow: const [BoxShadow(color: _outline, offset: Offset(0, 5))],
               ),
             ),
           ),
-          // لافتة جانبية معلقة بسلك
           Positioned(
-            left: right ? 10 : null,
-            right: right ? null : 10,
-            top: h * 0.28,
-            width: w - tvW - 34,
-            child: ExcludeSemantics(
-              child: Column(crossAxisAlignment: right ? CrossAxisAlignment.start : CrossAxisAlignment.end, children: [
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-                  decoration: BoxDecoration(
-                    color: _outline,
-                    borderRadius: BorderRadius.circular(14),
-                    border: Border.all(color: tag, width: 2.5),
-                    boxShadow: const [BoxShadow(color: Color(0x66000000), offset: Offset(0, 4))],
-                  ),
-                  child: Text(place.hint, maxLines: 3, textAlign: TextAlign.center, style: RT.body(12.5, color: tag, weight: FontWeight.w700)),
-                ),
-              ]),
-            ),
+            left: 0,
+            right: 0,
+            top: 0,
+            height: h,
+            child: Row(crossAxisAlignment: CrossAxisAlignment.end, children: [
+              if (places.length == 1)
+                tv(0, 1)
+              else ...[
+                tv(0, bigFirst ? 11 : 9),
+                const SizedBox(width: 10),
+                tv(1, bigFirst ? 9 : 11),
+              ],
+            ]),
           ),
-        ]);
-      }),
+        ]),
+      ),
     );
   }
 }
 
-class _CablePainter extends CustomPainter {
-  final Offset from, to;
-  final Color knob;
-  _CablePainter({required this.from, required this.to, required this.knob});
+/// شريط البث: كبسولة تتحرك فيها رسائل اليوم مثل شريط القنوات القديمة.
+class _Ticker extends StatefulWidget {
+  final ChildProfile child;
+  const _Ticker({required this.child});
+  @override
+  State<_Ticker> createState() => _TickerState();
+}
+
+class _TickerState extends State<_Ticker> with SingleTickerProviderStateMixin {
+  late final AnimationController _c = AnimationController(vsync: this, duration: const Duration(seconds: 22));
 
   @override
-  void paint(Canvas canvas, Size size) {
-    final mid = (from.dy + to.dy) / 2;
-    final path = Path()
-      ..moveTo(from.dx, from.dy)
-      ..cubicTo(from.dx, mid + 30, to.dx, mid - 30, to.dx, to.dy);
-    canvas.drawPath(path, Paint()
-      ..color = _outline
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = 12
-      ..strokeCap = StrokeCap.round);
-    canvas.drawPath(path, Paint()
-      ..color = const Color(0xFF7CFF6B)
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = 5.5
-      ..strokeCap = StrokeCap.round);
-    final m = path.computeMetrics().first;
-    final t = m.getTangentForOffset(m.length / 2)!.position;
-    canvas.drawCircle(t, 8, Paint()..color = knob);
-    canvas.drawCircle(t, 8, Paint()
-      ..color = _outline
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = 2.5);
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (A11y.reduceMotionOf(context) || LiveScene.inTest) {
+      _c.stop();
+    } else if (!_c.isAnimating) {
+      _c.repeat();
+    }
   }
 
   @override
-  bool shouldRepaint(covariant _CablePainter o) => o.from != from || o.to != to || o.knob != knob;
+  void dispose() {
+    _c.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final c = widget.child;
+    final msgs = [
+      'أهلا ${c.name}، يومك مليء بالمغامرات',
+      'مهام اليوم تنتظرك',
+      c.streak > 1 ? 'سلسلتك ${c.streak} أيام، استمر' : 'ابدأ سلسلتك اليوم',
+      'جرب لعبة جديدة في برج الألغاز',
+    ].join('   ◆   ');
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(16, 0, 16, 10),
+      child: Container(
+        height: 38,
+        decoration: BoxDecoration(
+          color: _outline,
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(color: const Color(0xFFFFD43B), width: 3),
+          boxShadow: const [BoxShadow(color: Color(0x66000000), offset: Offset(0, 4))],
+        ),
+        child: Row(children: [
+          Container(
+            margin: const EdgeInsets.all(4),
+            padding: const EdgeInsets.symmetric(horizontal: 10),
+            alignment: Alignment.center,
+            decoration: BoxDecoration(color: const Color(0xFFFF4D6D), borderRadius: BorderRadius.circular(14)),
+            child: Text('على الهواء', style: RT.display(13, color: Colors.white)),
+          ),
+          Expanded(
+            child: ClipRect(
+              child: LayoutBuilder(builder: (context, box) {
+                return AnimatedBuilder(
+                  animation: _c,
+                  builder: (_, child) => Transform.translate(offset: Offset((_c.value * 2 - 1) * box.maxWidth * 1.6, 0), child: child),
+                  child: OverflowBox(
+                    maxWidth: double.infinity,
+                    alignment: Alignment.center,
+                    child: Text(msgs, maxLines: 1, softWrap: false, style: RT.body(14, color: const Color(0xFFFFE48A), weight: FontWeight.w700)),
+                  ),
+                );
+              }),
+            ),
+          ),
+        ]),
+      ),
+    );
+  }
 }
 
 class _AntennaPainter extends CustomPainter {

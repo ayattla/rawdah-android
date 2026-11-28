@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:rawdah/core/design_system/components/a11y.dart';
 import 'package:rawdah/core/design_system/components/chunky.dart';
 import 'package:rawdah/core/design_system/components/scene.dart';
+import 'package:rawdah/core/design_system/geometry/tv_shapes.dart';
 import 'package:rawdah/core/design_system/tokens/colors.dart';
 import 'package:rawdah/core/design_system/tokens/typography.dart';
 import 'package:rawdah/core/services/voice.dart';
@@ -159,7 +160,7 @@ class BigTile extends StatelessWidget {
       },
       // النص في منتصف البطاقة: الشارة وعلامة الإنجاز في عمودين بعرض واحد
       child: Row(children: [
-        KhatamBadge(icon: icon, color: color, size: 62, label: badge),
+        MiniTv(icon: icon, color: color, label: badge, seed: title.length),
         const SizedBox(width: 10),
         Expanded(
           child: Column(crossAxisAlignment: CrossAxisAlignment.center, children: [
@@ -183,6 +184,43 @@ class BigTile extends StatelessWidget {
         ),
       ]),
     ));
+  }
+}
+
+/// تلفاز صغير ملون بدل الشارة في بطاقات الأقسام: الأيقونة على شاشته.
+class MiniTv extends StatelessWidget {
+  final IconData icon;
+  final Color color;
+  final String? label;
+  final int seed;
+  final double size;
+  const MiniTv({super.key, required this.icon, required this.color, this.label, this.seed = 0, this.size = 66});
+
+  static const _bodies = [Color(0xFFFFD43B), Color(0xFFFF8FC8), Color(0xFF7FD6FF), Color(0xFF9DFF8A), Color(0xFFFFB45C)];
+
+  @override
+  Widget build(BuildContext context) {
+    final hc = A11y.highContrastOf(context);
+    final painter = CandyTvPainter(variant: seed % 3, body: _bodies[seed % _bodies.length], screen: color, flat: hc, inset: 0.2);
+    final sz = Size(size, size * 0.86);
+    final sr = painter.screenRect(Size(sz.width, sz.height - 6));
+    return ExcludeSemantics(
+      child: SizedBox(
+        width: sz.width,
+        height: sz.height,
+        child: Stack(children: [
+          Positioned.fill(child: CustomPaint(painter: painter)),
+          Positioned.fromRect(
+            rect: sr,
+            child: Center(
+              child: label != null
+                  ? Text(label!, style: RT.display(size * 0.28, color: Colors.white))
+                  : Icon(icon, color: Colors.white, size: size * 0.36, shadows: const [Shadow(color: Color(0x55000000), offset: Offset(0, 2))]),
+            ),
+          ),
+        ]),
+      ),
+    );
   }
 }
 

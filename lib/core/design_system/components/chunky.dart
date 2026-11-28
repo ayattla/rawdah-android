@@ -71,7 +71,12 @@ class _ChunkyState extends State<Chunky> {
                 widget.onTap!();
               }
             : null,
-        child: AnimatedContainer(
+        // ضغطة جيلي: تنكمش ثم ترتد بنطة خفيفة
+        child: AnimatedScale(
+          scale: _down ? 0.95 : 1,
+          duration: Duration(milliseconds: _down ? 90 : 260),
+          curve: _down ? Curves.easeOut : Curves.elasticOut,
+          child: AnimatedContainer(
           duration: const Duration(milliseconds: 90),
           margin: EdgeInsets.only(top: widget.depth - drop, bottom: drop),
           padding: widget.padding,
@@ -82,6 +87,7 @@ class _ChunkyState extends State<Chunky> {
             boxShadow: [BoxShadow(color: enabled ? edge : Colors.grey.shade400, offset: Offset(0, drop))],
           ),
           child: widget.child,
+        ),
         ),
       ),
     );

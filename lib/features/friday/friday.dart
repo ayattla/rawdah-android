@@ -79,20 +79,12 @@ class _FridayScreenState extends State<FridayScreen> {
       body = ListView(padding: const EdgeInsets.all(18), children: [
         Text('سؤال ${_i + 1} من 15 • صح $_score', textAlign: TextAlign.center, style: RT.display(17)),
         const SizedBox(height: 10),
-        Container(
-          padding: const EdgeInsets.all(16),
-          decoration: BoxDecoration(color: outline, borderRadius: BorderRadius.circular(22)),
-          child: Text(q.text, textAlign: TextAlign.center, style: RT.display(20, color: Colors.white)),
-        ),
+        StudioQuestion(text: q.text),
         const SizedBox(height: 14),
         for (var k = 0; k < q.options.length; k++)
           Padding(
             padding: const EdgeInsets.only(bottom: 10),
-            child: Chunky(
-              color: _picked == null ? Colors.white : (k == q.answer ? const Color(0xFFD1FAE5) : (k == _picked ? const Color(0xFFFEE2E2) : Colors.white)),
-              onTap: _picked == null ? () => _pick(k) : null,
-              child: Text(q.options[k], textAlign: TextAlign.center, style: RT.display(18)),
-            ),
+            child: CandyAnswer(text: q.options[k], index: k, state: _picked == null ? 0 : (k == q.answer ? 1 : (k == _picked ? 2 : 3)), onTap: _picked == null ? () => _pick(k) : null),
           ),
       ]);
     }
